@@ -32,6 +32,7 @@
 #define ACTION_SET_PASSWORD  25
 #define ACTION_MEMORIZE      26
 #define ACTION_RECALL        27
+#define ACTION_DEFINE_SPEED  28
 
 #define PORT_A    0
 #define PORT_B    1
@@ -39,6 +40,9 @@
 
 #define SWITCH_22106 0
 #define SWITCH_8808  1
+
+#define SPEED_SLOW 0
+#define SPEED_FAST 1
 
 const uint8_t POLICY_ALWAYS  = 0b00000000;
 const uint8_t POLICY_EVEN    = 0b01000000;
@@ -81,6 +85,15 @@ typedef struct {
   State *state;
 } Config;
 
+typedef struct {
+  uint8_t clock;
+  uint8_t data;
+  uint8_t latch;
+  uint8_t enable;
+  uint8_t num_ports;
+  uint8_t* ports;
+} Expansion;
+
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
 uint8_t KEY_EOF       = 0xff;
 uint8_t KEY_IMMEDIATE = 0xfe;
@@ -115,5 +128,9 @@ void Command_free(Command *self);
 State* State_new(void);
 void State_read(State* self, FILE* in);
 void State_free(State* self);
+
+Expansion * Expansion_new(uint8_t num_ports);
+void Expansion_read(Expansion* self, FILE* in);
+void Expansion_free(Expansion* self);
 
 #endif // CONFIG_H

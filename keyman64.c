@@ -71,7 +71,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "lock",     4) == 0) return ACTION_LOCK;
   if(strncasecmp(str, "password", 8) == 0) return ACTION_SET_PASSWORD;
   if(strncasecmp(str, "memorize", 8) == 0) return ACTION_MEMORIZE;
-  if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;      
+  if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;
+  if(strncasecmp(str, "speed",    5) == 0) return ACTION_DEFINE_SPEED;
   
   return ACTION_NONE;
 }
@@ -663,6 +664,29 @@ bool Command_parse(Command* self, char* spec) {
     fprintf(stderr, "error: please specify crosspoint switch model (CD74HC22106 or MT8808)\n");
     goto error;    
   }
+
+  if(self->action == ACTION_DEFINE_SPEED) {
+    str = StringList_get(words, i);
+
+    if(str == NULL) {
+      fprintf(stderr, "error: missing value for 'speed' (use 'fast' or 'slow')\n");
+      goto error;
+    }
+
+    if(strcasecmp(str, "fast") == 0) {
+      self->data = SPEED_FAST;
+      goto done;
+    }
+    
+    if(strcasecmp(str, "slow") == 0) {
+      self->data = SPEED_SLOW;
+      goto done;
+    }
+
+    fprintf(stderr, "error: '%s': invalid value for 'speed' (use 'fast' or 'slow')\n", str);
+    goto error;    
+  }
+
   
   if(self->action == ACTION_SWAP) {
     if(!parseData(StringList_get(words, i), &data)) {
@@ -873,7 +897,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_LOCK:          action = "lock";     break;
   case ACTION_SET_PASSWORD:  action = "password"; break;
   case ACTION_MEMORIZE:      action = "memorize"; break;
-  case ACTION_RECALL:        action = "recall";   break;            
+  case ACTION_RECALL:        action = "recall";   break;
+  case ACTION_DEFINE_SPEED:  action = "speed";    break;                
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -930,6 +955,11 @@ void Command_print(Command *self, FILE* out) {
   else if(self->action == ACTION_DEFINE_SWITCH) {
     fprintf(out, "%s %s", action,
             self->data == SWITCH_22106 ? "CD74HC22106" : "MT8808");
+  }
+
+  else if(self->action == ACTION_DEFINE_SPEED) {
+    fprintf(out, "%s %s", action,
+            self->data == SPEED_SLOW ? "slow" : "fast");
   }
   
   else if(self->action == ACTION_DEFINE_META ||

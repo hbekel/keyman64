@@ -59,7 +59,8 @@ void SetupKeyboardLayout(void);
 void ExecuteImmediateCommands(volatile Config *cfg, uint16_t delay);
 void DisableJTAG(void);
 void ResetCounter(void);
-void ClockMatrix(void);
+void ClockMatrixFast(void);
+void ClockMatrixSlow(void);
 bool ScanMatrix(void);
 void RelayMatrix(void);
 void RelayKeyPress(volatile uint8_t key);
@@ -118,5 +119,10 @@ void Storage_save_state(Storage* self);
 void Storage_save_password(Storage* self);
 void Storage_save_bootflag(Storage* self);
 void Storage_free(Storage* self);
+
+void Expansion_init(Expansion* self);
+void Expansion_set(Expansion* self, uint8_t pin, bool high);
+void Expansion_enable(Expansion* self);
+void Expansion_send(Expansion* self);
 
 #endif // MAIN_H

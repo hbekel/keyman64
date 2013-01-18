@@ -388,3 +388,19 @@ void State_free(State* self) {
 
 //-----------------------------------------------------------------------------
 
+Expansion* Expansion_new(uint8_t num_ports) {
+  Expansion* self = (Expansion*) calloc(1, sizeof(Expansion));
+  self->num_ports = num_ports;
+  self->ports = (uint8_t*) calloc(self->num_ports, sizeof(uint8_t));
+  return self;
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_free(Expansion* self) {
+  free(self->ports);
+  free(self);
+}
+
+//-----------------------------------------------------------------------------
+

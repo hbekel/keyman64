@@ -52,6 +52,7 @@ volatile bool reset;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
+static void (*ClockMatrix)(void);
 
 static volatile uint8_t usbCommand;
 static volatile uint16_t usbDataReceived;
@@ -365,9 +366,17 @@ void ResetCounter(void) {
 
 //-----------------------------------------------------------------------------
 
-void ClockMatrix(void) {
+void ClockMatrixFast(void) {
   PORTD |= MC;
   _delay_us(5);
+  PORTD &= ~MC;
+}
+
+//-----------------------------------------------------------------------------
+
+void ClockMatrixSlow(void) {
+  PORTD |= MC;
+  _delay_us(50);
   PORTD &= ~MC;
 }
 
@@ -749,6 +758,15 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     }
     break;
 
+  case ACTION_DEFINE_SPEED:
+    if(cmd->data == SPEED_SLOW) {
+      ClockMatrix = &ClockMatrixSlow;
+    }
+    if(cmd->data == SPEED_FAST) {
+      ClockMatrix = &ClockMatrixFast;
+    }
+    break;
+    
   case ACTION_SAVE_STATE:
     SaveState();
     break;
@@ -1182,6 +1200,64 @@ void Storage_free(Storage* self) {
 
 //-----------------------------------------------------------------------------
 
+void Expansion_init(Expansion* self) {
+  Expansion_set(self, self->enable, true);
+  Expansion_set(self, self->clock, false);
+  Expansion_set(self, self->latch, false);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_set(Expansion* self, uint8_t pin, bool high) {
+  uint8_t volatile *port = ((pin >> 3) == PORT_A) ? &PORTB : &PORTC;
+  uint8_t volatile *ddr  = ((pin >> 3) == PORT_A) ? &DDRB : &DDRC;
+  
+  uint8_t mask = pin & 0x07;
+
+  if(high) {
+    *port |= mask;
+  }
+  else {
+    *port &= ~mask;
+  }
+  *ddr |= mask;
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_enable(Expansion* self) {
+  Expansion_set(self, self->enable, false);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_send(Expansion* self) {
+  
+  uint8_t pin;
+  uint8_t port;
+  
+  for(uint8_t i = 0; i<self->num_ports; i++) {
+    port = self->ports[i];
+
+    while(pin) {
+      Expansion_set(self, self->data, (port & pin) != 0 ? true : false);
+      
+      Expansion_set(self, self->clock, true);
+      _delay_ms(10);
+      Expansion_set(self, self->clock, false);
+
+      pin <<= 1;
+    }
+  }
+  Expansion_set(self, self->latch, true);
+  _delay_ms(10);
+  Expansion_set(self, self->latch, false);
+  
+  Expansion_set(self, self->enable, false);    
+}
+
+//-----------------------------------------------------------------------------
+
 int main(void) {
 
   SetupHardware();
@@ -1194,7 +1270,8 @@ int main(void) {
   reset = false;
   
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
-  StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
+  StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;
+  ClockMatrix = &ClockMatrixFast;
   
   config = Config_new();
 
@@ -1217,7 +1294,7 @@ int main(void) {
   
   Binding *binding;
   bool relayMetaKey = true;
-
+  
   while(true) {
 
     usbPoll();
