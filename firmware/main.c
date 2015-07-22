@@ -5,6 +5,8 @@
 #include <avr/power.h>
 #include <util/delay.h>
 
+#include "main.h"
+
 #define MC 1<<PA0
 #define MD 1<<PA1
 
@@ -16,76 +18,80 @@ static void SetupHardware(void) {
 
   clock_prescale_set(clock_div_1);
 
+  DisableJTAG();
+  
   // Control / Output 8-11
   DDRA  = 0b11110001;
   PORTA = 0b00001110;
 
   // CIA1 PORT A
-  DDRB  = 0b00000000;
-  PORTB = 0b11111111;
+  DDRD  = 0b00000000;
+  PORTD = 0b00000000;
 
   // Output 0-7
   DDRC  = 0b11111111;
   PORTC = 0b00000000;
 
   // CIA1 PORT B
-  DDRD  = 0b11111111;
-  PORTD = 0b00000000;
+  DDRB  = 0b11111111;
+  PORTB = 0b00000000;
+
+  Settle();
 }
 
-static void LedOn(void) {
-  PORTC &= ~(1<<PINC0);
+static void DisableJTAG(void) {
+  MCUCR |= (1<<JTD);
+  MCUCR |= (1<<JTD);
 }
 
-static void LedOff(void) {
-  PORTC |= (1<<PINC0);
-}
+static void Settle(void) {
+  _delay_ms(5);
+}  
 
 static void ClockMatrix(void) {
   PORTA |= MC;
+  _delay_us(5);
   PORTA &= ~MC;
 }
 
-static void DebugMatrix(void) {
+static void ScanMatrix(void) {
   uint8_t row = 0;
   uint8_t col = 0;
-
+  
   for(row=0; row<8; row++) {
     for(col=0; col<8; col++) {
-      printf("%s ", (matrix[row] & col) ? "1" : "0");
+      if((PINA & MD) == 0) {
+        matrix[row] &= ~(1<<col);
+      }
+      else {
+        matrix[row] |= 1<<col;
+      }
+      ClockMatrix();
     }
-    printf("\n");
   }
+  PORTC = matrix[0];
+}
+
+static void RelayMatrix(void) {
+  uint8_t row = 0;
+  uint8_t col = 0xff;
+  uint8_t tmp = PIND;
+  
+  for(row=0; row<8; row++) {
+    if((tmp & (1<<row)) == 0) {
+      col &= matrix[row];
+    }
+  }
+  PORTB = col;
 }
 
 int main(void) {
   SetupHardware();
-
-  /*
-  uint8_t row = 0;
-  uint8_t col = 0;
-
+  
   while(1) {
-    for(row=0; row<8; row++) {
-      for(col=0; col<8; col++) {
-        
-        if((PINA & MD) == 0) {
-          matrix[row] &= ~(1<<col);
-        }
-        else {
-          matrix[row] |= 1<<col;
-        }
-        ClockMatrix();
-      }
-    }
-    DebugMatrix();
-  } 
-  */
-  while(1) {
-    LedOn();
-    _delay_ms(500);
-    LedOff();
-    _delay_ms(500);
+    ScanMatrix();
+    RelayMatrix();
   }
+
   return 0;
 }
