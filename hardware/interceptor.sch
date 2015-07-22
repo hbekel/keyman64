@@ -30,7 +30,7 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:interceptor-cache
-EELAYER 27 0
+EELAYER 24 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -439,43 +439,8 @@ F 3 "" H 5450 3200 60  0000 C CNN
 	1    5450 3200
 	0    1    1    0   
 $EndComp
-$Comp
-L R R2
-U 1 1 55A76E53
-P 7900 2900
-F 0 "R2" V 7980 2900 40  0000 C CNN
-F 1 "50" V 7907 2901 40  0000 C CNN
-F 2 "~" V 7830 2900 30  0000 C CNN
-F 3 "~" H 7900 2900 30  0000 C CNN
-	1    7900 2900
-	0    -1   -1   0   
-$EndComp
-$Comp
-L C C6
-U 1 1 55A76E62
-P 8150 3100
-F 0 "C6" H 8150 3200 40  0000 L CNN
-F 1 "100nF" H 8156 3015 40  0000 L CNN
-F 2 "~" H 8188 2950 30  0000 C CNN
-F 3 "~" H 8150 3100 60  0000 C CNN
-	1    8150 3100
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR013
-U 1 1 55A76E7F
-P 8150 3300
-F 0 "#PWR013" H 8150 3300 30  0001 C CNN
-F 1 "GND" H 8150 3230 30  0001 C CNN
-F 2 "" H 8150 3300 60  0000 C CNN
-F 3 "" H 8150 3300 60  0000 C CNN
-	1    8150 3300
-	1    0    0    -1  
-$EndComp
-Text Label 7650 2900 2    60   ~ 0
+Text Label 8150 2900 2    60   ~ 0
 RCK
-Text Notes 7750 3150 0    60   ~ 0
-5.3ms
 $Comp
 L 4051 U4
 U 1 1 55A76EFE

@@ -36,7 +36,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "16 jul 2015"
+Date "20 jul 2015"
 Rev ""
 Comp ""
 Comment1 ""
@@ -130,21 +130,21 @@ Text Label 1050 3850 2    60   ~ 0
 A7
 Text Label 1050 2250 2    60   ~ 0
 VCC
-Text Label 4400 1900 0    60   ~ 0
+Text Label 4400 2800 0    60   ~ 0
 A0
-Text Label 4400 2000 0    60   ~ 0
+Text Label 4400 2900 0    60   ~ 0
 A1
-Text Label 4400 2100 0    60   ~ 0
+Text Label 4400 3000 0    60   ~ 0
 A2
-Text Label 4400 2200 0    60   ~ 0
+Text Label 4400 3100 0    60   ~ 0
 A3
-Text Label 4400 2300 0    60   ~ 0
+Text Label 4400 3200 0    60   ~ 0
 A4
-Text Label 4400 2400 0    60   ~ 0
+Text Label 4400 3300 0    60   ~ 0
 A5
-Text Label 4400 2500 0    60   ~ 0
+Text Label 4400 3400 0    60   ~ 0
 A6
-Text Label 4400 2600 0    60   ~ 0
+Text Label 4400 3500 0    60   ~ 0
 A7
 $Comp
 L ATMEGA1284P-P IC1
@@ -157,29 +157,29 @@ F 3 "" H 3400 3600 60  0000 C CNN
 	1    3400 3600
 	1    0    0    -1  
 $EndComp
-Text Label 4400 2800 0    60   ~ 0
+Text Label 4400 4600 0    60   ~ 0
 B0
-Text Label 4400 2900 0    60   ~ 0
+Text Label 4400 4700 0    60   ~ 0
 B1
-Text Label 4400 3000 0    60   ~ 0
+Text Label 4400 4800 0    60   ~ 0
 B2
-Text Label 4400 3100 0    60   ~ 0
+Text Label 4400 4900 0    60   ~ 0
 B3
-Text Label 4400 3200 0    60   ~ 0
+Text Label 4400 5000 0    60   ~ 0
 B4
-Text Label 4400 3300 0    60   ~ 0
+Text Label 4400 5100 0    60   ~ 0
 B5
-Text Label 4400 3400 0    60   ~ 0
+Text Label 4400 5200 0    60   ~ 0
 B6
-Text Label 4400 3500 0    60   ~ 0
+Text Label 4400 5300 0    60   ~ 0
 B7
-Text Label 4400 3700 0    60   ~ 0
+Text Label 4400 1900 0    60   ~ 0
 MC
-Text Label 4400 3800 0    60   ~ 0
+Text Label 4400 2000 0    60   ~ 0
 MD
-Text Label 4400 3900 0    60   ~ 0
+Text Label 4400 2100 0    60   ~ 0
 CS
-Text Label 4400 4000 0    60   ~ 0
+Text Label 4400 2200 0    60   ~ 0
 CD
 Text Label 2400 3100 2    60   ~ 0
 VCC
@@ -555,29 +555,29 @@ Text Label 7600 6150 2    60   ~ 0
 R6
 Text Label 7600 6250 2    60   ~ 0
 R7
-Text Label 4400 4600 0    60   ~ 0
+Text Label 4400 3700 0    60   ~ 0
 GPO0
-Text Label 4400 4700 0    60   ~ 0
+Text Label 4400 3800 0    60   ~ 0
 GPO1
-Text Label 4400 4800 0    60   ~ 0
+Text Label 4400 3900 0    60   ~ 0
 GPO2
-Text Label 4400 4900 0    60   ~ 0
+Text Label 4400 4000 0    60   ~ 0
 GPO3
-Text Label 4400 5000 0    60   ~ 0
-GPO4
-Text Label 4400 5100 0    60   ~ 0
-GPO5
-Text Label 4400 5200 0    60   ~ 0
-GPO6
-Text Label 4400 5300 0    60   ~ 0
-GPO7
 Text Label 4400 4100 0    60   ~ 0
-GPO8
+GPO4
 Text Label 4400 4200 0    60   ~ 0
-GPO9
+GPO5
 Text Label 4400 4300 0    60   ~ 0
-GPO10
+GPO6
 Text Label 4400 4400 0    60   ~ 0
+GPO7
+Text Label 4400 2300 0    60   ~ 0
+GPO8
+Text Label 4400 2400 0    60   ~ 0
+GPO9
+Text Label 4400 2500 0    60   ~ 0
+GPO10
+Text Label 4400 2600 0    60   ~ 0
 GPO11
 $Comp
 L CONN_2 P1
