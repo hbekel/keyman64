@@ -3,12 +3,15 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/power.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #include "main.h"
 
 #define MC 1<<PA0
 #define MD 1<<PA1
+
+ISR(PCINT3_vect) { RelayMatrix(); }
 
 static volatile uint8_t matrix[8] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
@@ -37,6 +40,10 @@ static void SetupHardware(void) {
   PORTB = 0b00000000;
 
   Settle();
+
+  PCMSK3 = 0xff;
+  PCICR |= (1<<PCIE3);
+  sei();
 }
 
 static void DisableJTAG(void) {
@@ -45,7 +52,7 @@ static void DisableJTAG(void) {
 }
 
 static void Settle(void) {
-  _delay_ms(5);
+  _delay_ms(10);
 }  
 
 static void ClockMatrix(void) {
@@ -90,7 +97,6 @@ int main(void) {
   
   while(1) {
     ScanMatrix();
-    RelayMatrix();
   }
 
   return 0;
