@@ -1173,9 +1173,9 @@ F 3 "" H 8300 7700 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 Text Label 7700 7700 2    60   ~ 0
-~ATRES
+~RESET
 Text Label 6900 3600 2    60   ~ 0
-~ATRES
+~RESET
 $Comp
 L CONN_3 K1
 U 1 1 55B37C90
@@ -1415,17 +1415,6 @@ F 3 "" H 9500 6800 60  0000 C CNN
 $EndComp
 Text Notes 9350 7100 0    60   ~ 0
 USB Level Conversion\n
-$Comp
-L JUMPER JP1
-U 1 1 55B3C318
-P 8000 8050
-F 0 "JP1" H 8000 8200 60  0000 C CNN
-F 1 "JUMPER" H 8000 7970 40  0000 C CNN
-F 2 "" H 8000 8050 60  0000 C CNN
-F 3 "" H 8000 8050 60  0000 C CNN
-	1    8000 8050
-	1    0    0    -1  
-$EndComp
 Text Label 8900 6300 0    60   ~ 0
 ~HWBE
 Wire Wire Line
@@ -1433,4 +1422,17 @@ Wire Wire Line
 Connection ~ 9500 6400
 Wire Wire Line
 	8900 6500 9800 6500
+$Comp
+L SW_PUSH SW?
+U 1 1 55B3E8F4
+P 8000 8050
+F 0 "SW?" H 8150 8160 50  0000 C CNN
+F 1 "BOOTLOADER" H 8000 7970 50  0000 C CNN
+F 2 "" H 8000 8050 60  0000 C CNN
+F 3 "" H 8000 8050 60  0000 C CNN
+	1    8000 8050
+	1    0    0    -1  
+$EndComp
+Text Label 10900 2100 2    60   ~ 0
+~RESET
 $EndSCHEMATC
