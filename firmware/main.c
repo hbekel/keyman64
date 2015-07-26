@@ -34,8 +34,8 @@ static void SetupHardware(void) {
   PORTC = 0b00000000;
 
   // USB, Bootloader and Matrix Control
-  DDRD  = 0b10001000;
-  PORTD = 0b11111001;
+  DDRD  = 0b10001110;
+  PORTD = 0b11111111;
     
   Settle();
 }
