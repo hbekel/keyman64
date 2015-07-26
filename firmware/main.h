@@ -3,7 +3,6 @@
 
 static void SetupHardware(void);
 static void DisableJTAG(void);
-static void Settle(void);
 static void ClockMatrix(void);
 static void ScanMatrix(void);
 
