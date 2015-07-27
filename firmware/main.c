@@ -276,7 +276,7 @@ static void ExecuteCommand(command_t* cmd) {
 
   case ACTION_TRS:
     *ddr &= ~cmd->mask;
-    *port |= cmd->mask;
+    *port &= ~cmd->mask;
     break;
 
   case ACTION_SLP:
