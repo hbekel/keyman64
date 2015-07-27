@@ -7,4 +7,5 @@
 *.lst
 *.map
 *.sym
+*.bin
 interceptor

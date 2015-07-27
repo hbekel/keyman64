@@ -9,13 +9,13 @@
 
 #include "main.h"
 
-#define MC 1<<PD3 // Matrix Clock
-#define MD 1<<PD4 // Matrix Data
-#define MR 1<<PD0 // Matrix Counter Reset
+uint8_t MC = 1<<PD3; // Matrix Clock
+uint8_t MD = 1<<PD4; // Matrix Data
+uint8_t MR = 1<<PD0; // Matrix Counter Reset
 
-#define CPS 1<<PA6 // Crosspoint Strobe
-#define CPD 1<<PA7 // Crosspoint Data
-#define CPR 1<<PD7 // Crosspoint Reset
+uint8_t CPS = 1<<PA6; // Crosspoint Strobe
+uint8_t CPD = 1<<PA7; // Crosspoint Data
+uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
@@ -129,7 +129,7 @@ static bool ScanMatrix(void) {
 static void ResetCrosspointSwitch(void) {
   PORTD &= ~CPR;
   _delay_us(5);
-  PORTD |= ~CPR;
+  PORTD |= CPR;
 }
 
 static void SetCrosspointSwitch(uint8_t index, bool closed) {
@@ -294,7 +294,7 @@ int main(void) {
   SetupHardware();
   ReadConfig();
   ApplyConfig();
-  
+
   key_t key = { .col = 0, .row = 0 };
   
   while(true) {
