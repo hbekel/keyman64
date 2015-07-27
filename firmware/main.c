@@ -9,9 +9,13 @@
 
 #include "main.h"
 
-#define MC 1<<PD3
-#define MD 1<<PD4
-#define MR 1<<PD0
+#define MC 1<<PD3 // Matrix Clock
+#define MD 1<<PD4 // Matrix Data
+#define MR 1<<PD0 // Matrix Counter Reset
+
+#define CPS 1<<PA6 // Crosspoint Strobe
+#define CPD 1<<PA7 // Crosspoint Data
+#define CPE 1<<PD7 // Crosspoint Enable
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
@@ -119,6 +123,18 @@ static bool ScanMatrix(void) {
     }
   }
   return keyDown;
+}
+
+//------------------------------------------------------------------------------
+
+static void SetCrosspointSwitch(uint8_t index, bool closed) {
+
+  if(closed) index |= CPD; else index &= ~CPD;
+  index |= CPS;
+  
+  PORTA = index;
+  _delay_us(5);
+  PORTA |= CPS;  
 }
 
 //------------------------------------------------------------------------------
