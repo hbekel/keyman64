@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
@@ -17,9 +18,16 @@
 
 uint8_t STATE = STATE_RELAY;
 
+static volatile config_t* config;
+
 static volatile uint8_t matrix[8] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
+
+//------------------------------------------------------------------------------
+
+#include "config.h"
+#include "../config.c"
 
 //------------------------------------------------------------------------------
 
@@ -28,7 +36,7 @@ static void SetupHardware(void) {
   clock_prescale_set(clock_div_1);
 
   DisableJTAG();
-  
+
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b01000000;
@@ -44,6 +52,27 @@ static void SetupHardware(void) {
   // USB, Bootloader and Matrix Control
   DDRD  = 0b10001111;
   PORTD = 0b11110110;
+}
+
+//------------------------------------------------------------------------------
+
+static uint8_t ReadEprom(uint16_t addr) {
+  while(EECR & (1<<EEPE));
+  EEAR = addr;
+  EECR |= (1<<EERE);
+  return EEDR;
+}
+
+//------------------------------------------------------------------------------
+
+static void ApplyConfig(void) {
+  for(int i=0; i<config->size; i++) {
+    if(KeyEquals(KEY_INIT, *(config->bindings[i]->key))) {
+      for(int k=0; k<config->bindings[i]->size; k++) {
+        ExecuteCommand(config->bindings[i]->commands[k]);
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -161,38 +190,48 @@ static void ReadKeyPress(key_t* key) {
 
 //------------------------------------------------------------------------------
 
-static void ExecuteCommand(command_t cmd) {
-  uint8_t volatile *port = cmd.port == PORT_A ? &PORTB : &PORTC;
-  uint8_t volatile *ddr  = cmd.port == PORT_A ? &DDRB : &DDRC;
+static void ExecuteCommand(command_t* cmd) {
+  uint8_t volatile *port = cmd->port == PORT_A ? &PORTB : &PORTC;
+  uint8_t volatile *ddr  = cmd->port == PORT_A ? &DDRB : &DDRC;
   uint8_t value;
   uint8_t mask;
   uint8_t offset;
   uint8_t dir;
   
-  switch(cmd.action) {
+  switch(cmd->action) {
 
   case ACTION_SET:
-    *ddr |= cmd.mask;
-    *port &= ~cmd.mask;
-    *port |= cmd.data;
+    offset = 0;
+    mask = cmd->mask;
+
+    while((mask & 1) == 0) {      
+      mask = mask >> 1;
+      offset++;
+    }
+
+    value = (cmd->data & mask) << offset;
+    
+    *ddr |= cmd->mask;
+    *port &= ~cmd->mask;
+    *port |= value; 
     break;
     
   case ACTION_INV:
     value = *port;
-    value &= cmd.mask;
-    value ^= cmd.mask;
+    value &= cmd->mask;
+    value ^= cmd->mask;
     
-    *ddr |= cmd.mask;
-    *port &= ~cmd.mask;
+    *ddr |= cmd->mask;
+    *port &= ~cmd->mask;
     *port |= value;
     break;
 
   case ACTION_INC:
   case ACTION_DEC:
-    mask = cmd.mask;
-    value = *port & cmd.mask;
+    mask = cmd->mask;
+    value = *port & cmd->mask;
     offset = 0;
-    dir = cmd.action == ACTION_INC ? 1 : -1;
+    dir = cmd->action == ACTION_INC ? 1 : -1;
     
     while((mask & 1) == 0) {      
       mask = mask >> 1;
@@ -203,14 +242,14 @@ static void ExecuteCommand(command_t cmd) {
     value = value & mask;
     value = value << offset;
 
-    *ddr |= cmd.mask;
-    *port &= ~cmd.mask;
+    *ddr |= cmd->mask;
+    *port &= ~cmd->mask;
     *port |= value;
     break;
 
   case ACTION_TRS:
-    *ddr &= ~cmd.mask;
-    *port |= cmd.mask;
+    *ddr &= ~cmd->mask;
+    *port |= cmd->mask;
     break;
   } 
 }
@@ -220,11 +259,13 @@ static void ExecuteCommand(command_t cmd) {
 int main(void) {
 
   SetupHardware();
-
+  ReadConfig();
+  ApplyConfig();
+  
   key_t key = { .col = 0, .row = 0 };
   
   while(true) {
-    
+
     switch(STATE) {
 
     //========================================
@@ -249,78 +290,16 @@ int main(void) {
         RelayKeyPress(KEY_META);
         STATE = STATE_RELAY;
       }
-
-      /* These hardcoded bindings will be replaced by a loop through
-       * the table of bindings which will be stored in eeprom...
-      */
-      else if(KeyEquals(key, KEY_1)) {
-
-        command_t inv7 = {
-          .action = ACTION_INV,
-          .port = PORT_A,
-          .mask = 0x80,
-          .data = 0x00
-        };
-        
-        ExecuteCommand(inv7);        
-        STATE = STATE_RELAY;
-      }
-
-      else if(KeyEquals(key, KEY_2)) {
-
-        command_t set23_10 = {
-          .action = ACTION_SET,
-          .port = PORT_A,
-          .mask = 0b00001100,
-          .data = 0b00001000
-        };
-        
-        ExecuteCommand(set23_10);        
-        STATE = STATE_RELAY;
-      }
-
-      else if(KeyEquals(key, KEY_3)) {
-
-        command_t set23_01 = {
-          .action = ACTION_SET,
-          .port = PORT_A,
-          .mask = 0b00001100,
-          .data = 0b00000100
-        };
-        
-        ExecuteCommand(set23_01);        
-        STATE = STATE_RELAY;
-      }
-
-      else if(KeyEquals(key, KEY_4)) {
-
-        command_t inc56 = {
-          .action = ACTION_INC,
-          .port = PORT_A,
-          .mask = 0b01100000,
-          .data = 0b00000000
-        };
-        
-        ExecuteCommand(inc56);        
-        STATE = STATE_RELAY;
-      }
-
-      else if(KeyEquals(key, KEY_5)) {
-
-        command_t dec56 = {
-          .action = ACTION_DEC,
-          .port = PORT_A,
-          .mask = 0b01100000,
-          .data = 0b00000000
-        };
-        
-        ExecuteCommand(dec56);        
-        STATE = STATE_RELAY;
-      }
-      
       else {
-        STATE = STATE_RELAY;
+        for(uint16_t i=0; i<config->size; i++) {
+          if(KeyEquals(key, *(config->bindings[i]->key))) {
+            for(uint16_t k=0; k<config->bindings[i]->size; k++) {
+              ExecuteCommand(config->bindings[i]->commands[k]);
+            }
+          }
+        }
       }
+      STATE = STATE_RELAY;
       break;
 
     //========================================
