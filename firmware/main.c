@@ -15,7 +15,7 @@
 
 #define CPS 1<<PA6 // Crosspoint Strobe
 #define CPD 1<<PA7 // Crosspoint Data
-#define CPE 1<<PD7 // Crosspoint Enable
+#define CPR 1<<PD7 // Crosspoint Reset
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
@@ -40,7 +40,7 @@ static void SetupHardware(void) {
   clock_prescale_set(clock_div_1);
 
   DisableJTAG();
-
+  
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b01000000;
@@ -56,6 +56,8 @@ static void SetupHardware(void) {
   // USB, Bootloader and Matrix Control
   DDRD  = 0b10001111;
   PORTD = 0b11110110;
+
+  ResetCrosspointSwitch();
 }
 
 //------------------------------------------------------------------------------
@@ -126,6 +128,12 @@ static bool ScanMatrix(void) {
 }
 
 //------------------------------------------------------------------------------
+
+static void ResetCrosspointSwitch(void) {
+  PORTD &= ~CPR;
+  _delay_us(5);
+  PORTD |= ~CPR;
+}
 
 static void SetCrosspointSwitch(uint8_t index, bool closed) {
 
@@ -295,6 +303,7 @@ int main(void) {
     case STATE_RELAY:
 
       if(QueryKeyPress(KEY_META)) {
+        ResetCrosspointSwitch();
         STATE = STATE_COMMAND;
       }
       else {

@@ -18,5 +18,7 @@ static void RelayKeyPress(key_t key);
 static bool QueryKeyPress(key_t key);
 static void ReadKeyPress(key_t* key);
 static void ExecuteCommand(command_t* command);
+static void ResetCrosspointSwitch(void);
+static void SetCrosspointSwitch(uint8_t index, bool closed);
 
 #endif // MAIN_H
