@@ -12,10 +12,10 @@
 #define MD 1<<PD4
 #define MR 1<<PD0
 
-#define RELAY   0x00
-#define COMMAND 0x01
+#define STATE_RELAY   0x00
+#define STATE_COMMAND 0x01
 
-uint8_t STATE = RELAY;
+uint8_t STATE = STATE_RELAY;
 
 static volatile uint8_t matrix[8] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
@@ -106,7 +106,7 @@ static void RelayKeyPress(key_t key) {
 
 //------------------------------------------------------------------------------
 
-static bool KeysEqual(key_t key, key_t other) {
+static bool KeyEquals(key_t key, key_t other) {
   return key.col == other.col && key.row == other.row;
 }
 
@@ -161,7 +161,64 @@ static void ReadKeyPress(key_t* key) {
 
 //------------------------------------------------------------------------------
 
+static void ExecuteCommand(command_t cmd) {
+  uint8_t volatile *port = cmd.port == PORT_A ? &PORTB : &PORTC;
+  uint8_t volatile *ddr  = cmd.port == PORT_A ? &DDRB : &DDRC;
+  uint8_t value;
+  uint8_t mask;
+  uint8_t offset;
+  uint8_t dir;
+  
+  switch(cmd.action) {
+
+  case ACTION_SET:
+    *ddr |= cmd.mask;
+    *port &= ~cmd.mask;
+    *port |= cmd.data;
+    break;
+    
+  case ACTION_INV:
+    value = *port;
+    value &= cmd.mask;
+    value ^= cmd.mask;
+    
+    *ddr |= cmd.mask;
+    *port &= ~cmd.mask;
+    *port |= value;
+    break;
+
+  case ACTION_INC:
+  case ACTION_DEC:
+    mask = cmd.mask;
+    value = *port & cmd.mask;
+    offset = 0;
+    dir = cmd.action == ACTION_INC ? 1 : -1;
+    
+    while((mask & 1) == 0) {      
+      mask = mask >> 1;
+      value = value >> 1;
+      offset++;
+    }
+    value += dir;
+    value = value & mask;
+    value = value << offset;
+
+    *ddr |= cmd.mask;
+    *port &= ~cmd.mask;
+    *port |= value;
+    break;
+
+  case ACTION_TRS:
+    *ddr &= ~cmd.mask;
+    *port |= cmd.mask;
+    break;
+  } 
+}
+
+//------------------------------------------------------------------------------
+
 int main(void) {
+
   SetupHardware();
 
   key_t key = { .col = 0, .row = 0 };
@@ -170,39 +227,109 @@ int main(void) {
     
     switch(STATE) {
 
-    case RELAY:
+    //========================================
+
+    case STATE_RELAY:
       PORTB &= ~1;
-      if(QueryKeyPress(KEY_ARROW_LEFT)) {
-        STATE = COMMAND;
+
+      if(QueryKeyPress(KEY_META)) {
+        STATE = STATE_COMMAND;
       }
       else {
         RelayMatrix();
       }
       break;
+
+    //========================================
       
-    case COMMAND:
+    case STATE_COMMAND:
       PORTB |= 1;
 
       ReadKeyPress(&key);
       
-      if(KeysEqual(key, KEY_ARROW_LEFT)) {
-        RelayKeyPress(KEY_ARROW_LEFT);
-        STATE = RELAY;
-      }        
-      else if(KeysEqual(key, KEY_3)) {
-
-        if(PINB & 1<<7) {
-          PORTB &= ~(1<<7);
-        } else {
-          PORTB |= 1<<7;          
-        }
-        STATE = RELAY;
+      if(KeyEquals(key, KEY_META)) {
+        RelayKeyPress(KEY_META);
+        STATE = STATE_RELAY;
       }
+
+      /* These hardcoded bindings will be replaced by a loop through
+       * the table of bindings which will be stored in eeprom...
+      */
+      else if(KeyEquals(key, KEY_1)) {
+
+        command_t inv7 = {
+          .action = ACTION_INV,
+          .port = PORT_A,
+          .mask = 0x80,
+          .data = 0x00
+        };
+        
+        ExecuteCommand(inv7);        
+        STATE = STATE_RELAY;
+      }
+
+      else if(KeyEquals(key, KEY_2)) {
+
+        command_t set23_10 = {
+          .action = ACTION_SET,
+          .port = PORT_A,
+          .mask = 0b00001100,
+          .data = 0b00001000
+        };
+        
+        ExecuteCommand(set23_10);        
+        STATE = STATE_RELAY;
+      }
+
+      else if(KeyEquals(key, KEY_3)) {
+
+        command_t set23_01 = {
+          .action = ACTION_SET,
+          .port = PORT_A,
+          .mask = 0b00001100,
+          .data = 0b00000100
+        };
+        
+        ExecuteCommand(set23_01);        
+        STATE = STATE_RELAY;
+      }
+
+      else if(KeyEquals(key, KEY_4)) {
+
+        command_t inc56 = {
+          .action = ACTION_INC,
+          .port = PORT_A,
+          .mask = 0b01100000,
+          .data = 0b00000000
+        };
+        
+        ExecuteCommand(inc56);        
+        STATE = STATE_RELAY;
+      }
+
+      else if(KeyEquals(key, KEY_5)) {
+
+        command_t dec56 = {
+          .action = ACTION_DEC,
+          .port = PORT_A,
+          .mask = 0b01100000,
+          .data = 0b00000000
+        };
+        
+        ExecuteCommand(dec56);        
+        STATE = STATE_RELAY;
+      }
+      
       else {
-        STATE = RELAY;
+        STATE = STATE_RELAY;
       }
       break;
+
+    //========================================
+      
     }
   }
   return 0;
 }
+
+//------------------------------------------------------------------------------
