@@ -14,5 +14,10 @@ firmware-clean:
 program: firmware
 	(cd firmware && make program)
 
+config: interceptor
+	./interceptor > eeprom.bin && \
+	avrdude -p m1284p -c usbasp -U eeprom:w:eeprom.bin:r
+
 clean: firmware-clean	
 	rm -rf interceptor
+	rm -rf eeprom.bin

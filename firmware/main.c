@@ -251,6 +251,12 @@ static void ExecuteCommand(command_t* cmd) {
     *ddr &= ~cmd->mask;
     *port |= cmd->mask;
     break;
+
+  case ACTION_SLP:
+    value = cmd->data;
+    while(value--) {
+      _delay_ms(1);
+    }
   } 
 }
 
