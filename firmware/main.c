@@ -22,11 +22,8 @@
 
 uint8_t STATE = STATE_RELAY;
 
+static volatile bool matrix[64];
 static volatile config_t* config;
-
-static volatile uint8_t matrix[8] = {
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-};
 
 //------------------------------------------------------------------------------
 
@@ -115,11 +112,11 @@ static bool ScanMatrix(void) {
   for(row=0; row<8; row++) {
     for(col=0; col<8; col++) {
       if((PIND & MD) == 0) {
-        matrix[row] &= ~(1<<col);
+        matrix[row*8+col] = true;
         keyDown = true;
       }
       else {
-        matrix[row] |= 1<<col;
+        matrix[row*8+col] = false;
       }
       ClockMatrix();
     }
@@ -137,7 +134,7 @@ static void ResetCrosspointSwitch(void) {
 
 static void SetCrosspointSwitch(uint8_t index, bool closed) {
 
-  if(closed) index |= CPD; else index &= ~CPD;
+  index = closed ? index | CPD : index & ~CPD;
   index |= CPS;
   
   PORTA = index;
@@ -148,13 +145,19 @@ static void SetCrosspointSwitch(uint8_t index, bool closed) {
 //------------------------------------------------------------------------------
 
 static void RelayMatrix(void) {
-  // IMPLEMENTME
+  for(int i=0; i<64; i++) {
+    SetCrosspointSwitch(i, matrix[i]);
+  }
 }
 
 //------------------------------------------------------------------------------
 
 static void RelayKeyPress(key_t key) {
-  // IMPLEMENTME
+  ResetCrosspointSwitch();
+  
+  SetCrosspointSwitch(key.row*8+key.col, true);
+  _delay_ms(10);
+  SetCrosspointSwitch(key.row*8+key.col, false);
 }
 
 //------------------------------------------------------------------------------
@@ -171,11 +174,11 @@ static bool QueryKeyPress(key_t key) {
   
   bool result = false;
   
-  if(ScanMatrix() && (matrix[key.row] & 1<<key.col) == 0) {
+  if(ScanMatrix() && matrix[key.row*8+key.col]) {
     _delay_ms(20);
-    if(ScanMatrix() && (matrix[key.row] & 1<<key.col) == 0) {
+    if(ScanMatrix() && matrix[key.row*8+key.col]) {
       result = true;
-      while(ScanMatrix() && (matrix[key.row] & 1<<key.col) == 0);
+      while(ScanMatrix() && matrix[key.row*8+key.col]);
     }
   }
   return result;
@@ -199,7 +202,7 @@ static void ReadKeyPress(key_t* key) {
   if(ScanMatrix()) {
     for(row=0; row<8; row++) {
       for(col=0; col<8; col++) {
-        if((matrix[row] & 1<<col) == 0) {
+        if(matrix[row*8+col]) {
           key->row = row;
           key->col = col;
           goto waitForKeyRelease;
@@ -208,7 +211,7 @@ static void ReadKeyPress(key_t* key) {
     }
 
   waitForKeyRelease:
-    while(ScanMatrix() && (matrix[key->row] & 1<<key->col) == 0);
+    while(ScanMatrix() && matrix[key->row*8+key->col]);
   }
 }
 
