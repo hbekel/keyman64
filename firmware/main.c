@@ -230,7 +230,6 @@ int main(void) {
     //========================================
 
     case STATE_RELAY:
-      PORTB &= ~1;
 
       if(QueryKeyPress(KEY_META)) {
         STATE = STATE_COMMAND;
@@ -243,7 +242,6 @@ int main(void) {
     //========================================
       
     case STATE_COMMAND:
-      PORTB |= 1;
 
       ReadKeyPress(&key);
       
