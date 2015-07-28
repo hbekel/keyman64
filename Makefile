@@ -1,7 +1,10 @@
+CC=gcc
+CFLAGS=-Wall -Wno-unused
+
 all: firmware interceptor
 
 interceptor: config.h config.c interceptor.c
-	gcc -o interceptor interceptor.c
+	$(CC) $(CFLAGS) -o interceptor interceptor.c
 
 firmware: firmware/main.hex
 

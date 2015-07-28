@@ -162,12 +162,6 @@ static void RelayKeyPress(key_t key) {
 
 //------------------------------------------------------------------------------
 
-static bool KeyEquals(key_t key, key_t other) {
-  return key.col == other.col && key.row == other.row;
-}
-
-//------------------------------------------------------------------------------
-
 static bool QueryKeyPress(key_t key) {
 
   /* If the requested key is down, wait until it is released. */

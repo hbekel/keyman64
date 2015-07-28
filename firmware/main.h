@@ -13,7 +13,6 @@ static void ResetCounter(void);
 static void ClockMatrix(void);
 static bool ScanMatrix(void);
 static void RelayMatrix(void);
-static bool KeyEquals(key_t key, key_t other);
 static void RelayKeyPress(key_t key);
 static bool QueryKeyPress(key_t key);
 static void ReadKeyPress(key_t* key);
