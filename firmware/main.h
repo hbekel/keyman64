@@ -3,8 +3,8 @@
 
 #include "config.h"
 
-key_t KEY_INIT = { .col = 15, .row = 14 };
-key_t KEY_META = { .col = 7,  .row = 1 };
+Key KEY_INIT = { .col = 15, .row = 14 };
+Key KEY_META = { .col = 7,  .row = 1 };
   
 static void SetupHardware(void);
 static void ApplyConfig(void);
@@ -13,11 +13,11 @@ static void ResetCounter(void);
 static void ClockMatrix(void);
 static bool ScanMatrix(void);
 static void RelayMatrix(void);
-static void RelayKeyPress(key_t key);
-static bool QueryKeyPress(key_t key);
-static void ReadKeyPress(key_t* key);
-static void ExecuteBinding(key_t* key);
-static void ExecuteCommand(command_t* command);
+static void RelayKeyPress(Key key);
+static bool QueryKeyPress(Key key);
+static void ReadKeyPress(Key* key);
+static void ExecuteBinding(Key* key);
+static void ExecuteCommand(Command* command);
 static void ResetCrosspointSwitch(void);
 static void SetCrosspointSwitch(uint8_t index, bool closed);
 

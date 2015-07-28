@@ -26,7 +26,7 @@ uint8_t CD  = 1<<PD6; // Cassette Write
 uint8_t STATE = STATE_RELAY;
 
 static volatile bool matrix[64];
-static volatile config_t* config;
+static volatile Config* config;
 
 static volatile uint8_t serialBit  = 1;
 static volatile uint8_t serialByte = 0;
@@ -154,7 +154,7 @@ static void RelayMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-static void RelayKeyPress(key_t key) {
+static void RelayKeyPress(Key key) {
   ResetCrosspointSwitch();
   
   SetCrosspointSwitch(key.row*8+key.col, true);
@@ -164,7 +164,7 @@ static void RelayKeyPress(key_t key) {
 
 //------------------------------------------------------------------------------
 
-static bool QueryKeyPress(key_t key) {
+static bool QueryKeyPress(Key key) {
 
   /* If the requested key is down, wait until it is released. */
   
@@ -182,7 +182,7 @@ static bool QueryKeyPress(key_t key) {
 
 //------------------------------------------------------------------------------
 
-static void ReadKeyPress(key_t* key) {
+static void ReadKeyPress(Key* key) {
 
   /* Wait until a key is down, then wait for release and report back
    * which key was pressed.
@@ -213,8 +213,8 @@ static void ReadKeyPress(key_t* key) {
 
 //------------------------------------------------------------------------------
 
-static void ExecuteBinding(key_t* key) {
-  binding_t *binding;
+static void ExecuteBinding(Key* key) {
+  Binding *binding;
 
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
@@ -229,14 +229,14 @@ static void ExecuteBinding(key_t* key) {
 
 //------------------------------------------------------------------------------
 
-static void ExecuteCommand(command_t* cmd) {
+static void ExecuteCommand(Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
   uint8_t value;
   uint8_t mask;
   uint8_t offset;
   uint8_t dir;
-  key_t key;
+  Key key;
 
   switch(cmd->action) {
 
@@ -319,7 +319,7 @@ static void ExecuteCommand(command_t* cmd) {
  */
 
 ISR(PCINT3_vect) {
-  key_t key;
+  Key key;
   
   if((PIND & CS) == 0) {
     if((PIND & CD) != 0) {
@@ -342,7 +342,7 @@ ISR(PCINT3_vect) {
 
 int main(void) {
 
-  key_t key;
+  Key key;
   
   SetupHardware();
   ReadConfig();

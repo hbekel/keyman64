@@ -1,15 +1,10 @@
 #include <stdio.h>
-
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-
-void *malloc(size_t size);
-void free(void *ptr);
-void *calloc(size_t nmemb, size_t size);
-void *realloc(void *ptr, size_t size);
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "config.h"
-static volatile config_t *config;
+
+static volatile Config *config;
 
 uint8_t eeprom[46] = { 0xfe, 0x02,
                        0x00, 0xff, 0x00,
