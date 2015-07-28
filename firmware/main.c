@@ -17,6 +17,9 @@ uint8_t CPS = 1<<PA6; // Crosspoint Strobe
 uint8_t CPD = 1<<PA7; // Crosspoint Data
 uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
+uint8_t CS  = 1<<PD5; // Cassette Sense
+uint8_t CD  = 1<<PD6; // Cassette Write
+
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
 
@@ -24,6 +27,9 @@ uint8_t STATE = STATE_RELAY;
 
 static volatile bool matrix[64];
 static volatile config_t* config;
+
+static volatile uint8_t serialBit  = 1;
+static volatile uint8_t serialByte = 0;
 
 //------------------------------------------------------------------------------
 
@@ -55,6 +61,10 @@ static void SetupHardware(void) {
   PORTD = 0b11110110;
 
   ResetCrosspointSwitch();
+
+  PCMSK3 |= CS;
+  PCICR |= (1<<PCIE3);
+  sei();  
 }
 
 //------------------------------------------------------------------------------
@@ -302,6 +312,39 @@ static void ExecuteCommand(command_t* cmd) {
     ExecuteBinding(&key);
     break;
   } 
+}
+
+//------------------------------------------------------------------------------
+
+/* Serial interface at 6510 IO port
+ * Cassete Sense is /STROBE (bit 4 of $01)
+ * Cassete Write is DATA    (bit 3 of $01)
+ *
+ * The C64 send eight bits to trigger a key/command
+ *
+ * TODO: set up a timeout to reset state if the C64 does not
+ * send a complete byte
+ */
+
+ISR(PCINT3_vect) {
+  key_t key;
+  
+  if((PIND & CS) == 0) {
+
+    if(!(PIND & CD)) {
+      serialByte |= serialBit;
+    }    
+    serialBit = serialBit << 1;
+
+    if(!serialBit) {
+
+      ByteToKey(serialByte, &key);
+      ExecuteBinding(&key);
+
+      serialBit  = 1;
+      serialByte = 0;
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

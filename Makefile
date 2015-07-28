@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wno-unused
+KASM=kasm
 
 all: firmware interceptor
 
@@ -21,6 +22,15 @@ config: interceptor
 	./interceptor > eeprom.bin && \
 	avrdude -p m1284p -c usbasp -U eeprom:w:eeprom.bin:r
 
+control: control.prg
+
+control.prg: control.asm
+	$(KASM) control.asm
+
+test: control.prg
+	xlink control.prg
+
 clean: firmware-clean	
 	rm -rf interceptor
 	rm -rf eeprom.bin
+	rm -rf control.prg
