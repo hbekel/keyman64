@@ -3,12 +3,13 @@
 
 #include <stdbool.h>
 
-#define ACTION_SET 0
-#define ACTION_INV 1
-#define ACTION_INC 2
-#define ACTION_DEC 3
-#define ACTION_TRS 4
-#define ACTION_SLP 5
+#define ACTION_SET      0
+#define ACTION_INVERT   1
+#define ACTION_INCREASE 2
+#define ACTION_DECREASE 3
+#define ACTION_TRISTATE 4
+#define ACTION_SLEEP    5
+#define ACTION_EXEC     6
 
 #define PORT_A 0
 #define PORT_B 1
@@ -41,9 +42,6 @@ static void ReadConfig(void);
 static void ReadBinding(binding_t** binding, uint16_t* addr);
 static void ReadKey(key_t* key, uint16_t* addr);
 static void ReadCommand(command_t* command, uint16_t* addr);
-
-static bool HasBinding(key_t* key);
-static binding_t* GetBinding(key_t* key);
 
 static void ByteToKey(uint8_t byte, key_t* key);
 static uint8_t KeyToByte(key_t key);

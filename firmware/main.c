@@ -211,6 +211,22 @@ static void ReadKeyPress(key_t* key) {
 
 //------------------------------------------------------------------------------
 
+static void ExecuteBinding(key_t* key) {
+  binding_t *binding;
+
+  for(int i=0; i<config->size; i++) {
+    binding = config->bindings[i];
+    
+    if(KeyEquals(*(key), *(binding->key))) {    
+      for(int k=0; k<binding->size; k++) {
+        ExecuteCommand(binding->commands[k]);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
 static void ExecuteCommand(command_t* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
@@ -218,6 +234,7 @@ static void ExecuteCommand(command_t* cmd) {
   uint8_t mask;
   uint8_t offset;
   uint8_t dir;
+  key_t key;
 
   switch(cmd->action) {
 
@@ -237,7 +254,7 @@ static void ExecuteCommand(command_t* cmd) {
     *port |= value; 
     break;
     
-  case ACTION_INV:
+  case ACTION_INVERT:
     value = *port;
     value &= cmd->mask;
     value ^= cmd->mask;
@@ -247,12 +264,12 @@ static void ExecuteCommand(command_t* cmd) {
     *port |= value;
     break;
 
-  case ACTION_INC:
-  case ACTION_DEC:
+  case ACTION_INCREASE:
+  case ACTION_DECREASE:
     mask = cmd->mask;
     value = *port & cmd->mask;
     offset = 0;
-    dir = cmd->action == ACTION_INC ? 1 : -1;
+    dir = cmd->action == ACTION_INCREASE ? 1 : -1;
     
     while((mask & 1) == 0) {      
       mask = mask >> 1;
@@ -268,16 +285,22 @@ static void ExecuteCommand(command_t* cmd) {
     *port |= value;
     break;
 
-  case ACTION_TRS:
+  case ACTION_TRISTATE:
     *ddr &= ~cmd->mask;
     *port &= ~cmd->mask;
     break;
 
-  case ACTION_SLP:
+  case ACTION_SLEEP:
     value = cmd->data;
     while(value--) {
       _delay_ms(1);
     }
+    break;
+
+  case ACTION_EXEC:
+    ByteToKey(cmd->data, &key);
+    ExecuteBinding(&key);
+    break;
   } 
 }
 
@@ -285,11 +308,11 @@ static void ExecuteCommand(command_t* cmd) {
 
 int main(void) {
 
+  key_t key;
+  
   SetupHardware();
   ReadConfig();
   ApplyConfig();
-
-  key_t key = { .col = 0, .row = 0 };
   
   while(true) {
     switch(STATE) {
@@ -313,19 +336,11 @@ int main(void) {
 
       ReadKeyPress(&key);
       
-      if(KeyEquals(key, KEY_META)) {
+      if(KeyEquals(key, KEY_META)) 
         RelayKeyPress(KEY_META);
-        STATE = STATE_RELAY;
-      }
-      else {
-        for(uint16_t i=0; i<config->size; i++) {
-          if(KeyEquals(key, *(config->bindings[i]->key))) {
-            for(uint16_t k=0; k<config->bindings[i]->size; k++) {
-              ExecuteCommand(config->bindings[i]->commands[k]);
-            }
-          }
-        }
-      }
+      else
+        ExecuteBinding(&key);
+
       STATE = STATE_RELAY;
       break;
 

@@ -55,21 +55,6 @@ static void ReadCommand(command_t* command, uint16_t* addr) {
 
 //------------------------------------------------------------------------------
 
-static bool HasBinding(key_t* key) {
-  return GetBinding(key) != NULL;
-}
-
-static binding_t* GetBinding(key_t* key) {
-  for(int i=0; i<config->size; i++) {
-    if(KeyEquals(*key, *(config->bindings[i]->key))) {
-      return config->bindings[i];
-    }
-  }
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
-
 static bool KeyEquals(key_t key, key_t other) {
   return key.col == other.col && key.row == other.row;
 }
