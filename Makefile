@@ -27,7 +27,7 @@ control: control.prg
 control.prg: control.asm
 	$(KASM) control.asm
 
-test: control.prg
+test-control: control.prg
 	xlink control.prg
 
 clean: firmware-clean	
