@@ -317,7 +317,7 @@ static void ExecuteCommand(command_t* cmd) {
 //------------------------------------------------------------------------------
 
 /* Serial interface at 6510 IO port
- * Cassete Sense is /STROBE (bit 4 of $01)
+ * Cassete Sense is /STROBE (bit 4 of $01) 
  * Cassete Write is DATA    (bit 3 of $01)
  *
  * The C64 send eight bits to trigger a key/command
@@ -330,8 +330,7 @@ ISR(PCINT3_vect) {
   key_t key;
   
   if((PIND & CS) == 0) {
-
-    if(!(PIND & CD)) {
+    if((PIND & CD) != 0) {
       serialByte |= serialBit;
     }    
     serialBit = serialBit << 1;
@@ -340,7 +339,7 @@ ISR(PCINT3_vect) {
 
       ByteToKey(serialByte, &key);
       ExecuteBinding(&key);
-
+    
       serialBit  = 1;
       serialByte = 0;
     }
