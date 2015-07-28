@@ -37,7 +37,7 @@ static void SetupHardware(void) {
   clock_prescale_set(clock_div_1);
 
   DisableJTAG();
-  
+
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b01000000;
@@ -218,13 +218,13 @@ static void ReadKeyPress(key_t* key) {
 //------------------------------------------------------------------------------
 
 static void ExecuteCommand(command_t* cmd) {
-  uint8_t volatile *port = cmd->port == PORT_A ? &PORTB : &PORTC;
-  uint8_t volatile *ddr  = cmd->port == PORT_A ? &DDRB : &DDRC;
+  uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
+  uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
   uint8_t value;
   uint8_t mask;
   uint8_t offset;
   uint8_t dir;
-  
+
   switch(cmd->action) {
 
   case ACTION_SET:
@@ -298,7 +298,6 @@ int main(void) {
   key_t key = { .col = 0, .row = 0 };
   
   while(true) {
-
     switch(STATE) {
 
     //========================================

@@ -49,7 +49,8 @@ static void ReadKey(key_t* key, uint16_t* addr) {
 
 static void ReadCommand(command_t* command, uint16_t* addr) {
   command->action = ReadEprom(*addr); (*(addr))++;
-  command->port   = ReadEprom(*addr); (*(addr))++;
+  command->port   = ((command->action & 0x80) == 0) ? 0 : 1;
+  command->action &= 0x7f;
   command->mask   = ReadEprom(*addr); (*(addr))++;
   command->data   = ReadEprom(*addr); (*(addr))++;
 }

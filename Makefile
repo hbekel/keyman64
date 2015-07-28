@@ -5,7 +5,7 @@ interceptor: config.h config.c interceptor.c
 
 firmware: firmware/main.hex
 
-firmware/main.hex: firmware/main.h firmware/main.c
+firmware/main.hex: firmware/main.h firmware/main.c config.h config.c
 	(cd firmware && make)
 
 firmware-clean:
