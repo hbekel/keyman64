@@ -1001,30 +1001,6 @@ F 3 "" H 3350 950 60  0000 C CNN
 $EndComp
 Text Label 3350 2650 3    60   ~ 0
 VEE
-$Comp
-L C C6
-U 1 1 55B375C0
-P 2350 2700
-F 0 "C6" H 2350 2800 40  0000 L CNN
-F 1 "100nF" H 2356 2615 40  0000 L CNN
-F 2 "" H 2388 2550 30  0000 C CNN
-F 3 "" H 2350 2700 60  0000 C CNN
-	1    2350 2700
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	2350 2500 2650 2500
-$Comp
-L GND #PWR041
-U 1 1 55B37604
-P 2350 2900
-F 0 "#PWR041" H 2350 2900 30  0001 C CNN
-F 1 "GND" H 2350 2830 30  0001 C CNN
-F 2 "" H 2350 2900 60  0000 C CNN
-F 3 "" H 2350 2900 60  0000 C CNN
-	1    2350 2900
-	1    0    0    -1  
-$EndComp
 Text Label 2650 1000 2    60   ~ 0
 CPA0
 Text Label 2650 1100 2    60   ~ 0
@@ -1041,8 +1017,6 @@ Text Label 2650 1950 2    60   ~ 0
 ~CPS
 Text Label 2650 2050 2    60   ~ 0
 CPD
-Text Label 2650 2600 2    60   ~ 0
-~CPE
 Text Label 4300 3900 0    60   ~ 0
 CPA0
 Text Label 4300 4000 0    60   ~ 0
@@ -1059,8 +1033,6 @@ Text Label 4300 4500 0    60   ~ 0
 ~CPS
 Text Label 4300 4600 0    60   ~ 0
 CPD
-Text Label 4300 7300 0    60   ~ 0
-~CPE
 $Comp
 L GND #PWR042
 U 1 1 55B37A62
@@ -1393,4 +1365,19 @@ Text Label 5600 5700 2    60   ~ 0
 MR
 Text Label 5900 4300 2    60   ~ 0
 MR
+$Comp
+L GND #PWR?
+U 1 1 55B68DDD
+P 2650 2600
+F 0 "#PWR?" H 2650 2600 30  0001 C CNN
+F 1 "GND" H 2650 2530 30  0001 C CNN
+F 2 "" H 2650 2600 60  0000 C CNN
+F 3 "" H 2650 2600 60  0000 C CNN
+	1    2650 2600
+	0    1    1    0   
+$EndComp
+Text Label 2650 2500 2    60   ~ 0
+~CPMR
+Text Label 4300 7300 0    60   ~ 0
+~CPMR
 $EndSCHEMATC
