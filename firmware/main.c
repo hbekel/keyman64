@@ -48,15 +48,7 @@ static void SetupHardware(void) {
   DDRA  = 0b11111111;
   PORTA = 0b01000000;
 
-  // User port A
-  DDRB  = 0b11111111;
-  PORTB = 0b00000000;
-
-  // User port B
-  DDRC  = 0b11111111;
-  PORTC = 0b00000000;
-
-  // USB, Bootloader and Matrix Control
+  // USB, Bootloader, Matrix, Serial interface
   DDRD  = 0b10001111;
   PORTD = 0b11110110;
 
