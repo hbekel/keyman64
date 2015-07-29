@@ -54,11 +54,11 @@ void PrintConfig(Config* config) {
   }
 }
 
-Key* Key_parse(char* spec) {
+Key* Key_parse(char* spec, bool reportUnknownSymbol) {
   Key* key = NULL;
   uint8_t byte;
   char* invalid;
-  
+
   if(spec[0] == '$') {
     byte = strtol(++spec, &invalid, 16);
 
@@ -80,7 +80,9 @@ Key* Key_parse(char* spec) {
     }
   }
   if(key == NULL) {
-    fprintf(stderr, "error: '%s': unknown key name\n", spec);
+    if(reportUnknownSymbol) {
+      fprintf(stderr, "error: '%s': unknown key name\n", spec);
+    }
   }
   
  done:
@@ -156,7 +158,7 @@ bool parseData(char *str, uint8_t *data) {
   uint8_t value;
   char *invalid;
 
-  if((key = Key_parse(str)) != NULL) {
+  if((key = Key_parse(str, false)) != NULL) {
     *data = Key_get(key);
     free(key);
     return true;
@@ -275,9 +277,9 @@ bool ParseConfig(char* filename, Config* config) {
       line = colon+1;
 
       // try to parse the keyspec...
-      if((key = Key_parse(keyspec)) == NULL) {
-	fprintf(stderr, "error: line %d: '%s': invalid key specification\n", pos, keyspec);
-	return false;
+      if((key = Key_parse(keyspec, false)) == NULL) {
+        fprintf(stderr, "error: line %d: '%s': invalid key specification\n", pos, keyspec);
+        return false;
       }
     }
     else {
