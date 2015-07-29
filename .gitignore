@@ -9,4 +9,6 @@
 *.sym
 *.bin
 *.prg
+*.exe
+*.stackdump
 interceptor

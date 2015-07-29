@@ -240,6 +240,9 @@ static void ExecuteCommand(Command* cmd) {
 
   switch(cmd->action) {
 
+  case ACTION_NONE:
+    break;
+    
   case ACTION_SET:
     offset = 0;
     mask = cmd->mask;
@@ -255,6 +258,10 @@ static void ExecuteCommand(Command* cmd) {
     *port &= ~cmd->mask;
     *port |= value; 
     break;
+
+  case ACTION_CLEAR:
+    *ddr |= cmd->mask;
+    *port &= ~cmd->mask;
     
   case ACTION_INVERT:
     value = *port;
@@ -303,7 +310,7 @@ static void ExecuteCommand(Command* cmd) {
     ByteToKey(cmd->data, &key);
     ExecuteBinding(&key);
     break;
-  } 
+  }
 }
 
 //------------------------------------------------------------------------------

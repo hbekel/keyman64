@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-Wall -Wno-unused
+CFLAGS=-std=c99 -Wall -Wno-unused
 KASM=kasm
 
 all: firmware interceptor
 
-interceptor: config.h config.c interceptor.c
-	$(CC) $(CFLAGS) -o interceptor interceptor.c
+interceptor: config.h config.c strings.h strings.c range.h range.c interceptor.c
+	$(CC) $(CFLAGS) -o interceptor strings.c range.c interceptor.c
 
 firmware: firmware/main.hex
 
@@ -34,3 +34,4 @@ clean: firmware-clean
 	rm -rf interceptor
 	rm -rf eeprom.bin
 	rm -rf control.prg
+	rm -rf *.stackdump

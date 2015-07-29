@@ -3,7 +3,6 @@
 
 #include "config.h"
 
-Key KEY_INIT = { .col = 15, .row = 14 };
 Key KEY_META = { .col = 7,  .row = 1 };
   
 static void SetupHardware(void);
