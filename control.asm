@@ -15,11 +15,11 @@ sendByte: {
 init:	sei
         sta value
 
-        lda $01  // set port bit 4 und 3 (SENSE & DATA) high
+        lda $01  // set port bits 4 and 3 (SENSE & DATA) high
         ora #$18
         sta $01
         
-	lda $00   // set port bit 4 und 3 (SENSE & DATA) to output
+	lda $00   // set port bits 4 and 3 (SENSE & DATA) to output
 	ora #$18
 	sta $00
 
