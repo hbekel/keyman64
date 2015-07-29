@@ -3,12 +3,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <ctype.h>
 
 #include "config.h"
 #include "strings.h"
 #include "range.h"
+#include "symbols.h"
 
 uint8_t eeprom[46] = { 0xfe, 0x02,
                        0x00, 0xff, 0x00,
@@ -62,12 +64,26 @@ Key* Key_parse(char* spec) {
 
     if(spec == invalid) {
       fprintf(stderr, "error: '%s': invalid hex number\n", spec);
+      goto done;
     }
     else {
       key = Key_new();
       Key_set(key, byte);
     }
   }
+  if(key != NULL) goto done;
+
+  for(int i=0; i<sizeof(symbols)/sizeof(Symbol); i++) {
+    if(strcasecmp(symbols[i].name, spec) == 0) {
+      key = Key_clone(&(symbols[i].key));
+      break;
+    }
+  }
+  if(key == NULL) {
+    fprintf(stderr, "error: '%s': unknown key name\n", spec);
+  }
+  
+ done:
   return key;
 }
 

@@ -4,7 +4,7 @@ KASM=kasm
 
 all: firmware interceptor
 
-interceptor: config.h config.c strings.h strings.c range.h range.c interceptor.c
+interceptor: config.h config.c strings.h strings.c range.h range.c symbols.h interceptor.c
 	$(CC) $(CFLAGS) -o interceptor strings.c range.c interceptor.c
 
 firmware: firmware/main.hex
