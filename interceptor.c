@@ -157,14 +157,18 @@ bool parseData(char *str, uint8_t *data) {
   Key* key;
   uint8_t value;
   char *invalid;
-
+  int base = 10;
+  
   if((key = Key_parse(str, false)) != NULL) {
     *data = Key_get(key);
     free(key);
     return true;
   }
-
-  value = strtol(str, &invalid, 10);
+  
+  if(str[0] == '%') {
+    base = 2; str++;
+  }
+  value = strtol(str, &invalid, base);
   
   if(str == invalid) {
     return false;
