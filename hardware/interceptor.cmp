@@ -1,0 +1,227 @@
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30.07.2015 16:04:05
+
+BeginCmp
+TimeStamp = /55A778BF;
+Reference = C2;
+ValeurCmp = 18nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A778D8;
+Reference = C3;
+ValeurCmp = 18nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A7730B;
+Reference = C4;
+ValeurCmp = 10uF;
+IdModule  = C1V5;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77345;
+Reference = C5;
+ValeurCmp = 10uF;
+IdModule  = C1V5;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77F14;
+Reference = C7;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77F5A;
+Reference = C8;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77F6C;
+Reference = C9;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77F7E;
+Reference = C10;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77F90;
+Reference = C11;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77FA2;
+Reference = C12;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B38383;
+Reference = C13;
+ValeurCmp = 100nF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B387E1;
+Reference = D1;
+ValeurCmp = 3.6V;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B387CD;
+Reference = D2;
+ValeurCmp = 3.6V;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /558192B9;
+Reference = IC1;
+ValeurCmp = ATMEGA1284P-P;
+IdModule  = DIP-40__600;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B37C90;
+Reference = K1;
+ValeurCmp = USB;
+IdModule  = USB_MINI_B;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A772B0;
+Reference = P1;
+ValeurCmp = TAPEPORT;
+IdModule  = PIN_ARRAY_2X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /558432CB;
+Reference = P2;
+ValeurCmp = CIA1;
+IdModule  = pinHeader-20x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /558199A3;
+Reference = P3;
+ValeurCmp = KEYBOARD;
+IdModule  = pinHeader-20x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55BA1527;
+Reference = P4;
+ValeurCmp = USER A;
+IdModule  = pinHeader-8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55BA1542;
+Reference = P5;
+ValeurCmp = USER B;
+IdModule  = pinHeader-8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B387AA;
+Reference = R2;
+ValeurCmp = 1k5;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B38786;
+Reference = R3;
+ValeurCmp = 68;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B38798;
+Reference = R4;
+ValeurCmp = 68;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B37A78;
+Reference = SW1;
+ValeurCmp = RESET;
+IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B3E8F4;
+Reference = SW2;
+ValeurCmp = BOOTLOADER;
+IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A76CFC;
+Reference = U1;
+ValeurCmp = 7400;
+IdModule  = DIP-14__300;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A772D4;
+Reference = U2;
+ValeurCmp = ICL7660;
+IdModule  = DIP-8__300;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A767EF;
+Reference = U3;
+ValeurCmp = 4520;
+IdModule  = DIP-16__300;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A76EFE;
+Reference = U4;
+ValeurCmp = 4051;
+IdModule  = DIP-16__300;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A76F63;
+Reference = U5;
+ValeurCmp = 4051;
+IdModule  = DIP-16__300;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B3756A;
+Reference = U6;
+ValeurCmp = CD74HC22106;
+IdModule  = DIP-28__600;
+EndCmp
+
+BeginCmp
+TimeStamp = /55A77860;
+Reference = X1;
+ValeurCmp = 16Mhz;
+IdModule  = HC-49V;
+EndCmp
+
+EndListe
