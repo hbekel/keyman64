@@ -198,7 +198,7 @@ Command* Command_parse(char* spec) {
   
   if(equal(StringList_get(words, i), "port")) {
     if((command->port = parsePort(StringList_get(words, ++i))) == PORT_NONE) {
-      fprintf(stderr, "error: '%s': invalid port\n", StringList_get(words, i-1));
+      fprintf(stderr, "error: '%s': invalid port\n", StringList_get(words, i));
       goto error;
     }
     i++;
@@ -206,7 +206,7 @@ Command* Command_parse(char* spec) {
   
   if(equal(StringList_get(words, i), "bit")) {
     if((command->mask = parseBit(StringList_get(words, ++i))) == 0xff) {
-      fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i-1));
+      fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i));
       goto error;
     }
     i++;
@@ -214,7 +214,7 @@ Command* Command_parse(char* spec) {
 
   if(equal(StringList_get(words, i), "bits")) {
     if((command->mask = parseBits(StringList_get(words, ++i))) == 0xff) {
-      fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i-1));
+      fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i));
       goto error;
     }
     i++;
