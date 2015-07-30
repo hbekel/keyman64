@@ -11,47 +11,60 @@
 #include "strings.h"
 #include "range.h"
 #include "symbols.h"
-
-uint8_t eeprom[46] = { 0xfe, 0x02,
-                       0x00, 0xff, 0x00,
-                       0x80, 0xff, 0x00,
-                       0x70, 0x01, 0x01, 0x40, 0x00,
-                       0x73, 0x01, 0x02, 0x0c, 0x00,                       
-                       0x10, 0x02, 0x03, 0x0c, 0x00, 0x06, 0x00, 0x20,
-                       0x13, 0x01, 0x04, 0x80, 0x00,
-                       0x20, 0x03,
-                       0x80, 0x01, 0x01,
-                       0x05, 0x00, 0xff,
-                       0x80, 0x01, 0x00,
-                       0xff
-};
+#include "interceptor.h"
 
 #include "config.c"
 
 const char *ws = " \t";
 
-static uint8_t ReadEprom(uint16_t addr) {
-  return eeprom[addr];
-}
+static uint8_t ReadEprom(uint16_t addr) { return 0; }
 
-void WriteConfig(void) {
-  for(int i=0; i<sizeof(eeprom); i++) {
-    fputc(eeprom[i], stdout);
+void Config_write(Config *self, void (*write) (uint8_t byte)) {
+  for(int i=0; i<self->size; i++) {
+    Binding_write(self->bindings[i], write);
   }
 }
 
-void PrintConfig(Config* config) {
-  for(int i=0; i<config->size; i++) {
-    fprintf(stderr, "\ncol = %02X\n", config->bindings[i]->key->col);
-    fprintf(stderr, "row = %02X\n", config->bindings[i]->key->row);
-
-    for(int k=0; k<config->bindings[i]->size; k++) {
-      fprintf(stderr, "\naction = %02X\n", config->bindings[i]->commands[k]->action);
-      fprintf(stderr, "port = %02X\n", config->bindings[i]->commands[k]->port);
-      fprintf(stderr, "mask = %02X\n", config->bindings[i]->commands[k]->mask);
-      fprintf(stderr, "data = %02X\n", config->bindings[i]->commands[k]->data);
-    }
+void Binding_write(Binding *self, void (*write) (uint8_t byte)) {
+  Key_write(self->key, write);
+  for(int i=0; i<self->size; i++) {
+    Command_write(self->commands[i], write);
   }
+}
+
+void Key_write(Key *self, void (*write) (uint8_t byte)) {
+  write(Key_get(self));
+}
+
+void Command_write(Command *self, void (*write) (uint8_t byte)) {
+  uint8_t action = self->action;
+  action |= self->port<<7;
+  write(action);
+  write(self->mask);
+  write(self->data);
+}
+
+void Config_debug(Config *self) {
+  for(int i=0; i<self->size; i++) {
+    Binding_debug(self->bindings[i]);
+  }
+}
+
+void Binding_debug(Binding *self) {
+  Key_debug(self->key);
+  for(int i=0; i<self->size; i++) {
+    Command_debug(self->commands[i]);
+  }
+}
+
+void Key_debug(Key *self) {
+  fprintf(stderr, "KEY byte: %02X col: %02X row: %02X\n",
+	  Key_get(self), self->col, self->row);
+}
+
+void Command_debug(Command *self) {
+  fprintf(stderr, "CMD action: %02X port: %02X mask: %02X data: %02X\n",
+	  self->action, self->port, self->mask, self->data);
 }
 
 Key* Key_parse(char* spec, bool reportUnknownSymbol) {
@@ -242,7 +255,7 @@ Command* Command_parse(char* spec) {
   goto done;
 }
 
-bool ParseConfig(char* filename, Config* config) {
+bool Config_parse(char* filename, Config* config) {
 
   FILE* file;
   char* buffer = (char*) calloc(4096, sizeof(char));
@@ -321,14 +334,19 @@ bool ParseConfig(char* filename, Config* config) {
 }
 
 int main(int argc, char **argv) {
+  void write(uint8_t byte) {
+    fputc((int)byte, stdout);
+  }
+
   argc--;
   argv++;
 
   Config* config = Config_new();
   
   if(argc == 1) {
-    if(ParseConfig(argv[0], config)) {
-      PrintConfig(config);
+    if(Config_parse(argv[0], config)) {      
+      Config_debug(config);
+      Config_write(config, &write);
     }
   }    
   return 0;
