@@ -20,7 +20,7 @@ void StringList_append(StringList *self, char *string) {
 void StringList_append_tokenized(StringList *self, const char* input, const char *delim) {
   char *substring;
 
-  char *string = (char*) calloc(strlen(input), sizeof(char));
+  char *string = (char*) calloc(strlen(input)+1, sizeof(char));
   strncpy(string, input, strlen(input));
   
   if((substring = strtok(string, delim)) != NULL) {
