@@ -6,6 +6,8 @@
 #include <strings.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "config.h"
 #include "strings.h"
@@ -15,56 +17,99 @@
 
 #include "config.c"
 
+typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
 
-static uint8_t ReadEprom(uint16_t addr) { return 0; }
-
-void Config_write(Config *self, void (*write) (uint8_t byte)) {
+void Config_write(Config *self, FILE *out) {
+  fputc(CONFIG_MAGIC[0], out);
+  fputc(CONFIG_MAGIC[1], out);
+  
   for(int i=0; i<self->size; i++) {
-    Binding_write(self->bindings[i], write);
+    Binding_write(self->bindings[i], out);
+  }
+  fputc(0xffU, out);
+}
+
+void Binding_write(Binding *self, FILE* out) {
+  Key_write(self->key, out);
+  fputc(self->size, out);
+  
+  for(int i=0; i<self->size; i++) {
+    Command_write(self->commands[i], out);
   }
 }
 
-void Binding_write(Binding *self, void (*write) (uint8_t byte)) {
-  Key_write(self->key, write);
-  for(int i=0; i<self->size; i++) {
-    Command_write(self->commands[i], write);
-  }
+void Key_write(Key *self, FILE* out) {
+  fputc(Key_get(self), out);
 }
 
-void Key_write(Key *self, void (*write) (uint8_t byte)) {
-  write(Key_get(self));
-}
-
-void Command_write(Command *self, void (*write) (uint8_t byte)) {
+void Command_write(Command *self, FILE* out) {
   uint8_t action = self->action;
   action |= self->port<<7;
-  write(action);
-  write(self->mask);
-  write(self->data);
+  fputc(action, out);
+  fputc(self->mask, out);
+  fputc(self->data, out);
 }
 
-void Config_debug(Config *self) {
+void Config_print(Config *self, FILE* out) {
   for(int i=0; i<self->size; i++) {
-    Binding_debug(self->bindings[i]);
+    Binding_print(self->bindings[i], out);
   }
 }
 
-void Binding_debug(Binding *self) {
-  Key_debug(self->key);
+void Binding_print(Binding *self, FILE* out) {
+  
   for(int i=0; i<self->size; i++) {
-    Command_debug(self->commands[i]);
+    Key_print(self->key, out);
+    Command_print(self->commands[i], out);
   }
 }
 
-void Key_debug(Key *self) {
-  fprintf(stderr, "KEY byte: %02X col: %02X row: %02X\n",
-	  Key_get(self), self->col, self->row);
+void Key_print(Key *self, FILE* out) {
+  fprintf(out, "$%02X: ", Key_get(self));	 
 }
 
-void Command_debug(Command *self) {
-  fprintf(stderr, "CMD action: %02X port: %02X mask: %02X data: %02X\n",
-	  self->action, self->port, self->mask, self->data);
+void Command_print(Command *self, FILE* out) {
+
+  char* action = "unknown";
+  
+  switch(self->action) {
+  case ACTION_SET:      action = "set";      break;
+  case ACTION_CLEAR:    action = "clear";    break;
+  case ACTION_INVERT:   action = "invert";   break;
+  case ACTION_INCREASE: action = "increase"; break;
+  case ACTION_DECREASE: action = "decrease"; break;
+  case ACTION_TRISTATE: action = "tristate"; break;
+  case ACTION_SLEEP:    action = "sleep";    break;
+  case ACTION_EXEC:     action = "exec";     break;
+  };
+
+  uint8_t mask  = 0;
+  uint8_t start = 0;
+  uint8_t end   = 0;
+  
+  if(self->mask) {
+    mask = self->mask;
+    while((mask & 1) == 0) {
+      mask = mask >> 1;
+      start++;
+    }
+
+    end = 7;
+    mask = self->mask;
+    while((mask & 0x80) == 0) {
+      mask = mask << 1;
+      end--;
+    }
+  }
+  
+  fprintf(out, "%s port %s bits %d-%d $%02X\n",
+	  action,
+	  (self->port == PORT_A) ? "a" : "b",
+          start,
+	  end,
+	  self->data);
+	  
 }
 
 Key* Key_parse(char* spec, bool reportUnknownSymbol) {
@@ -140,7 +185,7 @@ uint8_t parseBit(char *str) {
   return 1<<value;
 }
 
-uint8_t parseBits(char *str) {
+uint8_t parseBits(char *str, bool *error) {
 
   uint8_t mask = 0;
   Range *bits;
@@ -148,16 +193,16 @@ uint8_t parseBits(char *str) {
 
   if(str == NULL) return 0xff;
 
-  valid = Range_parse("0-8");
+  valid = Range_parse("0-7");
   bits  = Range_parse(str);
-  bits->end++;
-  
-  if(!(Range_valid(bits) || Range_inside(bits, valid))) {
+
+  if(!(Range_valid(bits) && Range_inside(bits, valid))) {
     fprintf(stderr, "error: '%s': invalid bit range\n", str);
+    *error = true;
     return 0xff;
   }
 
-  for(uint8_t bit=bits->start; bit<bits->end; bit++) {
+  for(uint8_t bit=bits->start; bit<bits->end+1; bit++) {
     mask |= 1<<bit;
   }
   
@@ -167,6 +212,7 @@ uint8_t parseBits(char *str) {
 bool parseData(char *str, uint8_t *data) {
 
   if(str == NULL) return false;
+  
   Key* key;
   uint8_t value;
   char *invalid;
@@ -226,7 +272,10 @@ Command* Command_parse(char* spec) {
   }
 
   if(equal(StringList_get(words, i), "bits")) {
-    if((command->mask = parseBits(StringList_get(words, ++i))) == 0xff) {
+
+    command->mask = parseBits(StringList_get(words, ++i), &error);
+
+    if(error) {
       fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i));
       goto error;
     }
@@ -255,11 +304,9 @@ Command* Command_parse(char* spec) {
   goto done;
 }
 
-bool Config_parse(char* filename, Config* config) {
+bool Config_parse(Config* config, FILE* in) {
 
-  FILE* file;
   char* buffer = (char*) calloc(4096, sizeof(char));
-
   char* line;
   char* colon;
   char *keyspec;
@@ -268,13 +315,10 @@ bool Config_parse(char* filename, Config* config) {
   Binding* binding;
   Key* key;
   Command* command;
-    
-  if((file = fopen(filename, "r")) == NULL) {
-    fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-    return false;      
-  }
 
-  while(fgets(buffer, 4096, file) != NULL) {
+  fseek(in, 0, SEEK_SET);
+    
+  while(fgets(buffer, 4096, in) != NULL) {
     line = buffer;
     pos++;
     
@@ -329,25 +373,51 @@ bool Config_parse(char* filename, Config* config) {
   }
 
   free(buffer);
-  fclose(file);
   return true;
 }
 
-int main(int argc, char **argv) {
-  void write(uint8_t byte) {
-    fputc((int)byte, stdout);
-  }
+bool isBinary(FILE* in) {
+  return false;
+}
 
-  argc--;
-  argv++;
+int main(int argc, char **argv) {
+
+  FILE *in  = stdin;
+  FILE *out = stdout;
+  Format output_format = BINARY;
 
   Config* config = Config_new();
+
+  argc--; argv++;
   
-  if(argc == 1) {
-    if(Config_parse(argv[0], config)) {      
-      Config_debug(config);
-      Config_write(config, &write);
+  if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
+
+    if((in = fopen(argv[0], "rb")) == NULL) {
+      fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
+      return EXIT_FAILURE;      
     }
-  }    
-  return 0;
+  }
+
+  if(argc >= 2 && (strncmp(argv[1], "-", 1) != 0)) {
+
+    if((out = fopen(argv[1], "wb")) == NULL) {
+      fprintf(stderr, "%s: %s\n", argv[1], strerror(errno));
+      return EXIT_FAILURE;      
+    }
+    if(strncasecmp(argv[1]+(strlen(argv[1])-5), ".conf", 5) == 0) {
+      output_format = CONFIG;
+    }
+  }
+
+  if(Config_read(config, in) || Config_parse(config, in)) {
+
+    output_format == BINARY ?
+      Config_write(config, out) :
+      Config_print(config, out);
+  }
+
+  fclose(in);
+  fclose(out);
+
+  return EXIT_SUCCESS;
 }

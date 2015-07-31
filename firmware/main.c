@@ -23,13 +23,14 @@ uint8_t CD  = 1<<PD6; // Cassette Write
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
 
-uint8_t STATE = STATE_RELAY;
+volatile Config* config;
 
-static volatile bool matrix[64];
-static volatile Config* config;
+volatile uint8_t STATE = STATE_RELAY;
 
-static volatile uint8_t serialBit  = 1;
-static volatile uint8_t serialByte = 0;
+volatile bool matrix[64];
+
+volatile uint8_t serialBit  = 1;
+volatile uint8_t serialByte = 0;
 
 //------------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ static volatile uint8_t serialByte = 0;
 
 //------------------------------------------------------------------------------
 
-static void SetupHardware(void) {
+void SetupHardware(void) {
 
   clock_prescale_set(clock_div_1);
 
@@ -61,18 +62,21 @@ static void SetupHardware(void) {
 
 //------------------------------------------------------------------------------
 
-static uint8_t ReadEprom(uint16_t addr) {
+int ReadEeprom(FILE* file) {
+
+  static uint16_t addr;
+  
   while(EECR & (1<<EEPE));
-  EEAR = addr;
+  EEAR = addr++;
   EECR |= (1<<EERE);
   return EEDR;
 }
 
 //------------------------------------------------------------------------------
 
-static void ApplyConfig(void) {
+void ApplyConfig(void) {
   for(int i=0; i<config->size; i++) {
-    if(KeyEquals(KEY_INIT, *(config->bindings[i]->key))) {
+    if(Key_equals(&KEY_INIT, config->bindings[i]->key)) {
       for(int k=0; k<config->bindings[i]->size; k++) {
         ExecuteCommand(config->bindings[i]->commands[k]);
       }
@@ -82,21 +86,21 @@ static void ApplyConfig(void) {
 
 //------------------------------------------------------------------------------
 
-static void DisableJTAG(void) {
+void DisableJTAG(void) {
   MCUCR |= (1<<JTD);
   MCUCR |= (1<<JTD);
 }
 
 //------------------------------------------------------------------------------
 
-static void ResetCounter(void) {
+void ResetCounter(void) {
   PORTD |= MR;
   PORTD &= ~MR;
 }
 
 //------------------------------------------------------------------------------
 
-static void ClockMatrix(void) {
+void ClockMatrix(void) {
   PORTD |= MC;
   _delay_us(5);
   PORTD &= ~MC;
@@ -104,7 +108,7 @@ static void ClockMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-static bool ScanMatrix(void) {
+bool ScanMatrix(void) {
   bool keyDown = false;
   uint8_t row = 0;
   uint8_t col = 0;  
@@ -128,13 +132,13 @@ static bool ScanMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-static void ResetCrosspointSwitch(void) {
+void ResetCrosspointSwitch(void) {
   PORTD &= ~CPR;
   _delay_us(5);
   PORTD |= CPR;
 }
 
-static void SetCrosspointSwitch(uint8_t index, bool closed) {
+void SetCrosspointSwitch(uint8_t index, bool closed) {
 
   index = closed ? index | CPD : index & ~CPD;
   index |= CPS;
@@ -146,7 +150,7 @@ static void SetCrosspointSwitch(uint8_t index, bool closed) {
 
 //------------------------------------------------------------------------------
 
-static void RelayMatrix(void) {
+void RelayMatrix(void) {
   for(int i=0; i<64; i++) {
     SetCrosspointSwitch(i, matrix[i]);
   }
@@ -154,7 +158,7 @@ static void RelayMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-static void RelayKeyPress(Key key) {
+void RelayKeyPress(Key key) {
   ResetCrosspointSwitch();
   
   SetCrosspointSwitch(key.row*8+key.col, true);
@@ -164,7 +168,7 @@ static void RelayKeyPress(Key key) {
 
 //------------------------------------------------------------------------------
 
-static bool QueryKeyPress(Key key) {
+bool QueryKeyPress(Key key) {
 
   /* If the requested key is down, wait until it is released. */
   
@@ -182,7 +186,7 @@ static bool QueryKeyPress(Key key) {
 
 //------------------------------------------------------------------------------
 
-static void ReadKeyPress(Key* key) {
+void ReadKeyPress(Key* key) {
 
   /* Wait until a key is down, then wait for release and report back
    * which key was pressed.
@@ -213,13 +217,13 @@ static void ReadKeyPress(Key* key) {
 
 //------------------------------------------------------------------------------
 
-static void ExecuteBinding(Key* key) {
+void ExecuteBinding(Key* key) {
   Binding *binding;
 
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
     
-    if(KeyEquals(*(key), *(binding->key))) {    
+    if(Key_equals(key, binding->key)) {    
       for(int k=0; k<binding->size; k++) {
         ExecuteCommand(binding->commands[k]);
       }
@@ -229,7 +233,7 @@ static void ExecuteBinding(Key* key) {
 
 //------------------------------------------------------------------------------
 
-static void ExecuteCommand(Command* cmd) {
+void ExecuteCommand(Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
   uint8_t value;
@@ -307,7 +311,7 @@ static void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_EXEC:
-    ByteToKey(cmd->data, &key);
+    Key_set(&key, cmd->data);
     ExecuteBinding(&key);
     break;
   }
@@ -336,7 +340,7 @@ ISR(PCINT3_vect) {
 
     if(!serialBit) {
 
-      ByteToKey(serialByte, &key);
+      Key_set(&key, serialByte);
       ExecuteBinding(&key);
     
       serialBit  = 1;
@@ -352,7 +356,7 @@ int main(void) {
   Key key;
   
   SetupHardware();
-  ReadConfig();
+  Config_read(config, &eeprom);
   ApplyConfig();
   
   while(true) {
@@ -377,7 +381,7 @@ int main(void) {
 
       ReadKeyPress(&key);
       
-      if(KeyEquals(key, KEY_META)) 
+      if(Key_equals(&key, &KEY_META)) 
         RelayKeyPress(KEY_META);
       else
         ExecuteBinding(&key);
