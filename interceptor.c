@@ -376,10 +376,6 @@ bool Config_parse(Config* config, FILE* in) {
   return true;
 }
 
-bool isBinary(FILE* in) {
-  return false;
-}
-
 int main(int argc, char **argv) {
 
   FILE *in  = stdin;

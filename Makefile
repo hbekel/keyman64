@@ -1,7 +1,6 @@
 MINGW32=i686-w64-mingw32
 CFLAGS=-std=c99 -Wall -Wno-unused -O2
 KASM=kasm
-TEMP?=C:\Temp
 
 all: linux
 linux: firmware interceptor
@@ -29,10 +28,12 @@ config: interceptor
 	avrdude -p m1284p -c usbasp -U eeprom:w:eeprom.bin:r
 
 test: example.conf interceptor
-	./interceptor example.conf $(TEMP)/example.bin
-	./interceptor $(TEMP)/example.bin $(TEMP)/roundtrip.conf
-	./interceptor $(TEMP)/roundtrip.conf $(TEMP)/roundtrip.bin
-	diff $(TEMP)/example.bin $(TEMP)/roundtrip.bin
+	mkdir tmp
+	./interceptor example.conf tmp/example.bin
+	./interceptor tmp/example.bin tmp/roundtrip.conf
+	./interceptor tmp/roundtrip.conf tmp/roundtrip.bin
+	diff tmp/example.bin tmp/roundtrip.bin || (rm -rf tmp && false)
+	rm -rf tmp
 
 control: control.prg
 
