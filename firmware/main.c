@@ -24,7 +24,6 @@ uint8_t CD  = 1<<PD6; // Cassette Write
 #define STATE_COMMAND 0x01
 
 volatile Config* config;
-
 volatile uint8_t STATE = STATE_RELAY;
 
 volatile bool matrix[64];
@@ -47,7 +46,7 @@ void SetupHardware(void) {
 
   // Crosspoint Control
   DDRA  = 0b11111111;
-  PORTA = 0b01000000;
+  PORTA = 0b11000000;
 
   // USB, Bootloader, Matrix, Serial interface
   DDRD  = 0b10001111;
@@ -62,15 +61,21 @@ void SetupHardware(void) {
 
 //------------------------------------------------------------------------------
 
+static volatile uint16_t addr = 0;
+  
 int ReadEeprom(FILE* file) {
 
-  static uint16_t addr;
-  
   while(EECR & (1<<EEPE));
-  EEAR = addr++;
+  EEAR = addr;
   EECR |= (1<<EERE);
+  addr += 1;
+
   return EEDR;
 }
+
+//------------------------------------------------------------------------------
+
+FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
 
 //------------------------------------------------------------------------------
 
@@ -134,24 +139,24 @@ bool ScanMatrix(void) {
 
 void ResetCrosspointSwitch(void) {
   PORTD &= ~CPR;
-  _delay_us(5);
+  _delay_ms(1);
   PORTD |= CPR;
 }
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
 
-  index = closed ? index | CPD : index & ~CPD;
+  index = closed ? (index | CPD) : (index & ~CPD);
   index |= CPS;
-  
   PORTA = index;
-  _delay_us(5);
-  PORTA |= CPS;  
+  
+  PORTA &= ~CPS;
+  PORTA |= CPS;
 }
 
 //------------------------------------------------------------------------------
 
 void RelayMatrix(void) {
-  for(int i=0; i<64; i++) {
+  for(uint8_t i=0; i<64; i++) {
     SetCrosspointSwitch(i, matrix[i]);
   }
 }
@@ -162,9 +167,9 @@ void RelayKeyPress(Key key) {
   ResetCrosspointSwitch();
   
   SetCrosspointSwitch(key.row*8+key.col, true);
-  _delay_ms(10);
+  _delay_ms(25);
   SetCrosspointSwitch(key.row*8+key.col, false);
-}
+} 
 
 //------------------------------------------------------------------------------
 
@@ -222,7 +227,6 @@ void ExecuteBinding(Key* key) {
 
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
-    
     if(Key_equals(key, binding->key)) {    
       for(int k=0; k<binding->size; k++) {
         ExecuteCommand(binding->commands[k]);
@@ -266,6 +270,7 @@ void ExecuteCommand(Command* cmd) {
   case ACTION_CLEAR:
     *ddr |= cmd->mask;
     *port &= ~cmd->mask;
+    break;
     
   case ACTION_INVERT:
     value = *port;
@@ -356,9 +361,11 @@ int main(void) {
   Key key;
   
   SetupHardware();
+
+  config = Config_new();
   Config_read(config, &eeprom);
   ApplyConfig();
-  
+
   while(true) {
     switch(STATE) {
 

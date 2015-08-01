@@ -21,6 +21,5 @@ void ResetCrosspointSwitch(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 
 int ReadEeprom(FILE* file);
-FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
 
 #endif // MAIN_H

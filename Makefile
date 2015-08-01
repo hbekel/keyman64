@@ -24,8 +24,8 @@ program: firmware
 	(cd firmware && make program)
 
 config: interceptor
-	./interceptor > eeprom.bin && \
-	avrdude -p m1284p -c usbasp -U eeprom:w:eeprom.bin:r
+	./interceptor example.conf example.bin && \
+	avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
 test: example.conf interceptor
 	mkdir tmp
