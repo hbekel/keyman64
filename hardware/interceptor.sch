@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Programmable C64 Keyboard Interceptor and Controller"
-Date "30 jul 2015"
+Date "1 aug 2015"
 Rev "1"
 Comp "Henning Bekel"
 Comment1 ""
@@ -999,8 +999,6 @@ F 3 "" H 3350 950 60  0000 C CNN
 	1    3350 950 
 	1    0    0    -1  
 $EndComp
-Text Label 3350 2650 3    60   ~ 0
-VEE
 Text Label 2650 1000 2    60   ~ 0
 CPA0
 Text Label 2650 1100 2    60   ~ 0
@@ -1378,6 +1376,17 @@ F 1 "USER B" V 1350 7200 60  0000 C CNN
 F 2 "" H 1300 7200 60  0000 C CNN
 F 3 "" H 1300 7200 60  0000 C CNN
 	1    1300 7200
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 55BD089A
+P 3350 2650
+F 0 "#PWR?" H 3350 2650 30  0001 C CNN
+F 1 "GND" H 3350 2580 30  0001 C CNN
+F 2 "" H 3350 2650 60  0000 C CNN
+F 3 "" H 3350 2650 60  0000 C CNN
+	1    3350 2650
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
