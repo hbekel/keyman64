@@ -53,18 +53,55 @@ void SetupHardware(void) {
   PORTD = 0b11110110;
 
   ResetCrosspointSwitch();
-
-  PCMSK3 |= CS;
-  PCICR |= (1<<PCIE3);
-  sei();  
+  SetupSerial();  
+  sei();
 }
 
 //------------------------------------------------------------------------------
 
-static volatile uint16_t addr = 0;
+/* Serial interface at 6510 IO port
+ * Cassete Sense is /STROBE (bit 4 of $01) 
+ * Cassete Write is DATA    (bit 3 of $01)
+ *
+ * The C64 sends eight bits to trigger a key/command
+ *
+ * TODO: set up a timeout to reset state if the C64 does not
+ * send a complete byte
+ */
+
+ISR(PCINT3_vect) {
+  Key key;
+  
+  if((PIND & CS) == 0) {
+    if((PIND & CD) != 0) {
+      serialByte |= serialBit;
+    }    
+    serialBit = serialBit << 1;
+
+    if(!serialBit) {
+
+      Key_set(&key, serialByte);
+      ExecuteBinding(&key);
+    
+      serialBit  = 1;
+      serialByte = 0;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void SetupSerial(void) {
+  PCMSK3 |= CS;
+  PCICR |= (1<<PCIE3);
+}
+
+//------------------------------------------------------------------------------
   
 int ReadEeprom(FILE* file) {
 
+  static volatile uint16_t addr = 0;
+  
   while(EECR & (1<<EEPE));
   EEAR = addr;
   EECR |= (1<<EERE);
@@ -144,7 +181,6 @@ void ResetCrosspointSwitch(void) {
 }
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
-
   index = closed ? (index | CPD) : (index & ~CPD);
   index |= CPS;
   PORTA = index;
@@ -324,38 +360,6 @@ void ExecuteCommand(Command* cmd) {
 
 //------------------------------------------------------------------------------
 
-/* Serial interface at 6510 IO port
- * Cassete Sense is /STROBE (bit 4 of $01) 
- * Cassete Write is DATA    (bit 3 of $01)
- *
- * The C64 send eight bits to trigger a key/command
- *
- * TODO: set up a timeout to reset state if the C64 does not
- * send a complete byte
- */
-
-ISR(PCINT3_vect) {
-  Key key;
-  
-  if((PIND & CS) == 0) {
-    if((PIND & CD) != 0) {
-      serialByte |= serialBit;
-    }    
-    serialBit = serialBit << 1;
-
-    if(!serialBit) {
-
-      Key_set(&key, serialByte);
-      ExecuteBinding(&key);
-    
-      serialBit  = 1;
-      serialByte = 0;
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-
 int main(void) {
 
   Key key;
@@ -386,6 +390,19 @@ int main(void) {
       
     case STATE_COMMAND:
 
+      // TODO:
+      // 
+      // - Once macros are possible we can simply
+      //   bind META-META to a macro typing the meta key
+      // 
+      // - Think about implementing a timeout
+      // 
+      // - Think about being able to reflect the states
+      //   on a control line -- e.g. a multicolor power led :)
+      //
+      // Think about an "enter keymap" function to support
+      // chained keybindings
+      
       ReadKeyPress(&key);
       
       if(Key_equals(&key, &KEY_META)) 

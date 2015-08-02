@@ -6,6 +6,7 @@
 Key KEY_META = { .col = 7,  .row = 1 };
   
 void SetupHardware(void);
+void SetupSerial(void);
 void ApplyConfig(void);
 void DisableJTAG(void);
 void ResetCounter(void);
