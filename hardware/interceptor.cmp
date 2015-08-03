@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 03.08.2015 08:58:17
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 03.08.2015 17:41:31
 
 BeginCmp
 TimeStamp = /55A778BF;
@@ -18,35 +18,14 @@ BeginCmp
 TimeStamp = /55A7730B;
 Reference = C4;
 ValeurCmp = 10uF;
-IdModule  = C1V5;
+IdModule  = CR2H11W5H;
 EndCmp
 
 BeginCmp
 TimeStamp = /55A77345;
 Reference = C5;
 ValeurCmp = 10uF;
-IdModule  = C1V5;
-EndCmp
-
-BeginCmp
-TimeStamp = /55A77F14;
-Reference = C7;
-ValeurCmp = 100nF;
-IdModule  = C1;
-EndCmp
-
-BeginCmp
-TimeStamp = /55A77F5A;
-Reference = C8;
-ValeurCmp = 100nF;
-IdModule  = C1;
-EndCmp
-
-BeginCmp
-TimeStamp = /55A77F6C;
-Reference = C9;
-ValeurCmp = 100nF;
-IdModule  = C1;
+IdModule  = CR2H11W5H;
 EndCmp
 
 BeginCmp
@@ -66,13 +45,6 @@ EndCmp
 BeginCmp
 TimeStamp = /55A77FA2;
 Reference = C12;
-ValeurCmp = 100nF;
-IdModule  = C1;
-EndCmp
-
-BeginCmp
-TimeStamp = /55B38383;
-Reference = C13;
 ValeurCmp = 100nF;
 IdModule  = C1;
 EndCmp
@@ -99,6 +71,13 @@ IdModule  = DIP-40__600;
 EndCmp
 
 BeginCmp
+TimeStamp = /55BF8D49;
+Reference = JP1;
+ValeurCmp = JUMPER;
+IdModule  = PIN_ARRAY_2X1;
+EndCmp
+
+BeginCmp
 TimeStamp = /55A772B0;
 Reference = P1;
 ValeurCmp = TAPEPORT;
@@ -120,17 +99,10 @@ IdModule  = pinHeader-20x1;
 EndCmp
 
 BeginCmp
-TimeStamp = /55BA1527;
+TimeStamp = /55BF3179;
 Reference = P4;
-ValeurCmp = USER A;
-IdModule  = pinHeader-8x1;
-EndCmp
-
-BeginCmp
-TimeStamp = /55BA1542;
-Reference = P5;
-ValeurCmp = USER B;
-IdModule  = pinHeader-8x1;
+ValeurCmp = USER;
+IdModule  = pin_array_8x2;
 EndCmp
 
 BeginCmp
