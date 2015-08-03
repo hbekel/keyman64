@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30.07.2015 16:04:05
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 03.08.2015 08:58:17
 
 BeginCmp
 TimeStamp = /55A778BF;
@@ -99,13 +99,6 @@ IdModule  = DIP-40__600;
 EndCmp
 
 BeginCmp
-TimeStamp = /55B37C90;
-Reference = K1;
-ValeurCmp = USB;
-IdModule  = USB_MINI_B;
-EndCmp
-
-BeginCmp
 TimeStamp = /55A772B0;
 Reference = P1;
 ValeurCmp = TAPEPORT;
@@ -138,6 +131,13 @@ TimeStamp = /55BA1542;
 Reference = P5;
 ValeurCmp = USER B;
 IdModule  = pinHeader-8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55BF1030;
+Reference = P6;
+ValeurCmp = USB;
+IdModule  = USB_MINI_B_CORRECTED;
 EndCmp
 
 BeginCmp

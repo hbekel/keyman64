@@ -1,4 +1,4 @@
-update=30.07.2015 13:52:10
+update=03.08.2015 08:53:08
 version=1
 last_client=cvpcb
 [pcbnew]
@@ -38,6 +38,7 @@ LibName14=dip_sockets
 LibName15=pga_sockets
 LibName16=valves
 LibName17=mod/pinHeaders
+LibName18=mod/usb-mini-b
 LibDir=
 [general]
 version=1
