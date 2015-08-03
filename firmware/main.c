@@ -23,13 +23,14 @@ uint8_t CD  = 1<<PD6; // Cassette Write
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
 
-volatile Config* config;
 volatile uint8_t STATE = STATE_RELAY;
 
 volatile bool matrix[64];
 
 volatile uint8_t serialBit  = 1;
 volatile uint8_t serialByte = 0;
+
+volatile Config* config;
 
 //------------------------------------------------------------------------------
 
@@ -40,8 +41,10 @@ volatile uint8_t serialByte = 0;
 
 void SetupHardware(void) {
 
+  // TELLME: is this still required?
   clock_prescale_set(clock_div_1);
 
+  // TELLME: is this still required? JTAGEN is off after all...
   DisableJTAG();
 
   // Crosspoint Control
@@ -53,8 +56,8 @@ void SetupHardware(void) {
   PORTD = 0b11110110;
 
   ResetCrosspointSwitch();
+  
   SetupSerial();  
-  sei();
 }
 
 //------------------------------------------------------------------------------
@@ -68,6 +71,14 @@ void SetupHardware(void) {
  * TODO: set up a timeout to reset state if the C64 does not
  * send a complete byte
  */
+
+void SetupSerial(void) {
+  PCMSK3 |= CS;
+  PCICR |= (1<<PCIE3);
+  sei();
+}
+
+//------------------------------------------------------------------------------
 
 ISR(PCINT3_vect) {
   Key key;
@@ -87,13 +98,6 @@ ISR(PCINT3_vect) {
       serialByte = 0;
     }
   }
-}
-
-//------------------------------------------------------------------------------
-
-void SetupSerial(void) {
-  PCMSK3 |= CS;
-  PCICR |= (1<<PCIE3);
 }
 
 //------------------------------------------------------------------------------
@@ -179,6 +183,8 @@ void ResetCrosspointSwitch(void) {
   _delay_ms(1);
   PORTD |= CPR;
 }
+
+//------------------------------------------------------------------------------
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
   index = closed ? (index | CPD) : (index & ~CPD);
