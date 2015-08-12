@@ -1,0 +1,44 @@
+* Possible features/improvements:
+
+- expect command keys only during keydown of meta key:
+  
+  This has the advantage of not having to press the key twice to relay
+  it -- it would relay the key when the key goes up again without a
+  command key having been pressed during keydown... which would make
+  its special function almost unnoticeable when typing regulary...
+
+  Also this would allow holding the key down and issuing multiple
+  commands in sequence, very handy for counters, and more user friendly
+  in general.
+
+- Allow defining/recording/playback of keyboard macros
+
+- Allow redefining the matrix (eg switch y and z for qwertz-Layouts)
+
+  This could be as simple as implementing a swap command as an inital
+  command, e.g. "swap z y" for qwertz
+
+- Allow key chords (multiple keys), 
+  e.g. META... k-1 = select kernal one
+       META... c-1 = select charset one
+       META... m-1 = select mixer one
+
+- Allow typing via USB (?)
+
+  This would mean pulling in the whole vusb stuff, implementing client
+  side code, etc...
+
+- Allow typing via the serial interface (?)
+
+  This would make the interface much more complicated...
+  Why would we need this?
+
+* Possible applications:
+
+  - Do resets on a keypress/command
+  - switch kernals, then issue resets
+  - keep the reset line low after powerup until special 
+    key combo is hit ("password protection")
+  - Implement buttons, e.g. for an internal SDIEC
+
+

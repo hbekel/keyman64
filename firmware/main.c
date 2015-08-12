@@ -22,6 +22,7 @@ uint8_t CD  = 1<<PD6; // Cassette Write
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
+#define DEBOUNCE _delay_ms(20)
 
 volatile uint8_t STATE = STATE_RELAY;
 
@@ -215,51 +216,38 @@ void RelayKeyPress(Key key) {
 
 //------------------------------------------------------------------------------
 
-bool QueryKeyPress(Key key) {
+bool IsKeyDown(Key *key) {
+  return matrix[key->row*8+key->col];
+}
 
-  /* If the requested key is down, wait until it is released. */
-  
+//------------------------------------------------------------------------------
+
+bool IsKeyUp(Key *key) {
+  return !matrix[key->row*8+key->col];
+}
+
+//------------------------------------------------------------------------------
+
+bool QueryKeyDown(Key *key) {
   bool result = false;
   
-  if(ScanMatrix() && matrix[key.row*8+key.col]) {
-    _delay_ms(20);
-    if(ScanMatrix() && matrix[key.row*8+key.col]) {
-      result = true;
-      while(ScanMatrix() && matrix[key.row*8+key.col]);
-    }
+  if(ScanMatrix() && IsKeyDown(key)) {
+    DEBOUNCE;
+    result = ScanMatrix() && IsKeyDown(key);
   }
   return result;
 }
 
 //------------------------------------------------------------------------------
 
-void ReadKeyPress(Key* key) {
-
-  /* Wait until a key is down, then wait for release and report back
-   * which key was pressed.
-  */
-
-  uint8_t row = 0;
-  uint8_t col = 0;  
+bool QueryKeyUp(Key *key) {
+  bool result = false;
   
-  while(!ScanMatrix());
-
-  _delay_ms(20);
-  
-  if(ScanMatrix()) {
-    for(row=0; row<8; row++) {
-      for(col=0; col<8; col++) {
-        if(matrix[row*8+col]) {
-          key->row = row;
-          key->col = col;
-          goto waitForKeyRelease;
-        }
-      }
-    }
-
-  waitForKeyRelease:
-    while(ScanMatrix() && matrix[key->row*8+key->col]);
+  if(ScanMatrix() && IsKeyUp(key)) {
+    DEBOUNCE;
+    result = ScanMatrix() && IsKeyUp(key);
   }
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -368,13 +356,14 @@ void ExecuteCommand(Command* cmd) {
 
 int main(void) {
 
-  Key key;
-  
   SetupHardware();
 
   config = Config_new();
   Config_read(config, &eeprom);
   ApplyConfig();
+
+  Binding *binding;
+  bool commandExecuted = false;
 
   while(true) {
     switch(STATE) {
@@ -383,9 +372,10 @@ int main(void) {
 
     case STATE_RELAY:
 
-      if(QueryKeyPress(KEY_META)) {
+      if(QueryKeyDown(&KEY_META)) {
         ResetCrosspointSwitch();
-        STATE = STATE_COMMAND;
+	commandExecuted = false;
+        STATE = STATE_COMMAND;	
       }
       else {
         RelayMatrix();
@@ -396,27 +386,26 @@ int main(void) {
       
     case STATE_COMMAND:
 
-      // TODO:
-      // 
-      // - Once macros are possible we can simply
-      //   bind META-META to a macro typing the meta key
-      // 
-      // - Think about implementing a timeout
-      // 
-      // - Think about being able to reflect the states
-      //   on a control line -- e.g. a multicolor power led :)
-      //
-      // Think about an "enter keymap" function to support
-      // chained keybindings
-      
-      ReadKeyPress(&key);
-      
-      if(Key_equals(&key, &KEY_META)) 
-        RelayKeyPress(KEY_META);
-      else
-        ExecuteBinding(&key);
+      if(QueryKeyUp(&KEY_META)) {
+	if(!commandExecuted) {
+	  RelayKeyPress(KEY_META);
+	}
+	STATE = STATE_RELAY;
+      }
+      else {
+	for(int i=0; i<config->size; i++) {
+	  binding = config->bindings[i];
 
-      STATE = STATE_RELAY;
+	  if(QueryKeyDown(binding->key)) {  
+  
+	    for(int k=0; k<binding->size; k++) {
+	      ExecuteCommand(binding->commands[k]);
+	    }
+	    while(!QueryKeyUp(binding->key));
+	    commandExecuted = true;
+	  }
+	}	
+      }
       break;
 
     //========================================
