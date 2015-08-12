@@ -242,10 +242,14 @@ bool QueryKeyDown(Key *key) {
 
 bool QueryKeyUp(Key *key) {
   bool result = false;
+
+  ScanMatrix();
   
-  if(ScanMatrix() && IsKeyUp(key)) {
+  if(IsKeyUp(key)) {
     DEBOUNCE;
-    result = ScanMatrix() && IsKeyUp(key);
+    ScanMatrix();
+
+    result = IsKeyUp(key);
   }
   return result;
 }
@@ -374,7 +378,7 @@ int main(void) {
 
       if(QueryKeyDown(&KEY_META)) {
         ResetCrosspointSwitch();
-	commandExecuted = false;
+        commandExecuted = false;
         STATE = STATE_COMMAND;	
       }
       else {
@@ -387,27 +391,27 @@ int main(void) {
     case STATE_COMMAND:
 
       if(QueryKeyUp(&KEY_META)) {
-	if(!commandExecuted) {
-	  RelayKeyPress(KEY_META);
-	}
-	STATE = STATE_RELAY;
+        if(!commandExecuted) {
+          RelayKeyPress(KEY_META);
+        }
+        STATE = STATE_RELAY;
       }
       else {
-	for(int i=0; i<config->size; i++) {
-	  binding = config->bindings[i];
-
-	  if(QueryKeyDown(binding->key)) {  
-  
-	    for(int k=0; k<binding->size; k++) {
-	      ExecuteCommand(binding->commands[k]);
-	    }
-	    while(!QueryKeyUp(binding->key));
-	    commandExecuted = true;
-	  }
-	}	
+        for(int i=0; i<config->size; i++) {
+          binding = config->bindings[i];
+          
+          if(QueryKeyDown(binding->key)) {  
+            
+            for(int k=0; k<binding->size; k++) {
+              ExecuteCommand(binding->commands[k]);
+            }
+            while(!QueryKeyUp(binding->key));
+            commandExecuted = true;
+          }
+        }	
       }
       break;
-
+      
     //========================================
       
     }

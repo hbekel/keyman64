@@ -11,4 +11,4 @@
 *.prg
 *.exe
 *.stackdump
-keyman64{,.exe}
+keyman64
