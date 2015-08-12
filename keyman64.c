@@ -13,7 +13,7 @@
 #include "strings.h"
 #include "range.h"
 #include "symbols.h"
-#include "interceptor.h"
+#include "keyman64.h"
 
 #include "config.c"
 
@@ -436,7 +436,7 @@ void Command_print(Command *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
-// Usage: interceptor [<infile=->] [<outfile=->]
+// Usage: keyman64 [<infile=->] [<outfile=->]
 //------------------------------------------------------------------------------
 
 int main(int argc, char **argv) {

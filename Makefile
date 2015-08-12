@@ -3,14 +3,14 @@ CFLAGS=-std=c99 -Wall -Wno-unused -O2
 KASM=kasm
 
 all: linux
-linux: firmware interceptor
-win32: firmware interceptor.exe
+linux: firmware keyman64
+win32: firmware keyman64.exe
 
-interceptor: config.h config.c strings.h strings.c range.h range.c symbols.h interceptor.c
-	gcc $(CFLAGS) -o interceptor strings.c range.c interceptor.c
+keyman64: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
+	gcc $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
 
-interceptor.exe: config.h config.c strings.h strings.c range.h range.c symbols.h interceptor.c
-	$(MINGW32)-gcc $(CFLAGS) -o interceptor strings.c range.c interceptor.c
+keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
+	$(MINGW32)-gcc $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
 
 firmware: firmware/main.hex
 
@@ -23,15 +23,15 @@ firmware-clean:
 program: firmware
 	(cd firmware && make program)
 
-config: interceptor
-	./interceptor example.conf example.bin && \
+config: keyman64
+	./keyman64 example.conf example.bin && \
 	avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
-test: example.conf interceptor
+test: example.conf keyman64
 	mkdir tmp
-	./interceptor example.conf tmp/example.bin
-	./interceptor tmp/example.bin tmp/roundtrip.conf
-	./interceptor tmp/roundtrip.conf tmp/roundtrip.bin
+	./keyman64 example.conf tmp/example.bin
+	./keyman64 tmp/example.bin tmp/roundtrip.conf
+	./keyman64 tmp/roundtrip.conf tmp/roundtrip.bin
 	diff tmp/example.bin tmp/roundtrip.bin || (rm -rf tmp && false)
 	rm -rf tmp
 
@@ -44,6 +44,6 @@ test-control: control.prg
 	xlink control.prg
 
 clean: firmware-clean	
-	rm -rf interceptor
+	rm -rf keyman64
 	rm -rf *.{prg,bin,stackdump}
 

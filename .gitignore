@@ -11,4 +11,4 @@
 *.prg
 *.exe
 *.stackdump
-interceptor
+keyman64{,.exe}
