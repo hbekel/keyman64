@@ -1,5 +1,5 @@
 
-(rules PCB interceptor
+(rules PCB keyman64
   (snap_angle 
     fortyfive_degree
   )

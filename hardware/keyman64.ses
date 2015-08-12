@@ -1,6 +1,6 @@
 
-(session interceptor.ses
-  (base_design interceptor.dsn)
+(session keyman64.ses
+  (base_design keyman64.dsn)
   (placement
     (resolution um 10)
     (component ASTUB
