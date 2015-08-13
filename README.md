@@ -5,7 +5,7 @@
 
 This project is in a very early stage of development. The hardware
 design has been successfully implemented on a breadboard, but the
-supplied pcb layout has not been tested yes.  The firmware and
+supplied pcb layout has not been tested yet.  The firmware and
 configuration tools are crude but functional.
 
 ## Overview
@@ -69,7 +69,7 @@ lines. These 16 lines are organized in two 8-bit wide ports, denoted
 `port a` and `port b` in the configuration file. In this case, all
 lines are initially pulled low using the `clear` command).
 
-Now the key combination `<cmd-k>` will invert the state of the
+Now the key combination `<cmd>-k` will invert the state of the
 eprom address line, effectively switching back and forth between the
 two kernal images on each invocation.
 
@@ -110,7 +110,7 @@ kernal.
 
 Since the Matrix seen by the C64 is controlled by the microprocessor,
 implementing keyboard macros would be possible as well. E.g. one could
-define `<cmd>-l` to type `LOAD"$",8,1<return>`.
+define `<cmd>-l` to type `LOAD"*",8,1<return>`.
 
 Remapping the keyboard layout would also be possible, e.g. change the
 keyboard layout to qwertz instead of qwerty.
@@ -136,7 +136,7 @@ bootloader beforehand (e.g. usbasp).
 
 ## License
 
-<pre style='align: center'>
+<pre>
              keyman64 Hardware, Firmware, and Software
      Copyright (c) 2015, Henning Bekel <h.bekel@googlemail.com>
 	   
