@@ -147,6 +147,7 @@ bool Config_parse(Config* self, FILE* in) {
   char* line;
   char* colon;
   char *keyspec;
+  char *comment;
   int pos = 0;
   
   Binding* binding;
@@ -164,6 +165,11 @@ bool Config_parse(Config* self, FILE* in) {
 
     // skip empty lines and comments
     if(line[0] == '\n' || line[0] == '#') continue;
+
+    // remove comment at the end of the line
+    if((comment = strstr(line, "#")) != NULL) {
+      comment[0] = '\0';
+    }
 
     // discard newline
     line[strlen(line)-1] = '\0';
@@ -470,6 +476,14 @@ int main(int argc, char **argv) {
     }
   }
 
+  if(in == stdin) {
+    fprintf(stderr, "reading from stdin...\n");
+  }
+
+  if(out == stdout) {
+    fprintf(stderr, "writing to stdout...\n");
+  }
+  
   if(Config_read(config, in) || Config_parse(config, in)) {
 
     output_format == BINARY ?

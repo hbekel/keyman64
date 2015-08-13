@@ -28,6 +28,7 @@ config: keyman64
 	avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
 test: example.conf keyman64
+	rm -rf tmp
 	mkdir tmp
 	./keyman64 example.conf tmp/example.bin
 	./keyman64 tmp/example.bin tmp/roundtrip.conf
