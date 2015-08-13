@@ -4,15 +4,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define ACTION_SET      0
-#define ACTION_INVERT   1
-#define ACTION_INCREASE 2
-#define ACTION_DECREASE 3
-#define ACTION_TRISTATE 4
-#define ACTION_SLEEP    5
-#define ACTION_EXEC     6
-#define ACTION_CLEAR    7
-#define ACTION_NONE     8
+#define ACTION_SET         0
+#define ACTION_INVERT      1
+#define ACTION_INCREASE    2
+#define ACTION_DECREASE    3
+#define ACTION_TRISTATE    4
+#define ACTION_SLEEP       5
+#define ACTION_EXEC        6
+#define ACTION_CLEAR       7
+#define ACTION_NONE        8
+#define ACTION_DEFINE_META 9
 
 #define PORT_A    0
 #define PORT_B    1
@@ -57,7 +58,7 @@ void Binding_read(Binding *self, FILE* in);
 
 Key* Key_new(void);
 Key* Key_clone(Key* key);
-void Key_set(Key* self, uint8_t byte);
+void Key_set(volatile Key* self, uint8_t byte);
 uint8_t Key_get(Key* self);
 bool Key_equals(Key* self, Key* key);
 

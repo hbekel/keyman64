@@ -37,7 +37,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "tri",   3) == 0) return ACTION_TRISTATE;
   if(strncasecmp(str, "sleep", 5) == 0) return ACTION_SLEEP;
   if(strncasecmp(str, "exec",  4) == 0) return ACTION_EXEC;
-
+  if(strncasecmp(str, "meta",  4) == 0) return ACTION_DEFINE_META;
+  
   return ACTION_NONE;
 }
 
@@ -403,14 +404,15 @@ void Command_print(Command *self, FILE* out) {
   char* action = "unknown";
   
   switch(self->action) {
-  case ACTION_SET:      action = "set";      break;
-  case ACTION_CLEAR:    action = "clear";    break;
-  case ACTION_INVERT:   action = "invert";   break;
-  case ACTION_INCREASE: action = "increase"; break;
-  case ACTION_DECREASE: action = "decrease"; break;
-  case ACTION_TRISTATE: action = "tristate"; break;
-  case ACTION_SLEEP:    action = "sleep";    break;
-  case ACTION_EXEC:     action = "exec";     break;
+  case ACTION_SET:         action = "set";      break;
+  case ACTION_CLEAR:       action = "clear";    break;
+  case ACTION_INVERT:      action = "invert";   break;
+  case ACTION_INCREASE:    action = "increase"; break;
+  case ACTION_DECREASE:    action = "decrease"; break;
+  case ACTION_TRISTATE:    action = "tristate"; break;
+  case ACTION_SLEEP:       action = "sleep";    break;
+  case ACTION_EXEC:        action = "exec";     break;
+  case ACTION_DEFINE_META: action = "meta";     break;
   };
 
   uint8_t mask  = 0;

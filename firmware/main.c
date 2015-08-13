@@ -32,6 +32,7 @@ volatile uint8_t serialBit  = 1;
 volatile uint8_t serialByte = 0;
 
 volatile Config* config;
+volatile Key* meta;
 
 //------------------------------------------------------------------------------
 
@@ -206,29 +207,29 @@ void RelayMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-void RelayKeyPress(Key key) {
+void RelayKeyPress(volatile Key *key) {
   ResetCrosspointSwitch();
   
-  SetCrosspointSwitch(key.row*8+key.col, true);
+  SetCrosspointSwitch(key->row*8+key->col, true);
   _delay_ms(25);
-  SetCrosspointSwitch(key.row*8+key.col, false);
+  SetCrosspointSwitch(key->row*8+key->col, false);
 } 
 
 //------------------------------------------------------------------------------
 
-bool IsKeyDown(Key *key) {
+bool IsKeyDown(volatile Key *key) {
   return matrix[key->row*8+key->col];
 }
 
 //------------------------------------------------------------------------------
 
-bool IsKeyUp(Key *key) {
+bool IsKeyUp(volatile Key *key) {
   return !matrix[key->row*8+key->col];
 }
 
 //------------------------------------------------------------------------------
 
-bool QueryKeyDown(Key *key) {
+bool QueryKeyDown(volatile Key *key) {
   bool result = false;
   
   if(ScanMatrix() && IsKeyDown(key)) {
@@ -240,7 +241,7 @@ bool QueryKeyDown(Key *key) {
 
 //------------------------------------------------------------------------------
 
-bool QueryKeyUp(Key *key) {
+bool QueryKeyUp(volatile Key *key) {
   bool result = false;
 
   ScanMatrix();
@@ -281,9 +282,12 @@ void ExecuteCommand(Command* cmd) {
   Key key;
 
   switch(cmd->action) {
-
+    
   case ACTION_NONE:
     break;
+
+  case ACTION_DEFINE_META:
+    Key_set(meta, cmd->data);
     
   case ACTION_SET:
     offset = 0;
@@ -362,12 +366,16 @@ int main(void) {
 
   SetupHardware();
 
+  meta = Key_new();
+  Key_set(meta, Key_get(&KEY_ARROWLEFT));
+  
   config = Config_new();
   Config_read(config, &eeprom);
+
   ApplyConfig();
 
   Binding *binding;
-  bool commandExecuted = false;
+  bool relayMetaKey = true;
 
   while(true) {
     switch(STATE) {
@@ -376,9 +384,9 @@ int main(void) {
 
     case STATE_RELAY:
 
-      if(QueryKeyDown(&KEY_META)) {
+      if(QueryKeyDown(meta)) {
         ResetCrosspointSwitch();
-        commandExecuted = false;
+        relayMetaKey = true;
         STATE = STATE_COMMAND;	
       }
       else {
@@ -390,9 +398,9 @@ int main(void) {
       
     case STATE_COMMAND:
 
-      if(QueryKeyUp(&KEY_META)) {
-        if(!commandExecuted) {
-          RelayKeyPress(KEY_META);
+      if(QueryKeyUp(meta)) {
+        if(relayMetaKey) {
+          RelayKeyPress(meta);
         }
         STATE = STATE_RELAY;
       }
@@ -406,7 +414,7 @@ int main(void) {
               ExecuteCommand(binding->commands[k]);
             }
             while(!QueryKeyUp(binding->key));
-            commandExecuted = true;
+            relayMetaKey = false;
           }
         }	
       }

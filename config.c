@@ -109,7 +109,7 @@ Key* Key_clone(Key* key) {
 
 //------------------------------------------------------------------------------
 
-void Key_set(Key* self, uint8_t byte) {
+void Key_set(volatile Key* self, uint8_t byte) {
   self->col = (byte & 0xf0) >> 4;
   self->row = (byte & 0x0f);
 }
