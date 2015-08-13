@@ -1,30 +1,30 @@
 # keyman64
 *programmable C64 keyboard interceptor and hardware control system*
 
-## State of the project
+## Project status
 
 This project is in a very early stage of development. The hardware
-design has been successfully implemented on a breadboard and the
-firmware and configuration tools are crude but functional. The
-included pcb layout has not been tested yet.
+design has been successfully implemented on a breadboard, but the
+supplied pcb layout has not been tested yes.  The firmware and
+configuration tools are crude but functional.
 
 ## Overview
 
 The keyman64 board is intended to be installed between the C64
-keyboard and the keyboard connector on the C64 mainboard and is thus
-able to intercept keystrokes on the C64 keyboard before relaying them
-to the C64 CIA1.
+keyboard and the keyboard connector on the C64 mainboard. It is thus
+able to intercept keystrokes from the C64 keyboard before relaying
+them to the C64 CIA1.
 
 The user can define certain key combinations to invoke internal
-commands that toggle the state of 16 additional general purpose
+commands that modify the state of 16 additional general purpose
 control lines provided on the board. These lines may be used to
 control additional hardware installed in the C64.
 
-The arrow-left key is used as the global command key. When it is
-simply pressed and released again, it is relayed to the C64 as
-usual. But as long as it is held down, any successive keystroke may
-invoke one or more user-defined commands that modify the state of the
-16 control lines.
+The arrow-left key is used as the global command key (hereafter noted
+by `<cmd>`). When it is simply pressed and released again, it is
+relayed to the C64 as usual. But as long as it is held down, any
+successive keystroke may invoke one or more user-defined commands that
+modify the state of the 16 control lines.
 
 An additional interface is provided at the C64 processor port, using
 the Cassette Sense and Data lines to implement a simple serial
@@ -38,14 +38,15 @@ modified by a program running on the C64 as well.
 Let's assume you have a dual-kernal adapter installed in your
 C64. These adapters usually come with a switch that controls the
 highest address line of the eprom und thus chooses the kernal that is
-seen by the C64. You have to drill a hole in your C64 case and mount
-the switch there.
+seen by the C64. You are expected to drill a hole in your C64 case to
+install the switch.
 
-Or let keyman64 do the job and keep your case free of holes.
+Using keyman64 you can avoid drilling a hole in your precious case.
 
 Simply remove the switch and connect the highest address line of the
-eprom to one of the 16 control lines of the keyman64. Let's assume
-we're using the lowest line of the first control port (port a bit 0).
+eprom to one of the 16 control lines of the keyman64. For this
+example, we'll assume that we're using the lowest line of the first
+control port (port a bit 0).
 
 Create a configuration file with the following contents:
 
@@ -63,10 +64,12 @@ And write the resulting binary file to the avr's eprom:
     avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
 Then reset the keyman64. It will first execute any command not bound
-to a key. This allows us to set the initial state of the control ports
-(in this case, all lines are pulled low, e.g. cleared).
+to a key. This allows us to set the initial state of the control
+lines. These 16 lines are organized in two 8-bit wide ports, denoted
+`port a` and `port b` in the configuration file. In this case, all
+lines are initially pulled low using the `clear` command).
 
-Now the key combination 'arrow-left-k' will invert the state of the
+Now the key combination `<cmd-k>` will invert the state of the
 eprom address line, effectively switching back and forth between the
 two kernal images on each invocation.
 
@@ -90,16 +93,16 @@ control port and change the configuration to:
     k: invert port a bit 0
     k: exec r
 
-Now if we press 'arrow-left-r', the reset line will be driven from
-tristate to low for 10 milliseconds and then tristated again,
-effectively causing the C64 to reset.
+Now if we press `<cmd>-r`, the reset line will be driven from tristate
+to low for 10 milliseconds and is then tristated again, effectively
+causing the C64 to reset.
 
-And if we press 'arrow-left-k', the kernal will be switched just like
-before, but then the reset sequence bound to key 'r' will be executed
-in addition.
+And if we press `<cmd>-k`, the kernal will be switched just like
+before, but then the reset sequence bound to `<cmd>-r` will be
+executed in addition.
 
 Thus we can switch the kernal and immediately reset the C64 simply by
-pressing 'arrow-left-k' instead of having to turn off the C64, flip a
+pressing `<cmd>-k` instead of having to turn off the C64, flip a
 switch and turn the C64 back on every time we want to change the
 kernal.
 
@@ -107,7 +110,7 @@ kernal.
 
 Since the Matrix seen by the C64 is controlled by the microprocessor,
 implementing keyboard macros would be possible as well. E.g. one could
-type 'LOAD"$",8,1' simply by pressing 'arrow-left-l' or something.
+define `<cmd>-l` to type `LOAD"$",8,1<return>`.
 
 Remapping the keyboard layout would also be possible, e.g. change the
 keyboard layout to qwertz instead of qwerty.
@@ -117,13 +120,13 @@ keyboard layout to qwertz instead of qwerty.
 An Atmel 1284P microprocessor is used to implement the core
 functionality. It is able to scan the C64 keyboard matrix using only
 two io lines with the help of an external circuit constructed from a
-744520 (dual four bit binary counter) and two 744051 ICs (analog
-1-to-8 multiplexers). This keeps 16 of the 32 io lines of the
-microprocessor free for general purpose control of external
-hardware. The remainder of the microprocessors io lines are used to
-control a 7422106 8x8 crosspoint switch IC. It provides an 8x8 matrix
-of analogue switches, which is connected to the CIA1 of the C64, and
-just looks like a real keyboard matrix to the CIA.
+4520 (dual four bit binary counter) and two 4051 (analog 1-to-8
+multiplexers). This keeps 16 of the 32 io lines of the microprocessor
+free for general purpose control of external hardware. The remainder
+of the microprocessors io lines are used to control a 7422106 8x8
+crosspoint switch IC. It provides an 8x8 matrix of analog switches,
+which is connected to the CIA1 of the C64, and just looks like a real
+keyboard matrix to the CIA.
 
 The user configuration can be created with the supplied command line
 tool and is stored in the microprocessors on-board eeprom. To make it
@@ -133,9 +136,9 @@ bootloader beforehand (e.g. usbasp).
 
 ## License
 
-<pre>
-	     keyman64 Hardware, Firmware, and Software
-      Copyright (c) 2015, Henning Bekel <h.bekel@googlemail.com>
+<pre style='align: center'>
+             keyman64 Hardware, Firmware, and Software
+     Copyright (c) 2015, Henning Bekel <h.bekel@googlemail.com>
 	   
 		      All rights reserved.
 
