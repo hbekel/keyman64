@@ -43,12 +43,6 @@ volatile Key* meta;
 
 void SetupHardware(void) {
 
-  // TELLME: is this still required?
-  clock_prescale_set(clock_div_1);
-
-  // TELLME: is this still required? JTAGEN is off after all...
-  DisableJTAG();
-
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b11000000;
@@ -288,6 +282,7 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_DEFINE_META:
     Key_set(meta, cmd->data);
+    break;
     
   case ACTION_SET:
     offset = 0;
@@ -299,10 +294,10 @@ void ExecuteCommand(Command* cmd) {
     }
 
     value = (cmd->data & mask) << offset;
-    
-    *ddr |= cmd->mask;
+
     *port &= ~cmd->mask;
-    *port |= value; 
+    *port |= value;         
+    *ddr |= cmd->mask;    
     break;
 
   case ACTION_CLEAR:
