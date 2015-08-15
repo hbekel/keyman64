@@ -48,3 +48,8 @@ clean: firmware-clean
 	rm -rf keyman64
 	rm -rf *.{prg,bin,stackdump}
 
+install: keyman64
+	install -D -m 755 keyman64 /usr/bin/keyman64
+
+uninstall:
+	rm -f /usr/bin/keyman64
