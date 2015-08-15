@@ -17,8 +17,8 @@ uint8_t CPS = 1<<PA6; // Crosspoint Strobe
 uint8_t CPD = 1<<PA7; // Crosspoint Data
 uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
-uint8_t CS  = 1<<PD5; // Cassette Sense
-uint8_t CD  = 1<<PD6; // Cassette Write
+uint8_t CS  = 1<<PD6; // Cassette Sense
+uint8_t CD  = 1<<PD5; // Cassette Write
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
