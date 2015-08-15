@@ -116,7 +116,7 @@ void Key_set(volatile Key* self, uint8_t byte) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Key_get(Key* self) {
+uint8_t Key_get(volatile Key* self) {
   uint8_t byte = 0;
   byte |= self->col << 4;
   byte |= self->row;

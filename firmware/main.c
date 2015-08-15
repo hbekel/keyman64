@@ -32,7 +32,7 @@ volatile uint8_t serialBit  = 1;
 volatile uint8_t serialByte = 0;
 
 volatile Config* config;
-volatile Key* meta;
+volatile Key meta;
 
 //------------------------------------------------------------------------------
 
@@ -224,6 +224,8 @@ bool IsKeyUp(volatile Key *key) {
 //------------------------------------------------------------------------------
 
 bool QueryKeyDown(volatile Key *key) {
+  if(Key_get(key) > 0x77) return false;
+
   bool result = false;
   
   if(ScanMatrix() && IsKeyDown(key)) {
@@ -236,6 +238,8 @@ bool QueryKeyDown(volatile Key *key) {
 //------------------------------------------------------------------------------
 
 bool QueryKeyUp(volatile Key *key) {
+  if(Key_get(key) > 0x77) return false;
+  
   bool result = false;
 
   ScanMatrix();
@@ -281,7 +285,7 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_DEFINE_META:
-    Key_set(meta, cmd->data);
+    Key_set(&meta, cmd->data);
     break;
     
   case ACTION_SET:
@@ -361,8 +365,7 @@ int main(void) {
 
   SetupHardware();
 
-  meta = Key_new();
-  Key_set(meta, Key_get(&KEY_ARROWLEFT));
+  Key_set(&meta, Key_get(&KEY_ARROWLEFT));
   
   config = Config_new();
   Config_read(config, &eeprom);
@@ -379,7 +382,7 @@ int main(void) {
 
     case STATE_RELAY:
 
-      if(QueryKeyDown(meta)) {
+      if(QueryKeyDown(&meta)) {
         ResetCrosspointSwitch();
         relayMetaKey = true;
         STATE = STATE_COMMAND;	
@@ -393,9 +396,9 @@ int main(void) {
       
     case STATE_COMMAND:
 
-      if(QueryKeyUp(meta)) {
+      if(QueryKeyUp(&meta)) {
         if(relayMetaKey) {
-          RelayKeyPress(meta);
+          RelayKeyPress(&meta);
         }
         STATE = STATE_RELAY;
       }

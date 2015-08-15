@@ -59,7 +59,7 @@ void Binding_read(Binding *self, FILE* in);
 Key* Key_new(void);
 Key* Key_clone(Key* key);
 void Key_set(volatile Key* self, uint8_t byte);
-uint8_t Key_get(Key* self);
+uint8_t Key_get(volatile Key* self);
 bool Key_equals(Key* self, Key* key);
 
 Command* Command_new(void);
