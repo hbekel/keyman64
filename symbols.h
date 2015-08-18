@@ -8,16 +8,16 @@ typedef struct {
   Key key;
 } Symbol;
 
-Symbol symbols[64+15] = {
+Symbol symbols[64+16] = {
   
 { .name = "DEL",         .key = { .row = 0, .col = 0 } },
-{ .name = "3",           .key = { .row = 0, .col = 1 } },
-{ .name = "5",           .key = { .row = 0, .col = 2 } },
-{ .name = "6",           .key = { .row = 0, .col = 3 } },
-{ .name = "9",           .key = { .row = 0, .col = 4 } },
+{ .name = "THREE",       .key = { .row = 0, .col = 1 } },
+{ .name = "FIVE",        .key = { .row = 0, .col = 2 } },
+{ .name = "SIX",         .key = { .row = 0, .col = 3 } },
+{ .name = "NINE",        .key = { .row = 0, .col = 4 } },
 { .name = "+",           .key = { .row = 0, .col = 5 } },
 { .name = "POUND",       .key = { .row = 0, .col = 6 } },
-{ .name = "1",           .key = { .row = 0, .col = 7 } },
+{ .name = "ONE",         .key = { .row = 0, .col = 7 } },
 
 { .name = "RETURN",      .key = { .row = 1, .col = 0 } },
 { .name = "W",           .key = { .row = 1, .col = 1 } },
@@ -38,13 +38,13 @@ Symbol symbols[64+15] = {
 { .name = "CONTROL",     .key = { .row = 2, .col = 7 } },
 
 { .name = "F7",          .key = { .row = 3, .col = 0 } },
-{ .name = "4",           .key = { .row = 3, .col = 1 } },
-{ .name = "6",           .key = { .row = 3, .col = 2 } },
-{ .name = "8",           .key = { .row = 3, .col = 3 } },
-{ .name = "0",           .key = { .row = 3, .col = 4 } },
+{ .name = "FOUR",        .key = { .row = 3, .col = 1 } },
+{ .name = "SIX",         .key = { .row = 3, .col = 2 } },
+{ .name = "EIGHT",       .key = { .row = 3, .col = 3 } },
+{ .name = "ZERO",        .key = { .row = 3, .col = 4 } },
 { .name = "-",           .key = { .row = 3, .col = 5 } },
 { .name = "HOME",        .key = { .row = 3, .col = 6 } },
-{ .name = "2",           .key = { .row = 3, .col = 7 } },
+{ .name = "TWO",         .key = { .row = 3, .col = 7 } },
 
 { .name = "F1",          .key = { .row = 4, .col = 0 } },
 { .name = "Z",           .key = { .row = 4, .col = 1 } },
@@ -60,7 +60,7 @@ Symbol symbols[64+15] = {
 { .name = "F",           .key = { .row = 5, .col = 2 } },
 { .name = "H",           .key = { .row = 5, .col = 3 } },
 { .name = "K",           .key = { .row = 5, .col = 4 } },
-{ .name = "SEMICOLON",   .key = { .row = 5, .col = 5 } },
+{ .name = "COLON",       .key = { .row = 5, .col = 5 } },
 { .name = "=",           .key = { .row = 5, .col = 6 } },
 { .name = "COMMODORE",   .key = { .row = 5, .col = 7 } },
 
@@ -72,6 +72,7 @@ Symbol symbols[64+15] = {
 { .name = "@",           .key = { .row = 6, .col = 5 } },
 { .name = "ARROWUP",     .key = { .row = 6, .col = 6 } },
 { .name = "Q",           .key = { .row = 6, .col = 7 } },
+
 { .name = "CURSORDOWN",  .key = { .row = 7, .col = 0 } },
 { .name = "LEFTSHIFT",   .key = { .row = 7, .col = 1 } },
 { .name = "X",           .key = { .row = 7, .col = 2 } },
@@ -80,7 +81,6 @@ Symbol symbols[64+15] = {
 { .name = ",",           .key = { .row = 7, .col = 5 } },
 { .name = "/",           .key = { .row = 7, .col = 6 } },
 { .name = "RUNSTOP",     .key = { .row = 7, .col = 7 } },
-
 
 { .name = "ENTER",       .key = { .row = 1, .col = 0 } },
 { .name = "INST",        .key = { .row = 0, .col = 0 } },
@@ -97,6 +97,7 @@ Symbol symbols[64+15] = {
 { .name = "SHIFTLEFT",   .key = { .row = 7, .col = 1 } },
 { .name = "RUN",         .key = { .row = 7, .col = 7 } },
 { .name = "STOP",        .key = { .row = 7, .col = 7 } },
+{ .name = "SEMICOLON",   .key = { .row = 2, .col = 6 } },
 };
 
 #endif // KEYS_H
