@@ -16,6 +16,7 @@ void RelayMatrix(void);
 void RelayKeyPress(volatile Key *key);
 bool IsKeyDown(volatile Key *key);
 bool IsKeyUp(volatile Key *key);
+bool IsKey(volatile Key *key);
 bool QueryKeyDown(volatile Key *key);
 bool QueryKeyUp(volatile Key *key);
 void ExecuteBinding(Key* key);

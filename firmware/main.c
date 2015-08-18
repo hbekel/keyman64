@@ -223,8 +223,14 @@ bool IsKeyUp(volatile Key *key) {
 
 //------------------------------------------------------------------------------
 
+bool IsKey(volatile Key *key) {
+  return (Key_get(key) & 0b10001000) == 0;
+}
+
+//------------------------------------------------------------------------------
+
 bool QueryKeyDown(volatile Key *key) {
-  if(Key_get(key) > 0x77) return false;
+  if(!IsKey(key)) return false;
 
   bool result = false;
   
@@ -238,7 +244,7 @@ bool QueryKeyDown(volatile Key *key) {
 //------------------------------------------------------------------------------
 
 bool QueryKeyUp(volatile Key *key) {
-  if(Key_get(key) > 0x77) return false;
+  if(!IsKey(key)) return false;
   
   bool result = false;
 
