@@ -42,7 +42,7 @@ volatile Key meta;
 //------------------------------------------------------------------------------
 
 void SetupHardware(void) {
-
+  
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b11000000;
@@ -69,7 +69,7 @@ void SetupHardware(void) {
  */
 
 void SetupSerial(void) {
-  PCMSK3 |= CS;
+  PCMSK3 |= (1<<CS);
   PCICR |= (1<<PCIE3);
   sei();
 }
