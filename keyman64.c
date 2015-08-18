@@ -173,7 +173,9 @@ bool Config_parse(Config* self, FILE* in) {
     }
 
     // discard newline
-    line[strlen(line)-1] = '\0';
+    if(line[strlen(line)-1] == '\n') {
+      line[strlen(line)-1] = '\0';
+    }
 
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
