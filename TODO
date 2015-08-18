@@ -1,12 +1,5 @@
 * Known bugs/shortcomings:
 
-- parsing the last line of the config file fails if it does not end in
-  a newline
-
-- 'set port a bits 0-1 to 3' fails because the last "3" is interpreted
-  as a key symbol, not a literal value. ($03 would work correctly
-  though)
-
 * Possible features/improvements:
 
 - Think about implementing a timeout for the meta-key that would still
@@ -34,7 +27,8 @@
 
   This would make the interface much more complicated...  Why would we
   need this? E.g. to allow an additional keyboard-controller to relay
-  keys to the C64 (numpad))
+  keys to the C64 (numpad)) -- the serial interface is generic, it
+  doesn't have to be connected to the C64 processor port...
 
 * Possible applications:
 
