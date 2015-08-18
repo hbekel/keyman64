@@ -3,10 +3,10 @@
 
 ## Project status
 
-This project is in a very early stage of development. The hardware
-design has been successfully implemented on a breadboard, but the
-supplied pcb layout has not been tested yet.  The firmware and
-configuration tools are crude but functional.
+This project is in a very early stage of development. A prototype of
+the supplied pcb layout has been made and is working as intended.  The
+firmware and configuration tools are functional, but bugs may still
+need to be squashed.
 
 ## Overview
 
@@ -20,8 +20,9 @@ commands that modify the state of 16 additional general purpose
 control lines provided on the board. These lines may be used to
 control additional hardware installed in the C64.
 
-The arrow-left key is used as the global command key (hereafter noted
-by `<cmd>`). When it is simply pressed and released again, it is
+The user may define any key to be used as the global command key
+(hereafter noted by `<cmd>`). The arrow-left key is used by
+default. When the command is simply pressed and released again, it is
 relayed to the C64 as usual. But as long as it is held down, any
 successive keystroke may invoke one or more user-defined commands that
 modify the state of the 16 control lines.
@@ -45,15 +46,15 @@ Using keyman64 you can avoid drilling a hole in your precious case.
 
 Simply remove the switch and connect the highest address line of the
 eprom to one of the 16 control lines of the keyman64. For this
-example, we'll assume that we're using the lowest line of the first
-control port (port a bit 0).
+example, we'll assume that we're using the highest line of the first
+control port (port a bit 7).
 
 Create a configuration file with the following contents:
 
     clear port a
     clear port b
 
-    k: invert port a bit 0
+    k: invert port a bit 7
 
 Convert it using the `keyman64` command line tool:
 
@@ -78,19 +79,18 @@ the C64 to crash, since you might swap the kernal contents while
 kernal code is being executed. So it would be nice to also reset the
 C64 after switching the kernal rom.
 
-We'll connect the C64 reset line to the second line of the first
+We'll connect the C64 reset line to the first line of the first
 control port and change the configuration to:
 
-    clear port a bit 0
-    tristate port a bit 1
-    clear port a bits 2-7
+    tristate port a bit 0
+    clear port a bits 1-7
     clear port b
 
-    r: clear port a bit 1
+    r: clear port a bit 0
     r: sleep 10
-    r: tristate port a bit 1
+    r: tristate port a bit 0
 
-    k: invert port a bit 0
+    k: invert port a bit 7
     k: exec r
 
 Now if we press `<cmd>-r`, the reset line will be driven from tristate

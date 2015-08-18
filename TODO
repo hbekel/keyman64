@@ -1,15 +1,17 @@
+* Known bugs/shortcomings:
+
+- parsing the last line of the config file fails if it does not end in
+  a newline
+
+- 'set port a bits 0-1 to 3' fails because the last "3" is interpreted
+  as a key symbol, not a literal value. ($03 would work correctly
+  though)
+
 * Possible features/improvements:
 
-- expect command keys only during keydown of meta key:
-  
-  This has the advantage of not having to press the key twice to relay
-  it -- it would relay the key when the key goes up again without a
-  command key having been pressed during keydown... which would make
-  its special function almost unnoticeable when typing regulary...
-
-  Also this would allow holding the key down and issuing multiple
-  commands in sequence, very handy for counters, and more user friendly
-  in general.
+- Think about implementing a timeout for the meta-key that would still
+  allow holding down the meta key (e.g. <- is used to fast-forward in
+  rsidplay)
 
 - Allow defining/recording/playback of keyboard macros
 
@@ -30,8 +32,9 @@
 
 - Allow typing via the serial interface (?)
 
-  This would make the interface much more complicated...
-  Why would we need this?
+  This would make the interface much more complicated...  Why would we
+  need this? E.g. to allow an additional keyboard-controller to relay
+  keys to the C64 (numpad))
 
 * Possible applications:
 
@@ -40,5 +43,3 @@
   - keep the reset line low after powerup until special 
     key combo is hit ("password protection")
   - Implement buttons, e.g. for an internal SDIEC
-
-
