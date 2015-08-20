@@ -388,7 +388,9 @@ void Config_print(Config *self, FILE* out) {
 void Binding_print(Binding *self, FILE* out) {
   
   for(int i=0; i<self->size; i++) {
-    Key_print(self->key, out);
+    if(!Key_equals(self->key, &KEY_INIT)) {
+      Key_print(self->key, out);
+    }
     Command_print(self->commands[i], out);
   }
 }
@@ -435,14 +437,34 @@ void Command_print(Command *self, FILE* out) {
       end--;
     }
   }
-  
-  fprintf(out, "%s port %s bits %d-%d $%02X\n",
-	  action,
-	  (self->port == PORT_A) ? "a" : "b",
-          start,
-	  end,
-	  self->data);
-	  
+
+  if(self->action == ACTION_SLEEP ||
+     self->action == ACTION_DEFINE_META ||
+     self->action == ACTION_EXEC) {
+
+    fprintf(out, "%s $%02X", action, self->data);
+    
+  }
+  else {
+    if(start == end) {
+
+      fprintf(out, "%s port %s bit %d ",
+	      action,
+	      (self->port == PORT_A) ? "a" : "b",
+	      start);
+    } else {
+      
+      fprintf(out, "%s port %s bits %d-%d ",
+	      action,
+	      (self->port == PORT_A) ? "a" : "b",
+	      start,
+	      end);
+    }
+  }
+  if(self->action == ACTION_SET) {
+    fprintf(out, "$%02X", self->data);
+  }
+  fprintf(out, "\n");
 }
 
 //------------------------------------------------------------------------------
