@@ -13,6 +13,7 @@
 #include "strings.h"
 #include "range.h"
 #include "symbols.h"
+#include "encoding.h"
 #include "keyman64.h"
 
 #include "config.c"
