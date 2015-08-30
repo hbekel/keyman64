@@ -14,6 +14,8 @@
 #define ACTION_CLEAR       7
 #define ACTION_NONE        8
 #define ACTION_DEFINE_META 9
+#define ACTION_KEY_DOWN    10
+#define ACTION_KEY_UP      11
 
 #define PORT_A    0
 #define PORT_B    1

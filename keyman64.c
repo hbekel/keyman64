@@ -39,7 +39,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "sleep", 5) == 0) return ACTION_SLEEP;
   if(strncasecmp(str, "exec",  4) == 0) return ACTION_EXEC;
   if(strncasecmp(str, "meta",  4) == 0) return ACTION_DEFINE_META;
-  
+  if(strncasecmp(str, "down",  2) == 0) return ACTION_KEY_DOWN;
+  if(strncasecmp(str, "up",    2) == 0) return ACTION_KEY_UP;
   return ACTION_NONE;
 }
 
@@ -418,6 +419,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_SLEEP:       action = "sleep";    break;
   case ACTION_EXEC:        action = "exec";     break;
   case ACTION_DEFINE_META: action = "meta";     break;
+  case ACTION_KEY_DOWN:    action = "down";     break;
+  case ACTION_KEY_UP:      action = "up";       break;        
   };
 
   uint8_t mask  = 0;
@@ -441,7 +444,9 @@ void Command_print(Command *self, FILE* out) {
 
   if(self->action == ACTION_SLEEP ||
      self->action == ACTION_DEFINE_META ||
-     self->action == ACTION_EXEC) {
+     self->action == ACTION_EXEC ||
+     self->action == ACTION_KEY_DOWN ||
+     self->action == ACTION_KEY_UP) {
 
     fprintf(out, "%s $%02X", action, self->data);
     

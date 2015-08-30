@@ -362,6 +362,16 @@ void ExecuteCommand(Command* cmd) {
     Key_set(&key, cmd->data);
     ExecuteBinding(&key);
     break;
+
+  case ACTION_KEY_DOWN:
+    Key_set(&key, cmd->data);
+    SetCrosspointSwitch(key.row*8+key.col, true);
+    break;
+
+  case ACTION_KEY_UP:
+    Key_set(&key, cmd->data);
+    SetCrosspointSwitch(key.row*8+key.col, false);
+    break;
   }
 }
 

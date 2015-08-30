@@ -8,7 +8,7 @@ typedef struct {
   Key key;
 } Symbol;
 
-Symbol symbols[64+16] = {
+Symbol symbols[64+17] = {
   
 { .name = "DEL",         .key = { .row = 0, .col = 0 } },
 { .name = "THREE",       .key = { .row = 0, .col = 1 } },
@@ -98,6 +98,7 @@ Symbol symbols[64+16] = {
 { .name = "RUN",         .key = { .row = 7, .col = 7 } },
 { .name = "STOP",        .key = { .row = 7, .col = 7 } },
 { .name = "SEMICOLON",   .key = { .row = 2, .col = 6 } },
+{ .name = "CTRL",        .key = { .row = 2, .col = 7 } },
 };
 
 #endif // KEYS_H
