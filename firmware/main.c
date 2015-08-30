@@ -389,7 +389,6 @@ int main(void) {
     case STATE_RELAY:
 
       if(QueryKeyDown(&meta)) {
-        ResetCrosspointSwitch();
         relayMetaKey = true;
         STATE = STATE_COMMAND;	
       }
