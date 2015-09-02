@@ -69,7 +69,7 @@ void SetupHardware(void) {
  */
 
 void SetupSerial(void) {
-  PCMSK3 |= (1<<CS);
+  PCMSK3 = CS;
   PCICR |= (1<<PCIE3);
   sei();
 }
