@@ -45,6 +45,13 @@ control.prg: control.asm
 test-control: control.prg
 	xlink control.prg
 
+reverse.prg: reverse.asm
+	$(KASM) reverse.asm
+
+test-reverse: reverse.prg
+	echo "Press a key on the c64. The cursor should start to blink again."
+	xlink reverse.prg
+
 clean: firmware-clean	
 	rm -rf keyman64
 	rm -rf *.{prg,bin,stackdump}
