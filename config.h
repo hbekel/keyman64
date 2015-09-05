@@ -22,11 +22,6 @@
 #define PORT_NONE 2
 
 typedef struct {
-  uint8_t col;
-  uint8_t row;
-} Key;
-
-typedef struct {
   uint8_t action;
   uint8_t port;
   uint8_t mask;
@@ -35,7 +30,7 @@ typedef struct {
 
 typedef struct {
   uint8_t size;
-  Key* key;
+  uint8_t key;
   Command** commands;
 } Binding;
 
@@ -45,24 +40,18 @@ typedef struct {
 } Config;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
-Key KEY_INIT = { .col = 15, .row = 14 };
+uint8_t KEY_INIT = 0xfe;
 
 Config* Config_new(void);
 Binding* Config_add(volatile Config *self, Binding* binding);
-bool Config_has_binding(volatile Config* self, Key* key);
-Binding* Config_get_binding(volatile Config* self, Key* key);
+bool Config_has_binding(volatile Config* self, uint8_t key);
+Binding* Config_get_binding(volatile Config* self, uint8_t key);
 bool Config_read(volatile Config *self, FILE* in);
 
 Binding* Binding_new(void);
-void Binding_set_key(Binding* self, Key* key);
+void Binding_set_key(Binding* self, uint8_t key);
 Command* Binding_add(Binding* self, Command* command);
 void Binding_read(Binding *self, FILE* in);
-
-Key* Key_new(void);
-Key* Key_clone(Key* key);
-void Key_set(volatile Key* self, uint8_t byte);
-uint8_t Key_get(volatile Key* self);
-bool Key_equals(Key* self, Key* key);
 
 Command* Command_new(void);
 void Command_read(Command *self, FILE* in);

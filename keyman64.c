@@ -109,10 +109,10 @@ static bool parseData(char *str, uint8_t *data) {
   char *invalid;
   int base = 10;
 
-  Key* key = Key_new();
+  uint8_t key;
   
-  if(Key_parse(key, str, false)) {
-    *data = Key_get(key);
+  if(Key_parse(&key, str, false)) {
+    *data = key;
     goto done;
   }
   
@@ -129,7 +129,6 @@ static bool parseData(char *str, uint8_t *data) {
   *data = value;
   
  done:
-  free(key);
   return result;    
 }
 
@@ -155,7 +154,7 @@ bool Config_parse(Config* self, FILE* in) {
   
   Binding* binding;
   Command* command;
-  Key* key;
+  uint8_t key;
 
   fseek(in, 0, SEEK_SET);
     
@@ -186,18 +185,14 @@ bool Config_parse(Config* self, FILE* in) {
       line = colon+1;
 
       // try to parse the keyspec...
-      key = Key_new();
-      
-      if(!Key_parse(key, keyspec, false)) {
+      if(!Key_parse(&key, keyspec, false)) {
         fprintf(stderr, "error: line %d: '%s': invalid key specification\n", pos, keyspec);
-	free(key);
         return false;
       }
     }
     else {
       // no keyspec given -> bind to initial "key"
-      key = Key_new();
-      Key_set(key, Key_get(&KEY_INIT));
+      key = KEY_INIT;
     }
 
     // skip leading whitespace of command spec
@@ -224,7 +219,6 @@ bool Config_parse(Config* self, FILE* in) {
 
     // append command to binding
     Binding_add(binding, command);
-    free(key);   
   }
 
   free(buffer);
@@ -233,7 +227,7 @@ bool Config_parse(Config* self, FILE* in) {
 
 //------------------------------------------------------------------------------
 
-bool Key_parse(Key *self, char* spec, bool reportUnknownSymbol) {
+bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
 
   bool result = false;
   uint8_t byte;
@@ -247,7 +241,7 @@ bool Key_parse(Key *self, char* spec, bool reportUnknownSymbol) {
       goto done;
     }
     else {
-      Key_set(self, byte);
+      *key = byte;
       result = true;
       goto done;
     }
@@ -255,7 +249,7 @@ bool Key_parse(Key *self, char* spec, bool reportUnknownSymbol) {
 
   for(int i=0; i<sizeof(symbols)/sizeof(Symbol); i++) {
     if(strcasecmp(symbols[i].name, spec) == 0) {
-      Key_set(self, Key_get(&(symbols[i].key)));
+      *key = symbols[i].key;
       result = true;
       goto done;
     }
@@ -361,8 +355,8 @@ void Binding_write(Binding *self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-void Key_write(Key *self, FILE* out) {
-  fputc(Key_get(self), out);
+void Key_write(uint8_t key, FILE* out) {
+  fputc(key, out);
 }
 
 //------------------------------------------------------------------------------
@@ -390,7 +384,7 @@ void Config_print(Config *self, FILE* out) {
 void Binding_print(Binding *self, FILE* out) {
   
   for(int i=0; i<self->size; i++) {
-    if(!Key_equals(self->key, &KEY_INIT)) {
+    if(self->key != KEY_INIT) {
       Key_print(self->key, out);
     }
     Command_print(self->commands[i], out);
@@ -399,8 +393,8 @@ void Binding_print(Binding *self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-void Key_print(Key *self, FILE* out) {
-  fprintf(out, "$%02X: ", Key_get(self));	 
+void Key_print(uint8_t key, FILE* out) {
+  fprintf(out, "$%02X: ", key);	 
 }
 
 //------------------------------------------------------------------------------

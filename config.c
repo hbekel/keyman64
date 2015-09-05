@@ -20,9 +20,9 @@ Binding* Config_add(volatile Config *self, Binding* binding) {
 
 //------------------------------------------------------------------------------
 
-Binding* Config_get_binding(volatile Config* self, Key* key) {
+Binding* Config_get_binding(volatile Config* self, uint8_t key) {
   for(int i=0; i<self->size; i++) {
-    if(Key_equals(self->bindings[i]->key, key)) {
+    if(key == self->bindings[i]->key) {
       return self->bindings[i];
     }
   }
@@ -31,7 +31,7 @@ Binding* Config_get_binding(volatile Config* self, Key* key) {
 
 //------------------------------------------------------------------------------
 
-bool Config_has_binding(volatile Config* self, Key* key) {
+bool Config_has_binding(volatile Config* self, uint8_t key) {
   return Config_get_binding(self, key) == NULL;
 }
 
@@ -48,7 +48,7 @@ bool Config_read(volatile Config *self, FILE* in) {
   
   while((byte = fgetc(in)) != 0xFFU) {
     binding = Config_add(self, Binding_new());
-    Key_set(binding->key, byte);    
+    binding->key = byte;
     Binding_read(binding, in);
   }
   return true;
@@ -59,15 +59,14 @@ bool Config_read(volatile Config *self, FILE* in) {
 Binding* Binding_new(void) {
   Binding* self = (Binding*) calloc(1, sizeof(Binding));
   self->commands = (Command**) calloc(1, sizeof(Command**));
-  self->key = Key_clone(&KEY_INIT);
+  self->key = KEY_INIT;
   return self;
 }
 
 //------------------------------------------------------------------------------
 
-void Binding_set_key(Binding* self, Key* key) {
-  self->key->col = key->col;
-  self->key->row = key->row;
+void Binding_set_key(Binding* self, uint8_t key) {
+  self->key = key;
 }
 
 //------------------------------------------------------------------------------
@@ -89,44 +88,6 @@ void Binding_read(Binding *self, FILE* in) {
     command = Binding_add(self, Command_new());
     Command_read(command, in);
   }
-}
-
-//------------------------------------------------------------------------------
-
-Key* Key_new(void) {
-  Key* self = (Key*) calloc(1, sizeof(Key));
-  return self;
-}
-
-//------------------------------------------------------------------------------
-
-Key* Key_clone(Key* key) {
-  Key* self = Key_new();
-  self->col = key->col;
-  self->row = key->row;
-  return self;
-}
-
-//------------------------------------------------------------------------------
-
-void Key_set(volatile Key* self, uint8_t byte) {
-  self->col = (byte & 0xf0) >> 4;
-  self->row = (byte & 0x0f);
-}
-
-//------------------------------------------------------------------------------
-
-uint8_t Key_get(volatile Key* self) {
-  uint8_t byte = 0;
-  byte |= self->col << 4;
-  byte |= self->row;
-  return byte;
-}
-
-//------------------------------------------------------------------------------
-
-bool Key_equals(Key* self, Key* key) {
-  return self->col == key->col && self->row == key->row;
 }
 
 //------------------------------------------------------------------------------

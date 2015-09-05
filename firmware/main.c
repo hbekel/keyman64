@@ -32,7 +32,7 @@ volatile uint8_t serialBit  = 1;
 volatile uint8_t serialByte = 0;
 
 volatile Config* config;
-volatile Key meta;
+volatile uint8_t meta;
 
 //------------------------------------------------------------------------------
 
@@ -77,8 +77,7 @@ void SetupSerial(void) {
 //------------------------------------------------------------------------------
 
 ISR(PCINT3_vect) {
-  Key key;
-  
+
   if((PIND & CS) == 0) {
     if((PIND & CD) != 0) {
       serialByte |= serialBit;
@@ -87,8 +86,7 @@ ISR(PCINT3_vect) {
 
     if(!serialBit) {
 
-      Key_set(&key, serialByte);
-      ExecuteBinding(&key);
+      ExecuteBinding(serialByte);
     
       serialBit  = 1;
       serialByte = 0;
@@ -118,7 +116,7 @@ FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
 
 void ApplyConfig(void) {
   for(int i=0; i<config->size; i++) {
-    if(Key_equals(&KEY_INIT, config->bindings[i]->key)) {
+    if(config->bindings[i]->key == KEY_INIT) {
       for(int k=0; k<config->bindings[i]->size; k++) {
         ExecuteCommand(config->bindings[i]->commands[k]);
       }
@@ -201,35 +199,35 @@ void RelayMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-void RelayKeyPress(volatile Key *key) {
+void RelayKeyPress(volatile uint8_t key) {
   ResetCrosspointSwitch();
   
-  SetCrosspointSwitch(key->row*8+key->col, true);
+  SetCrosspointSwitch(key, true);
   _delay_ms(25);
-  SetCrosspointSwitch(key->row*8+key->col, false);
+  SetCrosspointSwitch(key, false);
 } 
 
 //------------------------------------------------------------------------------
 
-bool IsKeyDown(volatile Key *key) {
-  return matrix[key->row*8+key->col];
+bool IsKeyDown(volatile uint8_t key) {
+  return matrix[key];
 }
 
 //------------------------------------------------------------------------------
 
-bool IsKeyUp(volatile Key *key) {
-  return !matrix[key->row*8+key->col];
+bool IsKeyUp(volatile uint8_t key) {
+  return !matrix[key];
 }
 
 //------------------------------------------------------------------------------
 
-bool IsKey(volatile Key *key) {
-  return (Key_get(key) & 0b10001000) == 0;
+bool IsKey(volatile uint8_t key) {
+  return key < 64;
 }
 
 //------------------------------------------------------------------------------
 
-bool QueryKeyDown(volatile Key *key) {
+bool QueryKeyDown(volatile uint8_t key) {
   if(!IsKey(key)) return false;
 
   bool result = false;
@@ -243,7 +241,7 @@ bool QueryKeyDown(volatile Key *key) {
 
 //------------------------------------------------------------------------------
 
-bool QueryKeyUp(volatile Key *key) {
+bool QueryKeyUp(volatile uint8_t key) {
   if(!IsKey(key)) return false;
   
   bool result = false;
@@ -261,12 +259,12 @@ bool QueryKeyUp(volatile Key *key) {
 
 //------------------------------------------------------------------------------
 
-void ExecuteBinding(Key* key) {
+void ExecuteBinding(uint8_t key) {
   Binding *binding;
 
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
-    if(Key_equals(key, binding->key)) {    
+    if(key == binding->key) {    
       for(int k=0; k<binding->size; k++) {
         ExecuteCommand(binding->commands[k]);
       }
@@ -283,7 +281,7 @@ void ExecuteCommand(Command* cmd) {
   uint8_t mask;
   uint8_t offset;
   uint8_t dir;
-  Key key;
+  uint8_t key;
 
   switch(cmd->action) {
     
@@ -291,7 +289,7 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_DEFINE_META:
-    Key_set(&meta, cmd->data);
+    meta = cmd->data;
     break;
     
   case ACTION_SET:
@@ -359,18 +357,15 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_EXEC:
-    Key_set(&key, cmd->data);
-    ExecuteBinding(&key);
+    ExecuteBinding(cmd->data);
     break;
 
   case ACTION_KEY_DOWN:
-    Key_set(&key, cmd->data);
-    SetCrosspointSwitch(key.row*8+key.col, true);
+    SetCrosspointSwitch(cmd->data, true);
     break;
 
   case ACTION_KEY_UP:
-    Key_set(&key, cmd->data);
-    SetCrosspointSwitch(key.row*8+key.col, false);
+    SetCrosspointSwitch(cmd->data, false);
     break;
   }
 }
@@ -381,7 +376,7 @@ int main(void) {
 
   SetupHardware();
 
-  Key_set(&meta, Key_get(&KEY_ARROWLEFT));
+  meta = KEY_ARROWLEFT;
   
   config = Config_new();
   Config_read(config, &eeprom);
@@ -398,7 +393,7 @@ int main(void) {
 
     case STATE_RELAY:
 
-      if(QueryKeyDown(&meta)) {
+      if(QueryKeyDown(meta)) {
         relayMetaKey = true;
         STATE = STATE_COMMAND;	
       }
@@ -411,9 +406,9 @@ int main(void) {
       
     case STATE_COMMAND:
 
-      if(QueryKeyUp(&meta)) {
+      if(QueryKeyUp(meta)) {
         if(relayMetaKey) {
-          RelayKeyPress(&meta);
+          RelayKeyPress(meta);
         }
         STATE = STATE_RELAY;
       }
