@@ -8,6 +8,9 @@ the supplied pcb layout has been made and is working as intended.  The
 firmware and configuration tools are functional, but bugs may still
 need to be squashed.
 
+The crosspoint IC will likely be changed to a MT8808 instead of a 
+74HC22106 since the former seems to be better available and cheaper.
+
 ## Overview
 
 The keyman64 board is intended to be installed between the C64
@@ -106,11 +109,16 @@ pressing `<cmd>-k` instead of having to turn off the C64, flip a
 switch and turn the C64 back on every time we want to change the
 kernal.
 
-## Possible features (not implemented yet)
+## Another example: Letting keyman64 type for you
 
-Since the Matrix seen by the C64 is controlled by the microprocessor,
-implementing keyboard macros would be possible as well. E.g. one could
-define `<cmd>-l` to type `LOAD"*",8,1<return>`.
+The `type` command can be bound to a key as well:
+
+    d: type load"$",8~
+    
+Now pressing `<cmd>-d` will type `load"$",8<return>`. The `~` 
+symbol denotes a newline in this context.
+
+## Possible features (not implemented yet)
 
 Remapping the keyboard layout would also be possible, e.g. change the
 keyboard layout to qwertz instead of qwerty.
@@ -138,9 +146,9 @@ bootloader beforehand (e.g. usbasp).
 
 <pre>
              keyman64 Hardware, Firmware, and Software
-     Copyright (c) 2015, Henning Bekel <h.bekel@googlemail.com>
+     Copyright (c) 2015, Henning Bekel &lt;h.bekel@googlemail.com&gt;
 	   
-		      All rights reserved.
+                      All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
