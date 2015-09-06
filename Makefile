@@ -7,15 +7,15 @@ all: linux
 linux: firmware keyman64
 win32: firmware keyman64.exe
 
-keyman64: config.h config.c strings.h strings.c range.h range.c symbols.h encoding.h keyman64.c
+keyman64: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
 	$(CC) $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
 
-keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h encoding.h keyman64.c
+keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
 	$(MINGW32)-gcc $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
 
 firmware: firmware/main.hex
 
-firmware/main.hex: firmware/main.h firmware/main.c config.h config.c
+firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h config.c 
 	(cd firmware && make)
 
 firmware-clean:

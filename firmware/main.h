@@ -4,7 +4,7 @@
 #include "config.h"
 
 uint8_t KEY_ARROWLEFT = 15;
-  
+
 void SetupHardware(void);
 void SetupSerial(void);
 void ApplyConfig(void);
@@ -23,6 +23,7 @@ void ExecuteBinding(uint8_t key);
 void ExecuteCommand(Command* command);
 void ResetCrosspointSwitch(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
+void Type(char *string);
 int ReadEeprom(FILE* file);
 
 #endif // MAIN_H

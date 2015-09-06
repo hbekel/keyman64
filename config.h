@@ -16,6 +16,7 @@
 #define ACTION_DEFINE_META 9
 #define ACTION_KEY_DOWN    10
 #define ACTION_KEY_UP      11
+#define ACTION_TYPE        12
 
 #define PORT_A    0
 #define PORT_B    1
@@ -36,16 +37,21 @@ typedef struct {
 
 typedef struct {
   uint16_t size;
+  uint8_t _size;
   Binding **bindings;
+  char **strings;
+  
 } Config;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
-uint8_t KEY_INIT = 0xfe;
+uint8_t KEY_INIT   = 0xfe;
+uint8_t KEY_STRING = 0xfd;
 
 Config* Config_new(void);
-Binding* Config_add(volatile Config *self, Binding* binding);
+Binding* Config_add_binding(volatile Config *self, Binding* binding);
 bool Config_has_binding(volatile Config* self, uint8_t key);
 Binding* Config_get_binding(volatile Config* self, uint8_t key);
+uint8_t Config_add_string(volatile Config *self, char* string);
 bool Config_read(volatile Config *self, FILE* in);
 
 Binding* Binding_new(void);

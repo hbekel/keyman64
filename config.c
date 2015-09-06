@@ -1,17 +1,31 @@
-#include "config.h"
+#include <string.h>
 
+#include "config.h"
 //------------------------------------------------------------------------------
 
 Config* Config_new(void) {
   Config* self = (Config*) calloc(1, sizeof(Config));
   self->bindings = (Binding**) calloc(1, sizeof(Binding**));
-  self->size =0;
+  self->strings = (char**) NULL;
+  self->size = 0;
+  self->_size = 0;
   return self;
 }
 
 //------------------------------------------------------------------------------
 
-Binding* Config_add(volatile Config *self, Binding* binding) {
+uint8_t Config_add_string(volatile Config *self, char* string) {
+
+  self->strings = (char**) realloc(self->strings, (self->_size+1) * sizeof(char *));
+  self->strings[self->_size] = calloc(strlen(string)+1, sizeof(char));
+  strncpy(self->strings[self->_size], string, strlen(string));
+  self->_size++;
+  return self->_size-1;
+}
+
+//------------------------------------------------------------------------------
+
+Binding* Config_add_binding(volatile Config *self, Binding* binding) {
   self->bindings = (Binding**) realloc(self->bindings, (self->size+1)*sizeof(Binding**));
   self->bindings[self->size] = binding;
   self->size++;
@@ -40,16 +54,29 @@ bool Config_has_binding(volatile Config* self, uint8_t key) {
 bool Config_read(volatile Config *self, FILE* in) {
   uint8_t byte;
   Binding* binding;
-
+  char string[4096];
+  char c;
+  int i;
+  
   if(!(fgetc(in) == CONFIG_MAGIC[0] &&
        fgetc(in) == CONFIG_MAGIC[1])) {
     return false;
   }
   
   while((byte = fgetc(in)) != 0xFFU) {
-    binding = Config_add(self, Binding_new());
-    binding->key = byte;
-    Binding_read(binding, in);
+    if (byte != KEY_STRING) {
+      binding = Config_add_binding(self, Binding_new());
+      binding->key = byte;
+      Binding_read(binding, in);
+    }
+    else {
+      i = 0;
+      while((c = fgetc(in)) != '\0') {
+        string[i++] = c;
+      }
+      string[i] = '\0';
+      Config_add_string(self, string);
+    }
   }
   return true;
 }

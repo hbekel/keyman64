@@ -8,6 +8,7 @@
 #include <util/delay.h>
 
 #include "main.h"
+#include "encoding.h"
 
 uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
@@ -200,8 +201,6 @@ void RelayMatrix(void) {
 //------------------------------------------------------------------------------
 
 void RelayKeyPress(volatile uint8_t key) {
-  ResetCrosspointSwitch();
-  
   SetCrosspointSwitch(key, true);
   _delay_ms(25);
   SetCrosspointSwitch(key, false);
@@ -255,6 +254,31 @@ bool QueryKeyUp(volatile uint8_t key) {
     result = IsKeyUp(key);
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+
+void Type(char *string) {
+  Sequence sequence;
+  uint8_t code;
+  
+  for(int i=0; i<strlen(string); i++) {
+    sequence = encoding[(uint8_t)(string[i])];
+
+    for(int k=0; k<sequence.size; k++) {
+      code = sequence.codes[k];
+      
+      if((code & 0xc0U) == 0x80U) {
+        SetCrosspointSwitch(code & ~0xc0U, true);
+      }
+      else if((code & 0xc0U) == 0x40U) {
+        SetCrosspointSwitch(code & ~0xc0U, false);
+      }
+      else if((code & 0xc0U) == 0xc0U) {
+        RelayKeyPress(code & ~0xc0U);
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -366,6 +390,10 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_KEY_UP:
     SetCrosspointSwitch(cmd->data, false);
+    break;
+
+  case ACTION_TYPE:
+    Type(config->strings[cmd->data]);
     break;
   }
 }

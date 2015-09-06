@@ -13,12 +13,13 @@
 #include "strings.h"
 #include "range.h"
 #include "symbols.h"
-#include "encoding.h"
 #include "keyman64.h"
 
 #include "config.c"
 
 //------------------------------------------------------------------------------
+
+Config* config;
 
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
@@ -41,6 +42,7 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "meta",  4) == 0) return ACTION_DEFINE_META;
   if(strncasecmp(str, "down",  2) == 0) return ACTION_KEY_DOWN;
   if(strncasecmp(str, "up",    2) == 0) return ACTION_KEY_UP;
+  if(strncasecmp(str, "type",  4) == 0) return ACTION_TYPE;  
   return ACTION_NONE;
 }
 
@@ -214,7 +216,7 @@ bool Config_parse(Config* self, FILE* in) {
     else {
       binding = Binding_new();
       Binding_set_key(binding, key);
-      Config_add(self, binding);
+      Config_add_binding(self, binding);
     }
 
     // append command to binding
@@ -270,6 +272,7 @@ bool Command_parse(Command* self, char* spec) {
   bool result = true;
   bool error = false;
   StringList* words = StringList_new();
+  char* str;
   uint8_t data;
   int i = 0;
   
@@ -278,6 +281,12 @@ bool Command_parse(Command* self, char* spec) {
   if((self->action = parseAction(StringList_get(words, i++))) == ACTION_NONE) {
     fprintf(stderr, "error: '%s': invalid command\n", StringList_get(words, i-1));
     goto error;
+  }
+
+  if(self->action == ACTION_TYPE) {
+    str = spec + strcspn(spec, ws) + 1;
+    self->data = Config_add_string(config, str);
+    goto done;
   }
   
   if(equal(StringList_get(words, i), "port")) {
@@ -338,6 +347,11 @@ void Config_write(Config *self, FILE *out) {
   
   for(int i=0; i<self->size; i++) {
     Binding_write(self->bindings[i], out);
+  }
+  for(int i=0; i<self->_size; i++) {
+    fputc(KEY_STRING, out);
+    fputs(self->strings[i], out);
+    fputc('\0', out);
   }
   fputc(0xffU, out);
 }
@@ -414,9 +428,15 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_EXEC:        action = "exec";     break;
   case ACTION_DEFINE_META: action = "meta";     break;
   case ACTION_KEY_DOWN:    action = "down";     break;
-  case ACTION_KEY_UP:      action = "up";       break;        
+  case ACTION_KEY_UP:      action = "up";       break;
+  case ACTION_TYPE:        action = "type";     break;            
   };
 
+  if(self->action == ACTION_TYPE) {
+    fprintf(out, "%s ", action);
+    fprintf(out, "%s\n", config->strings[self->data]);
+    return;
+  }
   uint8_t mask  = 0;
   uint8_t start = 0;
   uint8_t end   = 0;
@@ -479,7 +499,7 @@ int main(int argc, char **argv) {
   FILE *out = stdout;
   Format output_format = BINARY;
 
-  Config* config = Config_new();
+  config = Config_new();
 
   argc--; argv++;
   

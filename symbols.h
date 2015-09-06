@@ -8,12 +8,12 @@ typedef struct {
   uint8_t key;
 } Symbol;
 
-Symbol symbols[64+17] = {
+Symbol symbols[64+25] = {
   
 { .name = "DEL",         0 },
 { .name = "THREE",       1 },
 { .name = "FIVE",        2 },
-{ .name = "SIX",         3 },
+{ .name = "SEVEN",       3 },
 { .name = "NINE",        4 },
 { .name = "+",           5 },
 { .name = "POUND",       6 },
@@ -99,6 +99,14 @@ Symbol symbols[64+17] = {
 { .name = "STOP",        63 },
 { .name = "SEMICOLON",   22 },
 { .name = "CTRL",        23 },
+{ .name = "ASTERIX",     14 },
+{ .name = "PLUS",         5 },
+{ .name = "COMMA",       61 },
+{ .name = "MINUS",       29 },
+{ .name = "SLASH",       62 },
+{ .name = "EQUAL",       46 },
+{ .name = "DOT",         37 },
+{ .name = "AT",          53 },
 };
 
 #endif // KEYS_H
