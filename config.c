@@ -14,8 +14,7 @@ Config* Config_new(void) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_add_string(volatile Config *self, char* string) {
-
+uint16_t Config_add_string(volatile Config *self, char* string) {
   self->strings = (char**) realloc(self->strings, (self->_size+1) * sizeof(char *));
   self->strings[self->_size] = calloc(strlen(string)+1, sizeof(char));
   strncpy(self->strings[self->_size], string, strlen(string));

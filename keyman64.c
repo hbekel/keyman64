@@ -274,6 +274,7 @@ bool Command_parse(Command* self, char* spec) {
   StringList* words = StringList_new();
   char* str;
   uint8_t data;
+  uint16_t index;
   int i = 0;
   
   StringList_append_tokenized(words, spec, ws);
@@ -285,7 +286,9 @@ bool Command_parse(Command* self, char* spec) {
 
   if(self->action == ACTION_TYPE) {
     str = spec + strcspn(spec, ws) + 1;
-    self->data = Config_add_string(config, str);
+    index = Config_add_string(config, str);
+    self->mask = index & 0xff;
+    self->data = (index >> 8) & 0xff;
     goto done;
   }
   

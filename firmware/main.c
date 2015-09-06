@@ -306,7 +306,8 @@ void ExecuteCommand(Command* cmd) {
   uint8_t offset;
   uint8_t dir;
   uint8_t key;
-
+  uint16_t index;
+  
   switch(cmd->action) {
     
   case ACTION_NONE:
@@ -393,7 +394,9 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_TYPE:
-    Type(config->strings[cmd->data]);
+    index = cmd->mask;
+    index |= (cmd->data << 8);
+    Type(config->strings[index]);
     break;
   }
 }

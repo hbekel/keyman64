@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct {
   uint16_t size;
-  uint8_t _size;
+  uint16_t _size;
   Binding **bindings;
   char **strings;
   
@@ -51,7 +51,7 @@ Config* Config_new(void);
 Binding* Config_add_binding(volatile Config *self, Binding* binding);
 bool Config_has_binding(volatile Config* self, uint8_t key);
 Binding* Config_get_binding(volatile Config* self, uint8_t key);
-uint8_t Config_add_string(volatile Config *self, char* string);
+uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_read(volatile Config *self, FILE* in);
 
 Binding* Binding_new(void);
