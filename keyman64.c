@@ -44,6 +44,7 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "up",    2) == 0) return ACTION_KEY_UP;
   if(strncasecmp(str, "type",  4) == 0) return ACTION_TYPE;  
   if(strncasecmp(str, "boot",  4) == 0) return ACTION_BOOT;    
+  if(strncasecmp(str, "swap",  4) == 0) return ACTION_SWAP;  
   return ACTION_NONE;
 }
 
@@ -292,6 +293,33 @@ bool Command_parse(Command* self, char* spec) {
     self->data = (index >> 8) & 0xff;
     goto done;
   }
+
+  if(self->action == ACTION_SWAP) {
+    if(!parseData(StringList_get(words, i), &data)) {
+      if(StringList_get(words, i) != NULL) {
+	fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
+      }
+      else {
+	fprintf(stderr, "error: swap: missing key spec\n");
+	goto error;
+      }
+    }
+    self->mask = data;
+
+    i++;    
+    if(!parseData(StringList_get(words, i), &data)) {
+      if(StringList_get(words, i) != NULL) {
+	fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
+      }
+      else {
+	fprintf(stderr, "error: swap: missing key spec\n");
+	goto error;
+      }
+    }
+    self->data = data;
+    
+    goto done;
+  }
   
   if(equal(StringList_get(words, i), "port")) {
     if((self->port = parsePort(StringList_get(words, ++i))) == PORT_NONE) {
@@ -435,6 +463,7 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_KEY_UP:      action = "up";       break;
   case ACTION_TYPE:        action = "type";     break;
   case ACTION_BOOT:        action = "boot";     break;                
+  case ACTION_SWAP:        action = "swap";     break;                
   };
 
   if(self->action == ACTION_TYPE) {
@@ -473,6 +502,9 @@ void Command_print(Command *self, FILE* out) {
 
     fprintf(out, "%s $%02X", action, self->data);
     
+  }
+  else if(self->action == ACTION_SWAP) {
+    fprintf(out, "%s $%02X $%02X", action, self->mask, self->data);
   }
   else {
     if(start == end) {

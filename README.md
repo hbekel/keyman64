@@ -118,10 +118,14 @@ The `type` command can be bound to a key as well:
 Now pressing `<cmd>-d` will type `load"$",8<return>`. The `~` 
 symbol denotes a newline in this context.
 
-## Possible features (not implemented yet)
+## Remapping the keyboard
 
-Remapping the keyboard layout would also be possible, e.g. change the
-keyboard layout to qwertz instead of qwerty.
+The `swap` command can be used to virtually swap two keys on the
+keyboard. For example, to change the keyboard layout to QWERTZ, just add
+
+    swap z y
+
+to your configuration.
 
 ## Hardware design
 
