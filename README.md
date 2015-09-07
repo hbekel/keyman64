@@ -109,7 +109,7 @@ pressing `<cmd>-k` instead of having to turn off the C64, flip a
 switch and turn the C64 back on every time we want to change the
 kernal.
 
-## Another example: Letting keyman64 type for you
+## Defining keyboard macros
 
 The `type` command can be bound to a key as well:
 
@@ -126,6 +126,18 @@ keyboard. For example, to change the keyboard layout to QWERTZ, just add
     swap z y
 
 to your configuration.
+
+## Entering the bootloader
+
+The Atmega needs to enter its bootloader in order to write the configuration
+or to update the firmware. Entering the bootloader can be achived by pressing the
+RESET button while holding down the HWBE button. Alternatively, the `boot` command
+can be used to enter the bootloader using a key combination, e.g
+
+    B: boot
+    
+will make `<cmd>-b` enter the bootloader. The bootloader will exit automatically 
+after the configuration or firmware has been writen.
 
 ## Hardware design
 
