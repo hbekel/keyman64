@@ -25,6 +25,7 @@ uint8_t CD  = 1<<PD5; // Cassette Write
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
 #define DEBOUNCE _delay_ms(20)
+#define DELAY _delay_ms(20)
 
 volatile uint8_t STATE = STATE_RELAY;
 
@@ -235,7 +236,7 @@ void RelayMatrix(void) {
 
 void RelayKeyPress(volatile uint8_t key) {
   SetCrosspointSwitch(key, true);
-  _delay_ms(25);
+  DELAY;
   SetCrosspointSwitch(key, false);
 } 
 
@@ -291,10 +292,13 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 //------------------------------------------------------------------------------
 
+volatile uint8_t last;
+
 void Type(char *string) {
   Sequence sequence;
   uint8_t code;
-  
+  uint8_t key;
+
   for(int i=0; i<strlen(string); i++) {
     sequence = encoding[(uint8_t)(string[i])];
 
@@ -308,7 +312,12 @@ void Type(char *string) {
         SetCrosspointSwitch(code & ~0xc0U, false);
       }
       else if((code & 0xc0U) == 0xc0U) {
-        RelayKeyPress(code & ~0xc0U);
+        key = (code & ~0xc0U);
+
+        if(key == last ) DELAY;
+
+        RelayKeyPress(key);
+        last = key;
       }
     }
   }
