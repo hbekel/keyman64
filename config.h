@@ -17,6 +17,7 @@
 #define ACTION_KEY_DOWN    10
 #define ACTION_KEY_UP      11
 #define ACTION_TYPE        12
+#define ACTION_BOOT        13
 
 #define PORT_A    0
 #define PORT_B    1

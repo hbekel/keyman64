@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/io.h>
+#include <avr/wdt.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -35,6 +36,8 @@ volatile uint8_t serialByte = 0;
 volatile Config* config;
 volatile uint8_t meta;
 
+uint32_t BootKey ATTR_NO_INIT;
+
 //------------------------------------------------------------------------------
 
 #include "config.h"
@@ -42,7 +45,27 @@ volatile uint8_t meta;
 
 //------------------------------------------------------------------------------
 
+void CheckBootloader(void) {
+  if((MCUSR & (1 << WDRF)) && (BootKey == MAGIC)) {
+    BootKey = 0;
+    ((void (*)(void))BOOTLOADER)();
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void EnterBootloader(void) {
+  cli();
+  BootKey = MAGIC;
+  wdt_enable(WDTO_250MS);
+  for(;;);
+}
+
+//------------------------------------------------------------------------------
+
 void SetupHardware(void) {
+
+  wdt_disable();
   
   // Crosspoint Control
   DDRA  = 0b11111111;
@@ -397,6 +420,10 @@ void ExecuteCommand(Command* cmd) {
     index = cmd->mask;
     index |= (cmd->data << 8);
     Type(config->strings[index]);
+    break;
+
+  case ACTION_BOOT:
+    EnterBootloader();
     break;
   }
 }

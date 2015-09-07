@@ -3,6 +3,12 @@
 
 #include "config.h"
 
+#define ATTR_NO_INIT __attribute__ ((section(".noinit")))
+#define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
+
+#define MAGIC 0xDEADBEEF
+#define BOOTLOADER (0x20000 - 0x2000)
+
 uint8_t KEY_ARROWLEFT = 15;
 
 void SetupHardware(void);
@@ -24,6 +30,8 @@ void ExecuteCommand(Command* command);
 void ResetCrosspointSwitch(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 void Type(char *string);
+void EnterBootloader(void);
+void CheckBootloader(void) ATTR_INIT_SECTION_3;
 int ReadEeprom(FILE* file);
 
 #endif // MAIN_H

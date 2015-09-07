@@ -43,6 +43,7 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "down",  2) == 0) return ACTION_KEY_DOWN;
   if(strncasecmp(str, "up",    2) == 0) return ACTION_KEY_UP;
   if(strncasecmp(str, "type",  4) == 0) return ACTION_TYPE;  
+  if(strncasecmp(str, "boot",  4) == 0) return ACTION_BOOT;    
   return ACTION_NONE;
 }
 
@@ -432,7 +433,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_DEFINE_META: action = "meta";     break;
   case ACTION_KEY_DOWN:    action = "down";     break;
   case ACTION_KEY_UP:      action = "up";       break;
-  case ACTION_TYPE:        action = "type";     break;            
+  case ACTION_TYPE:        action = "type";     break;
+  case ACTION_BOOT:        action = "boot";     break;                
   };
 
   if(self->action == ACTION_TYPE) {
@@ -459,11 +461,15 @@ void Command_print(Command *self, FILE* out) {
     }
   }
 
-  if(self->action == ACTION_SLEEP ||
-     self->action == ACTION_DEFINE_META ||
-     self->action == ACTION_EXEC ||
-     self->action == ACTION_KEY_DOWN ||
-     self->action == ACTION_KEY_UP) {
+  if(self->action == ACTION_BOOT) {
+    fprintf(out, "%s", action);
+  }
+  
+  else if(self->action == ACTION_SLEEP ||
+	  self->action == ACTION_DEFINE_META ||
+	  self->action == ACTION_EXEC ||
+	  self->action == ACTION_KEY_DOWN ||
+	  self->action == ACTION_KEY_UP) {
 
     fprintf(out, "%s $%02X", action, self->data);
     
