@@ -28,6 +28,7 @@ uint8_t CD  = 1<<PD5; // Cassette Write
 volatile uint8_t STATE = STATE_RELAY;
 
 volatile bool matrix[64];
+volatile uint8_t layout[64];
 
 volatile uint8_t serialBit  = 1;
 volatile uint8_t serialByte = 0;
@@ -73,6 +74,15 @@ void SetupSerial(void) {
   PCMSK3 = CS;
   PCICR |= (1<<PCIE3);
   sei();
+}
+
+
+//------------------------------------------------------------------------------
+
+void SetupKeyboardLayout(void) {
+  for(uint8_t i=0; i<64; i++) {
+    layout[i] = i;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -194,7 +204,7 @@ void SetCrosspointSwitch(uint8_t index, bool closed) {
 
 void RelayMatrix(void) {
   for(uint8_t i=0; i<64; i++) {
-    SetCrosspointSwitch(i, matrix[i]);
+    SetCrosspointSwitch(layout[i], matrix[i]);
   }
 }
 
@@ -306,6 +316,7 @@ void ExecuteCommand(Command* cmd) {
   uint8_t offset;
   uint8_t dir;
   uint8_t key;
+  uint8_t tmp;
   uint16_t index;
   
   switch(cmd->action) {
@@ -398,6 +409,12 @@ void ExecuteCommand(Command* cmd) {
     index |= (cmd->data << 8);
     Type(config->strings[index]);
     break;
+
+  case ACTION_SWAP:
+    tmp = layout[cmd->mask];
+    layout[cmd->mask] = layout[cmd->data];
+    layout[cmd->data] = tmp;
+    break;
   }
 }
 
@@ -406,6 +423,7 @@ void ExecuteCommand(Command* cmd) {
 int main(void) {
 
   SetupHardware();
+  SetupKeyboardLayout();
 
   meta = KEY_ARROWLEFT;
   

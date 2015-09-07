@@ -7,6 +7,7 @@ uint8_t KEY_ARROWLEFT = 15;
 
 void SetupHardware(void);
 void SetupSerial(void);
+void SetupKeyboardLayout(void);
 void ApplyConfig(void);
 void DisableJTAG(void);
 void ResetCounter(void);
