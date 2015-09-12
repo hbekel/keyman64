@@ -24,10 +24,11 @@ uint8_t CD  = 1<<PD5; // Cassette Write
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
-#define DEBOUNCE _delay_ms(20)
-#define DELAY _delay_ms(20)
-
 volatile uint8_t STATE = STATE_RELAY;
+
+#define DEBOUNCE  _delay_ms(20)
+#define DELAY     _delay_ms(20)
+#define PROPAGATE _delay_ms(1)
 
 volatile bool matrix[64];
 volatile uint8_t layout[64];
@@ -307,9 +308,11 @@ void Type(char *string) {
       
       if((code & 0xc0U) == 0x80U) {
         SetCrosspointSwitch(code & ~0xc0U, true);
+        PROPAGATE;
       }
       else if((code & 0xc0U) == 0x40U) {
         SetCrosspointSwitch(code & ~0xc0U, false);
+        PROPAGATE;
       }
       else if((code & 0xc0U) == 0xc0U) {
         key = (code & ~0xc0U);
