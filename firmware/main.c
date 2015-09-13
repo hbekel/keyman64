@@ -421,7 +421,7 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_SLEEP:
-    value = cmd->data;
+    value = cmd->mask | (cmd->data << 8);
     while(value--) {
       _delay_ms(1);
     }

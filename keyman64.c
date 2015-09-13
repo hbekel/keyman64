@@ -277,6 +277,7 @@ bool Command_parse(Command* self, char* spec) {
   char* str;
   uint8_t data;
   uint16_t index;
+  uint16_t value;
   int i = 0;
   
   StringList_append_tokenized(words, spec, ws);
@@ -294,14 +295,34 @@ bool Command_parse(Command* self, char* spec) {
     goto done;
   }
 
+  if(self->action == ACTION_SLEEP) {
+    str = StringList_get(words, i);
+
+    if(str == NULL) {
+      fprintf(stderr, "error: missing duration for sleep\n");
+      goto error;
+    }
+
+    char *invalid;
+    value = strtol(str, &invalid, 10);
+
+    if(str == invalid) {
+      fprintf(stderr, "error: '%s': not a number\n", str);
+      goto error;
+    }
+    
+    self->mask = value & 0xff;
+    self->data = (value >> 8) & 0xff;    
+  }
+
   if(self->action == ACTION_SWAP) {
     if(!parseData(StringList_get(words, i), &data)) {
       if(StringList_get(words, i) != NULL) {
-	fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
+        fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
       }
       else {
-	fprintf(stderr, "error: swap: missing key spec\n");
-	goto error;
+        fprintf(stderr, "error: swap: missing key spec\n");
+        goto error;
       }
     }
     self->mask = data;
@@ -309,11 +330,11 @@ bool Command_parse(Command* self, char* spec) {
     i++;    
     if(!parseData(StringList_get(words, i), &data)) {
       if(StringList_get(words, i) != NULL) {
-	fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
+        fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
       }
       else {
-	fprintf(stderr, "error: swap: missing key spec\n");
-	goto error;
+        fprintf(stderr, "error: swap: missing key spec\n");
+        goto error;
       }
     }
     self->data = data;
@@ -493,9 +514,13 @@ void Command_print(Command *self, FILE* out) {
   if(self->action == ACTION_BOOT) {
     fprintf(out, "%s", action);
   }
+
+  else if(self->action == ACTION_SLEEP) {
+    uint16_t value = self->mask | (self->data << 8);
+    fprintf(out, "%s %d", action, value);
+  }
   
-  else if(self->action == ACTION_SLEEP ||
-	  self->action == ACTION_DEFINE_META ||
+  else if(self->action == ACTION_DEFINE_META ||
 	  self->action == ACTION_EXEC ||
 	  self->action == ACTION_KEY_DOWN ||
 	  self->action == ACTION_KEY_UP) {
