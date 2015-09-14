@@ -85,29 +85,16 @@ void SetupHardware(void) {
 
 //------------------------------------------------------------------------------
 
-/* Serial interface at 6510 IO port
- * Cassete Sense is /STROBE (bit 4 of $01) 
- * Cassete Write is DATA    (bit 3 of $01)
+/* External Serial control interface 
  *
- * The C64 sends eight bits to trigger a key/command
+ * External Hardware may send eight bits to trigger a key/command
  *
- * TODO: set up a timeout to reset state if the C64 does not
- * send a complete byte
  */
 
 void SetupSerial(void) {
   PCMSK3 = CS;
   PCICR |= (1<<PCIE3);
   sei();
-}
-
-
-//------------------------------------------------------------------------------
-
-void SetupKeyboardLayout(void) {
-  for(uint8_t i=0; i<64; i++) {
-    layout[i] = i;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -127,6 +114,14 @@ ISR(PCINT3_vect) {
       serialBit  = 1;
       serialByte = 0;
     }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void SetupKeyboardLayout(void) {
+  for(uint8_t i=0; i<64; i++) {
+    layout[i] = i;
   }
 }
 
@@ -306,18 +301,18 @@ void Type(char *string) {
     for(int k=0; k<sequence.size; k++) {
       code = sequence.codes[k];
       
-      if((code & 0xc0U) == 0x80U) {
-        SetCrosspointSwitch(code & ~0xc0U, true);
+      if((code & CODE_MASK) == CODE_KEY_DOWN) {
+        SetCrosspointSwitch(code & ~CODE_MASK, true);
         PROPAGATE;
       }
-      else if((code & 0xc0U) == 0x40U) {
-        SetCrosspointSwitch(code & ~0xc0U, false);
+      else if((code & CODE_MASK) == CODE_KEY_UP) {
+        SetCrosspointSwitch(code & ~CODE_MASK, false);
         PROPAGATE;
       }
-      else if((code & 0xc0U) == 0xc0U) {
-        key = (code & ~0xc0U);
+      else if((code & CODE_MASK) == CODE_KEY_PRESS) {
+        key = (code & ~CODE_MASK);
 
-        if(key == last ) DELAY;
+        if(key == last) DELAY;
 
         RelayKeyPress(key);
         last = key;

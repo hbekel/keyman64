@@ -3,9 +3,14 @@
 
 #include <stdint.h>
 
-#define DOWN(n)  ((uint8_t)n | 0x80U)
-#define UP(n)    ((uint8_t)n | 0x40U)
-#define PRESS(n) ((uint8_t)n | 0xc0U)
+#define CODE_KEY_DOWN  0x80U
+#define CODE_KEY_UP    0x40U
+#define CODE_KEY_PRESS 0xC0U
+#define CODE_MASK      0xC0U
+
+#define DOWN(n)  ((uint8_t)n | CODE_KEY_DOWN)
+#define UP(n)    ((uint8_t)n | CODE_KEY_UP)
+#define PRESS(n) ((uint8_t)n | CODE_KEY_PRESS)
 #define SHIFT(n) DOWN(57), PRESS((uint8_t)n), UP(57)
 
 #define DEFINE(c, s) { .codes = (uint8_t[]) { c }, .size = s }
