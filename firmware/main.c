@@ -31,6 +31,7 @@ volatile uint8_t STATE = STATE_RELAY;
 #define PROPAGATE _delay_ms(1)
 
 volatile bool matrix[64];
+volatile bool locked[64];
 volatile uint8_t layout[64];
 
 volatile Serial serial;
@@ -130,15 +131,14 @@ void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
     break;
 
   case SERIAL_COMMAND_KEY_DOWN:
-    SetCrosspointSwitch(argument, true);
+    SetCrosspointSwitchLocked(argument, true);
     PROPAGATE;
     break;
 
   case SERIAL_COMMAND_KEY_UP:
-    SetCrosspointSwitch(argument, false);
+    SetCrosspointSwitchLocked(argument, false);
     PROPAGATE;
     break;
-
 
   case SERIAL_COMMAND_KEY_PRESS:
     RelayKeyPress(argument);
@@ -272,12 +272,21 @@ void ResetCrosspointSwitch(void) {
 //------------------------------------------------------------------------------
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
+  if(locked[index]) return;
   index = closed ? (index | CPD) : (index & ~CPD);
   index |= CPS;
   PORTA = index;
   
   PORTA &= ~CPS;
   PORTA |= CPS;
+}
+
+//------------------------------------------------------------------------------
+
+void SetCrosspointSwitchLocked(uint8_t index, bool closed) {
+  if(!locked[index]) SetCrosspointSwitch(index, closed);
+  locked[index] = closed ? true : false;
+  if(!locked[index]) SetCrosspointSwitch(index, closed);
 }
 
 //------------------------------------------------------------------------------

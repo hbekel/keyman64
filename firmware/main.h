@@ -51,6 +51,7 @@ void ExecuteBinding(uint8_t key);
 void ExecuteCommand(Command* command);
 void ResetCrosspointSwitch(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
+void SetCrosspointSwitchLocked(uint8_t index, bool closed);
 void Type(char *string);
 void EnterBootloader(void);
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
