@@ -519,6 +519,10 @@ void ExecuteCommand(Command* cmd) {
     layout[cmd->mask] = layout[cmd->data];
     layout[cmd->data] = tmp;
     break;
+
+  case ACTION_KEY_PRESS:
+    RelayKeyPress(cmd->data);
+    break;
   }
 }
 
