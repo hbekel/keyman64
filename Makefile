@@ -4,8 +4,8 @@ MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
 all: linux
-linux: firmware keyman64
-win32: firmware keyman64.exe
+linux: firmware keyman64 kernal
+win32: firmware keyman64.exe kernal
 
 keyman64: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
 	$(CC) $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
@@ -37,6 +37,12 @@ test: example.conf keyman64
 	diff tmp/example.bin tmp/roundtrip.bin || (rm -rf tmp && false)
 	rm -rf tmp
 
+kernal: keyman64.rom
+
+keyman64.rom: kernal.asm kernal.rom
+	cp kernal.rom keyman64.rom
+	$(KASM) -binfile kernal.asm | grep dd | sh -
+
 control: control.prg
 
 control.prg: control.asm
@@ -53,7 +59,7 @@ test-reverse: reverse.prg
 	xlink reverse.prg
 
 clean: firmware-clean	
-	rm -rf keyman64
+	rm -rf keyman64{,.exe,.rom}
 	rm -rf *.{prg,bin,stackdump}
 
 install: keyman64
