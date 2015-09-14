@@ -1,3 +1,4 @@
+.import source "serial.h"
 .pc = $e000
 
 .pc = $e71d        
@@ -8,11 +9,11 @@ eof:
         
 .pc = $fb38
 report: {
-        inc $d020
+
 open:   jsr serial.open
 
 writeCommand:   
-        lda #02
+        lda #Command.input
         ldy #$04
         jsr serial.write
 
@@ -26,7 +27,6 @@ close:  jsr serial.close
 continue:
         lda #$00
         sta $d0
-        dec $d020
         jmp $e721        
 
 .import source "serial.asm"        

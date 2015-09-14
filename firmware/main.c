@@ -128,6 +128,24 @@ void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
   case SERIAL_COMMAND_EXECUTE:
     ExecuteBinding(argument);
     break;
+
+  case SERIAL_COMMAND_KEY_DOWN:
+    SetCrosspointSwitch(argument, true);
+    PROPAGATE;
+    break;
+
+  case SERIAL_COMMAND_KEY_UP:
+    SetCrosspointSwitch(argument, false);
+    PROPAGATE;
+    break;
+
+
+  case SERIAL_COMMAND_KEY_PRESS:
+    RelayKeyPress(argument);
+    break;
+
+  case SERIAL_COMMAND_INPUT:
+    break;
   }
 }
 
