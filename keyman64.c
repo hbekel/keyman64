@@ -304,7 +304,7 @@ bool Command_parse(Command* self, char* spec) {
     }
 
     char *invalid;
-    value = strtol(str, &invalid, 10);
+    value = (uint16_t) strtol(str, &invalid, 10);
 
     if(str == invalid) {
       fprintf(stderr, "error: '%s': not a number\n", str);
@@ -312,7 +312,8 @@ bool Command_parse(Command* self, char* spec) {
     }
     
     self->mask = value & 0xff;
-    self->data = (value >> 8) & 0xff;    
+    self->data = (value >> 8) & 0xff;
+    goto done;
   }
 
   if(self->action == ACTION_SWAP) {
@@ -525,12 +526,13 @@ void Command_print(Command *self, FILE* out) {
 	  self->action == ACTION_KEY_DOWN ||
 	  self->action == ACTION_KEY_UP) {
 
-    fprintf(out, "%s $%02X", action, self->data);
-    
+    fprintf(out, "%s $%02X", action, self->data);    
   }
+  
   else if(self->action == ACTION_SWAP) {
     fprintf(out, "%s $%02X $%02X", action, self->mask, self->data);
   }
+
   else {
     if(start == end) {
 

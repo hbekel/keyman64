@@ -417,6 +417,7 @@ void ExecuteCommand(Command* cmd) {
   uint8_t key;
   uint8_t tmp;
   uint16_t index;
+  uint16_t duration;
   
   switch(cmd->action) {
     
@@ -485,8 +486,8 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_SLEEP:
-    value = cmd->mask | (cmd->data << 8);
-    while(value--) {
+    duration = cmd->mask | (cmd->data << 8);
+    while(duration--) {
       _delay_ms(1);
     }
     break;
