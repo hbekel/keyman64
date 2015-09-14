@@ -118,7 +118,7 @@ void ExpectSerialCommand(void) {
 void ExpectSerialArgument(void) {
   serial.bit  = 1;
   serial.data = 0;
-  serial.expected == SERIAL_ARGUMENT;
+  serial.expected = SERIAL_ARGUMENT;
 }
 
 void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
