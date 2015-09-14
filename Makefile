@@ -1,7 +1,7 @@
-MINGW32=i686-w64-mingw32
-CFLAGS=-std=c99 -Wall -Wno-unused -O2
-KASM=kasm
 CC?=gcc
+CFLAGS=-std=gnu99 -Wall -Wno-unused -O2
+MINGW32?=i686-w64-mingw32
+KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
 all: linux
 linux: firmware keyman64
