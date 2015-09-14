@@ -39,17 +39,9 @@ test: example.conf keyman64
 
 kernal: keyman64.rom
 
-keyman64.rom: kernal.asm kernal.rom
+keyman64.rom: kernal.asm serial.asm kernal.rom
 	cp kernal.rom keyman64.rom
 	$(KASM) -binfile kernal.asm | grep dd | sh -
-
-control: control.prg
-
-control.prg: control.asm
-	$(KASM) control.asm
-
-test-control: control.prg
-	xlink control.prg
 
 reverse.prg: reverse.asm
 	$(KASM) reverse.asm

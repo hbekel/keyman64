@@ -33,8 +33,7 @@ volatile uint8_t STATE = STATE_RELAY;
 volatile bool matrix[64];
 volatile uint8_t layout[64];
 
-volatile uint8_t serialBit  = 1;
-volatile uint8_t serialByte = 0;
+volatile Serial serial;
 
 volatile Config* config;
 volatile uint8_t meta;
@@ -92,9 +91,44 @@ void SetupHardware(void) {
  */
 
 void SetupSerial(void) {
+  ResetSerial();
   PCMSK3 = CS;
   PCICR |= (1<<PCIE3);
   sei();
+}
+
+//------------------------------------------------------------------------------
+
+void ResetSerial(void) {
+  serial.bit      = 1;
+  serial.data     = 0;
+  serial.command  = 0;
+  serial.argument = 0;
+  serial.expected = SERIAL_COMMAND;
+}
+
+//------------------------------------------------------------------------------
+
+void ExpectSerialCommand(void) {
+  ResetSerial();
+}
+
+//------------------------------------------------------------------------------
+
+void ExpectSerialArgument(void) {
+  serial.bit  = 1;
+  serial.data = 0;
+  serial.expected == SERIAL_ARGUMENT;
+}
+
+void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
+
+  switch(command) {
+
+  case SERIAL_COMMAND_EXECUTE:
+    ExecuteBinding(argument);
+    break;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -103,16 +137,24 @@ ISR(PCINT3_vect) {
 
   if((PIND & CS) == 0) {
     if((PIND & CD) != 0) {
-      serialByte |= serialBit;
+      serial.data |= serial.bit;
     }    
-    serialBit = serialBit << 1;
+    serial.bit = serial.bit << 1;
 
-    if(!serialBit) {
+    if(serial.bit == serial.expected) {
 
-      ExecuteBinding(serialByte);
-    
-      serialBit  = 1;
-      serialByte = 0;
+      if(serial.expected == SERIAL_COMMAND) {
+        serial.command = serial.data;
+        ExpectSerialArgument();
+        return;
+      }
+
+      if(serial.expected == SERIAL_ARGUMENT) {
+        serial.argument = serial.data;
+        ExecuteSerialCommand(serial.command, serial.argument);
+        ExpectSerialCommand();
+        return;
+      }      
     }
   }
 }

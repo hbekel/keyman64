@@ -11,8 +11,25 @@
 
 uint8_t KEY_ARROWLEFT = 15;
 
+uint8_t SERIAL_COMMAND  = 0x10;
+uint8_t SERIAL_ARGUMENT = 0x00;
+
+#define SERIAL_COMMAND_EXECUTE 0x01
+
+typedef struct {
+  uint8_t bit;
+  uint8_t data;
+  uint8_t command;
+  uint8_t argument;
+  uint8_t expected;
+} Serial;
+
 void SetupHardware(void);
 void SetupSerial(void);
+void ResetSerial(void);
+void ExpectSerialCommand(void);
+void ExpectSerialArgument(void);
+void ExecuteSerialCommand(uint8_t command, uint8_t argument);
 void SetupKeyboardLayout(void);
 void ApplyConfig(void);
 void DisableJTAG(void);
