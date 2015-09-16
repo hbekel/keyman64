@@ -55,6 +55,7 @@ Binding* Config_add_binding(volatile Config *self, Binding* binding);
 bool Config_has_binding(volatile Config* self, uint8_t key);
 Binding* Config_get_binding(volatile Config* self, uint8_t key);
 uint16_t Config_add_string(volatile Config *self, char* string);
+bool Config_has_string(volatile Config *self, char* string, uint16_t *index);
 bool Config_read(volatile Config *self, FILE* in);
 
 Binding* Binding_new(void);

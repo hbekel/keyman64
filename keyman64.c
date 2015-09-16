@@ -290,7 +290,11 @@ bool Command_parse(Command* self, char* spec) {
 
   if(self->action == ACTION_TYPE) {
     str = spec + strcspn(spec, ws) + 1;
-    index = Config_add_string(config, str);
+
+    if(!Config_has_string(config, str, &index)) {
+      index = Config_add_string(config, str);
+    }
+
     self->mask = index & 0xff;
     self->data = (index >> 8) & 0xff;
     goto done;

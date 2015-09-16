@@ -14,6 +14,19 @@ Config* Config_new(void) {
 
 //------------------------------------------------------------------------------
 
+bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
+
+  for(uint16_t i=0; i<self->_size; i++) {    
+    if(strcmp(self->strings[i], string) == 0) {
+      *index = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+
 uint16_t Config_add_string(volatile Config *self, char* string) {
   self->strings = (char**) realloc(self->strings, (self->_size+1) * sizeof(char *));
   self->strings[self->_size] = calloc(strlen(string)+1, sizeof(char));
