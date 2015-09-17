@@ -143,9 +143,6 @@ void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
   case SERIAL_COMMAND_KEY_PRESS:
     RelayKeyPress(argument);
     break;
-
-  case SERIAL_COMMAND_INPUT:
-    break;
   }
 }
 

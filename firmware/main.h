@@ -18,7 +18,6 @@ uint8_t SERIAL_ARGUMENT = 0x00;
 #define SERIAL_COMMAND_KEY_DOWN  0x02
 #define SERIAL_COMMAND_KEY_UP    0x03
 #define SERIAL_COMMAND_KEY_PRESS 0x04
-#define SERIAL_COMMAND_INPUT     0x05
 
 typedef struct {
   uint8_t bit;
