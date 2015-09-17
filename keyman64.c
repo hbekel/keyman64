@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
+#include <getopt.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -574,8 +575,36 @@ int main(int argc, char **argv) {
   FILE *out = stdout;
   Format output_format = BINARY;
 
-  config = Config_new();
+  struct option options[] = {
+    { "help", no_argument, NULL, 'h' },
+    { "version", no_argument, NULL, 'v' },
+    { "keys", no_argument, NULL, 'k' },
+    { 0, 0, 0, 0 },
+  };
+  int option, option_index;
 
+  option = getopt_long(argc, argv, "hvk", options, &option_index);
+    
+  switch (option) {
+    
+  case 'h':
+    usage();
+    return EXIT_SUCCESS;
+    break;      
+    
+  case 'v':
+    version();
+    return EXIT_SUCCESS;
+    break;
+    
+  case 'k':
+    keys();
+    return EXIT_SUCCESS;
+    break;
+  }
+  
+  config = Config_new();
+  
   argc--; argv++;
   
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
@@ -619,6 +648,55 @@ int main(int argc, char **argv) {
   fclose(out);
 
   return result;
+}
+
+//------------------------------------------------------------------------------
+
+void version(void) {
+  printf("keyman64 version 1.0 (c) 2015 Henning Bekel. All rights reserverd.\n");
+}
+
+//------------------------------------------------------------------------------
+
+void usage(void) {
+  version();
+  printf("\n");
+  printf("Usage: keyman64 [option] [<infile>|-] [<outfile>|-]\n");
+  printf("\n");
+  printf("  Options:\n");
+  printf("           -v, --version : print version information\n");
+  printf("           -h, --help    : print this help text\n");
+  printf("           -k, --keys    : list key names and synonyms\n");
+  printf("\n");
+  printf("  Arguments:\n");
+  printf("           <infile>  : input file, format is autodetected\n");
+  printf("           <outfile> : output file, format determined by extension:\n");
+  printf("\n");
+  printf("           *.conf : plain text config file format\n");
+  printf("           *.bin  : binary file format (default)\n");  
+  printf("\n");
+  printf("  Missing arguments default to stdin or stdout respectively.\n");
+  printf("\n");
+}
+
+//------------------------------------------------------------------------------
+
+void keys(void) {
+  Symbol symbol;
+  Symbol synonym;
+  int total = sizeof(symbols)/sizeof(Symbol);
+
+  for(int i=0; i<64; i++) {
+    symbol = symbols[i];
+    printf(symbol.name);
+    for(int k=64; k<total; k++) {
+      synonym = symbols[k];
+      if(symbol.key == synonym.key) {
+        printf(", %s", synonym.name);
+      }
+    }
+    printf("\n");
+  }
 }
 
 //------------------------------------------------------------------------------

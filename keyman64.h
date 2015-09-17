@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+void version(void);
+void usage(void);
+void keys(void);
+
 bool Config_parse(Config* self, FILE* in);
 void Config_write(Config *self, FILE* out);
 void Config_print(Config *self, FILE* out);
