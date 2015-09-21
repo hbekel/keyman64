@@ -9,7 +9,7 @@
 #define ACTION_INCREASE    2
 #define ACTION_DECREASE    3
 #define ACTION_TRISTATE    4
-#define ACTION_SLEEP       5
+#define ACTION_SLEEP_SHORT 5
 #define ACTION_EXEC        6
 #define ACTION_CLEAR       7
 #define ACTION_NONE        8
@@ -20,6 +20,7 @@
 #define ACTION_BOOT        13
 #define ACTION_SWAP        14
 #define ACTION_KEY_PRESS   15
+#define ACTION_SLEEP_LONG  16
 
 #define PORT_A    0
 #define PORT_B    1
@@ -41,21 +42,26 @@ typedef struct {
 typedef struct {
   uint16_t size;
   uint16_t _size;
+  uint16_t __size;
   Binding **bindings;
   char **strings;
-  
+  uint32_t *longs;
 } Config;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
+uint8_t KEY_EOF    = 0xff;
 uint8_t KEY_INIT   = 0xfe;
 uint8_t KEY_STRING = 0xfd;
+uint8_t KEY_LONG   = 0xfc;
 
 Config* Config_new(void);
 Binding* Config_add_binding(volatile Config *self, Binding* binding);
 bool Config_has_binding(volatile Config* self, uint8_t key);
 Binding* Config_get_binding(volatile Config* self, uint8_t key);
-uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_has_string(volatile Config *self, char* string, uint16_t *index);
+uint16_t Config_add_string(volatile Config *self, char* string);
+bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index);
+uint16_t Config_add_long(volatile Config *self, uint32_t value);
 bool Config_read(volatile Config *self, FILE* in);
 
 Binding* Binding_new(void);

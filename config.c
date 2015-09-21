@@ -7,6 +7,7 @@ Config* Config_new(void) {
   Config* self = (Config*) calloc(1, sizeof(Config));
   self->bindings = (Binding**) calloc(1, sizeof(Binding**));
   self->strings = (char**) NULL;
+  self->longs = (uint32_t*) NULL;
   self->size = 0;
   self->_size = 0;
   return self;
@@ -33,6 +34,23 @@ uint16_t Config_add_string(volatile Config *self, char* string) {
   strncpy(self->strings[self->_size], string, strlen(string));
   self->_size++;
   return self->_size-1;
+}
+
+bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
+  for(uint16_t i=0; i<self->__size; i++) {
+    if(self->longs[i] == value) {
+      *index = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+uint16_t Config_add_long(volatile Config *self, uint32_t value) {
+  self->longs = (uint32_t*) realloc(self->longs, (self->__size+1) * sizeof(uint32_t));
+  self->longs[self->__size] = value;
+  self->__size++;
+  return self->__size-1;
 }
 
 //------------------------------------------------------------------------------
@@ -68,6 +86,7 @@ bool Config_read(volatile Config *self, FILE* in) {
   Binding* binding;
   char string[4096];
   char c;
+  uint32_t value;
   int i;
   
   if(!(fgetc(in) == CONFIG_MAGIC[0] &&
@@ -75,19 +94,29 @@ bool Config_read(volatile Config *self, FILE* in) {
     return false;
   }
   
-  while((byte = fgetc(in)) != 0xFFU) {
-    if (byte != KEY_STRING) {
-      binding = Config_add_binding(self, Binding_new());
-      binding->key = byte;
-      Binding_read(binding, in);
-    }
-    else {
+  while((byte = fgetc(in)) != KEY_EOF) {
+
+    if(byte == KEY_STRING) {
       i = 0;
       while((c = fgetc(in)) != '\0') {
         string[i++] = c;
       }
       string[i] = '\0';
       Config_add_string(self, string);
+    }
+    else if(byte == KEY_LONG) {
+      value = 0;
+      value |= ((uint32_t)fgetc(in)) << 0;
+      value |= ((uint32_t)fgetc(in)) << 8;
+      value |= ((uint32_t)fgetc(in)) << 16;
+      value |= ((uint32_t)fgetc(in)) << 24;
+
+      Config_add_long(self, value);
+       
+    } else {
+      binding = Config_add_binding(self, Binding_new());
+      binding->key = byte;
+      Binding_read(binding, in);
     }
   }
   return true;

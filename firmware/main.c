@@ -414,7 +414,7 @@ void ExecuteCommand(Command* cmd) {
   uint8_t key;
   uint8_t tmp;
   uint16_t index;
-  uint16_t duration;
+  uint32_t duration;
   
   switch(cmd->action) {
     
@@ -482,13 +482,21 @@ void ExecuteCommand(Command* cmd) {
     *port &= ~cmd->mask;
     break;
 
-  case ACTION_SLEEP:
+  case ACTION_SLEEP_SHORT:
     duration = cmd->mask | (cmd->data << 8);
     while(duration--) {
       _delay_ms(1);
     }
     break;
 
+  case ACTION_SLEEP_LONG:
+    index = cmd->mask | (cmd->data << 8);
+    duration = config->longs[index];
+    while(duration--) {
+      _delay_ms(1);
+    }
+    break;
+    
   case ACTION_EXEC:
     ExecuteBinding(cmd->data);
     break;
@@ -502,8 +510,7 @@ void ExecuteCommand(Command* cmd) {
     break;
 
   case ACTION_TYPE:
-    index = cmd->mask;
-    index |= (cmd->data << 8);
+    index = cmd->mask | (cmd->data << 8);
     Type(config->strings[index]);
     break;
 

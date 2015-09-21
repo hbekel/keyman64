@@ -38,7 +38,7 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "inc",   3) == 0) return ACTION_INCREASE;
   if(strncasecmp(str, "dec",   3) == 0) return ACTION_DECREASE;
   if(strncasecmp(str, "tri",   3) == 0) return ACTION_TRISTATE;
-  if(strncasecmp(str, "sleep", 5) == 0) return ACTION_SLEEP;
+  if(strncasecmp(str, "sleep", 5) == 0) return ACTION_SLEEP_SHORT;
   if(strncasecmp(str, "exec",  4) == 0) return ACTION_EXEC;
   if(strncasecmp(str, "meta",  4) == 0) return ACTION_DEFINE_META;
   if(strncasecmp(str, "down",  2) == 0) return ACTION_KEY_DOWN;
@@ -136,6 +136,67 @@ static bool parseData(char *str, uint8_t *data) {
   
  done:
   return result;    
+}
+
+//------------------------------------------------------------------------------
+
+static uint32_t parseDuration(char *str) {
+
+  uint64_t total = 0;;
+  uint8_t days = 0;
+  uint16_t hours = 0;
+  uint32_t minutes = 0;
+  uint32_t seconds = 0;
+  uint32_t milliseconds = 0;
+  uint32_t n = 0;
+
+  // d, h, m, s, ms
+  
+  char *next;
+  
+  while(true) {
+    n = strtol(str, &next, 10);
+
+    if(str == next) {
+      break;
+    }
+    
+    else if(strncmp(next, "ms", 2) == 0) {
+      milliseconds = n;
+      str = next + 2;
+    }
+
+    else if(strncmp(next, "s", 1) == 0) {
+      seconds = n;
+      str = next + 1;
+    }
+
+    else if(strncmp(next, "m", 1) == 0) {
+      minutes = n;
+      str = next + 1;
+    }
+
+    else if(strncmp(next, "h", 1) == 0) {
+      hours = n;
+      str = next + 1;
+    }
+
+    else if(strncmp(next, "d", 1) == 0) {
+      days = n;
+      str = next + 1;
+    }
+    else if(strlen(next) == 0) {
+      milliseconds += n;
+      break;
+    }
+  }
+  total += milliseconds;
+  total += seconds*1000;
+  total += minutes*60*1000;
+  total += hours*60*60*1000;
+  total += days*24*60*60*1000;
+
+  return (uint32_t) total;
 }
 
 //------------------------------------------------------------------------------
@@ -279,7 +340,7 @@ bool Command_parse(Command* self, char* spec) {
   char* str;
   uint8_t data;
   uint16_t index;
-  uint16_t value;
+  uint32_t value;
   int i = 0;
   
   StringList_append_tokenized(words, spec, ws);
@@ -301,7 +362,7 @@ bool Command_parse(Command* self, char* spec) {
     goto done;
   }
 
-  if(self->action == ACTION_SLEEP) {
+  if(self->action == ACTION_SLEEP_SHORT) {
     str = StringList_get(words, i);
 
     if(str == NULL) {
@@ -309,16 +370,20 @@ bool Command_parse(Command* self, char* spec) {
       goto error;
     }
 
-    char *invalid;
-    value = (uint16_t) strtol(str, &invalid, 10);
+    value = parseDuration(str);
 
-    if(str == invalid) {
-      fprintf(stderr, "error: '%s': not a number\n", str);
-      goto error;
+    if(value <= 65535) {
+      self->mask = value & 0xff;
+      self->data = (value >> 8) & 0xff;
     }
-    
-    self->mask = value & 0xff;
-    self->data = (value >> 8) & 0xff;
+    else {
+      self->action = ACTION_SLEEP_LONG;
+      if(!Config_has_long(config, value, &index)) {
+        index = Config_add_long(config, value);
+      }
+      self->mask = index & 0xff;
+      self->data = (index >> 8) & 0xff;
+    }
     goto done;
   }
 
@@ -413,6 +478,13 @@ void Config_write(Config *self, FILE *out) {
     fputs(self->strings[i], out);
     fputc('\0', out);
   }
+  for(int i=0; i<self->__size; i++) {
+    fputc(KEY_LONG, out);
+    fputc((self->longs[i] >> 0) & 0xff, out);
+    fputc((self->longs[i] >> 8) & 0xff, out);
+    fputc((self->longs[i] >> 16) & 0xff, out);
+    fputc((self->longs[i] >> 24) & 0xff, out);
+  }
   fputc(0xffU, out);
 }
 
@@ -484,7 +556,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_INCREASE:    action = "increase"; break;
   case ACTION_DECREASE:    action = "decrease"; break;
   case ACTION_TRISTATE:    action = "tristate"; break;
-  case ACTION_SLEEP:       action = "sleep";    break;
+  case ACTION_SLEEP_SHORT: action = "sleep";    break;
+  case ACTION_SLEEP_LONG:  action = "sleep";    break;    
   case ACTION_EXEC:        action = "exec";     break;
   case ACTION_DEFINE_META: action = "meta";     break;
   case ACTION_KEY_DOWN:    action = "down";     break;
@@ -523,9 +596,15 @@ void Command_print(Command *self, FILE* out) {
     fprintf(out, "%s", action);
   }
 
-  else if(self->action == ACTION_SLEEP) {
-    uint16_t value = self->mask | (self->data << 8);
-    fprintf(out, "%s %d", action, value);
+  else if(self->action == ACTION_SLEEP_SHORT) {
+    uint16_t short_value = self->mask | (self->data << 8);
+    fprintf(out, "%s %d", action, short_value);
+  }
+
+  else if(self->action == ACTION_SLEEP_LONG) {
+    uint16_t index = self->mask | (self->data << 8);
+    uint32_t long_value = config->longs[index];
+    fprintf(out, "%s %d", action, long_value);
   }
   
   else if(self->action == ACTION_DEFINE_META ||
