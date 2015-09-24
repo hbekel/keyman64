@@ -3,6 +3,9 @@ CFLAGS=-std=gnu99 -Wall -Wno-unused -O2
 MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
+#SWITCH?=CD74HC22106
+SWITCH?=MT8808
+
 all: linux
 linux: firmware keyman64
 win32: firmware keyman64.exe
@@ -16,7 +19,7 @@ keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h ke
 firmware: firmware/main.hex
 
 firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h config.c 
-	(cd firmware && make)
+	(cd firmware && make SWITCH=$(SWITCH))
 
 firmware-clean:
 	(cd firmware && make clean)

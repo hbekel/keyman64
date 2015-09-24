@@ -19,8 +19,8 @@ uint8_t CPS = 1<<PA6; // Crosspoint Strobe
 uint8_t CPD = 1<<PA7; // Crosspoint Data
 uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
-uint8_t CS  = 1<<PD6; // Cassette Sense
-uint8_t CD  = 1<<PD5; // Cassette Write
+uint8_t CS  = 1<<PD6; // Serial Clock (active low)
+uint8_t CD  = 1<<PD5; // Serial Data
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
@@ -261,21 +261,43 @@ bool ScanMatrix(void) {
 //------------------------------------------------------------------------------
 
 void ResetCrosspointSwitch(void) {
+
+#if defined CD74HC22106
   PORTD &= ~CPR;
   _delay_ms(1);
   PORTD |= CPR;
+
+#elif defined MT8808
+  PORTD |= CPR;  
+  _delay_ms(1);
+  PORTD &= ~CPR;
+#endif  
+}
+
+//------------------------------------------------------------------------------
+
+void StrobeCrosspointSwitch(void) {
+
+#if defined CD74HC22106
+  PORTA &= ~CPS;
+  PORTA |= CPS;
+
+#elif defined MT8808
+  PORTA |= CPS;
+  PORTA &= ~CPS;
+#endif
 }
 
 //------------------------------------------------------------------------------
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
   if(locked[index]) return;
+
   index = closed ? (index | CPD) : (index & ~CPD);
   index |= CPS;
   PORTA = index;
   
-  PORTA &= ~CPS;
-  PORTA |= CPS;
+  StrobeCrosspointSwitch();
 }
 
 //------------------------------------------------------------------------------
