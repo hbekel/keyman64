@@ -35,9 +35,11 @@ volatile bool locked[64];
 volatile uint8_t layout[64];
 
 volatile Serial serial;
-
 volatile Config* config;
 volatile uint8_t meta;
+
+static void (*ResetCrosspointSwitch)(void);
+static void (*StrobeCrosspointSwitch)(void);
 
 uint32_t BootKey ATTR_NO_INIT;
 
@@ -78,8 +80,6 @@ void SetupHardware(void) {
   DDRD  = 0b10001111;
   PORTD = 0b11110110;
 
-  ResetCrosspointSwitch();
-  
   SetupSerial();  
 }
 
@@ -87,7 +87,8 @@ void SetupHardware(void) {
 
 /* External Serial control interface 
  *
- * External Hardware may send eight bits to trigger a key/command
+ * External Hardware may send a 4-bit command nibble followed by an
+ * 8-bit argument
  *
  */
 
@@ -260,32 +261,28 @@ bool ScanMatrix(void) {
 
 //------------------------------------------------------------------------------
 
-void ResetCrosspointSwitch(void) {
-
-#if defined CD74HC22106
+void ResetCrosspointSwitch22106(void) {
   PORTD &= ~CPR;
   _delay_ms(1);
   PORTD |= CPR;
+}
 
-#elif defined MT8808
+void ResetCrosspointSwitch8808(void) {
   PORTD |= CPR;  
   _delay_ms(1);
   PORTD &= ~CPR;
-#endif  
 }
 
 //------------------------------------------------------------------------------
 
-void StrobeCrosspointSwitch(void) {
-
-#if defined CD74HC22106
+void StrobeCrosspointSwitch22106(void) {
   PORTA &= ~CPS;
   PORTA |= CPS;
+}
 
-#elif defined MT8808
+void StrobeCrosspointSwitch8808(void) {
   PORTA |= CPS;
   PORTA &= ~CPS;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -549,6 +546,16 @@ void ExecuteCommand(Command* cmd) {
   case ACTION_KEY_PRESS:
     RelayKeyPress(cmd->data);
     break;
+
+  case ACTION_DEFINE_SWITCH:
+    if(cmd->data == SWITCH_22106) {
+      ResetCrosspointSwitch = &ResetCrosspointSwitch22106;
+      StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;  
+    }
+    if(cmd->data == SWITCH_8808) {
+      ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
+      StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
+    }
   }
 }
 
@@ -560,12 +567,17 @@ int main(void) {
   SetupKeyboardLayout();
 
   meta = KEY_ARROWLEFT;
+
+  ResetCrosspointSwitch = &ResetCrosspointSwitch22106;
+  StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;  
   
   config = Config_new();
   Config_read(config, &eeprom);
 
   ApplyConfig();
 
+  ResetCrosspointSwitch();
+  
   Binding *binding;
   bool relayMetaKey = true;
 

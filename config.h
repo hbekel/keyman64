@@ -4,27 +4,31 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define ACTION_SET         0
-#define ACTION_INVERT      1
-#define ACTION_INCREASE    2
-#define ACTION_DECREASE    3
-#define ACTION_TRISTATE    4
-#define ACTION_SLEEP_SHORT 5
-#define ACTION_EXEC        6
-#define ACTION_CLEAR       7
-#define ACTION_NONE        8
-#define ACTION_DEFINE_META 9
-#define ACTION_KEY_DOWN    10
-#define ACTION_KEY_UP      11
-#define ACTION_TYPE        12
-#define ACTION_BOOT        13
-#define ACTION_SWAP        14
-#define ACTION_KEY_PRESS   15
-#define ACTION_SLEEP_LONG  16
+#define ACTION_SET           0
+#define ACTION_INVERT        1
+#define ACTION_INCREASE      2
+#define ACTION_DECREASE      3
+#define ACTION_TRISTATE      4
+#define ACTION_SLEEP_SHORT   5
+#define ACTION_EXEC          6
+#define ACTION_CLEAR         7
+#define ACTION_NONE          8
+#define ACTION_DEFINE_META   9
+#define ACTION_KEY_DOWN      10
+#define ACTION_KEY_UP        11
+#define ACTION_TYPE          12
+#define ACTION_BOOT          13
+#define ACTION_SWAP          14
+#define ACTION_KEY_PRESS     15
+#define ACTION_SLEEP_LONG    16
+#define ACTION_DEFINE_SWITCH 17
 
 #define PORT_A    0
 #define PORT_B    1
 #define PORT_NONE 2
+
+#define SWITCH_22106 0
+#define SWITCH_8808  1
 
 typedef struct {
   uint8_t action;

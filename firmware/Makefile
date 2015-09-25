@@ -43,9 +43,6 @@
 # MCU name
 MCU = atmega1284p
 
-# Crosspoint Switch model (CD74HC22106 or MT8808)
-SWITCH?=CD74HC22106
-
 # Processor frequency.
 #     This will define a symbol, F_CPU, in all source code files equal to the 
 #     processor frequency. You can then use this symbol in your source code to 
@@ -167,7 +164,6 @@ CFLAGS += -Wno-unused
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
-CFLAGS += -D$(SWITCH)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

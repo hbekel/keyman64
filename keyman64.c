@@ -46,7 +46,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "type",  4) == 0) return ACTION_TYPE;  
   if(strncasecmp(str, "boot",  4) == 0) return ACTION_BOOT;    
   if(strncasecmp(str, "swap",  4) == 0) return ACTION_SWAP;  
-  if(strncasecmp(str, "press", 5) == 0) return ACTION_KEY_PRESS;  
+  if(strncasecmp(str, "press", 5) == 0) return ACTION_KEY_PRESS;
+  if(strncasecmp(str, "using", 5) == 0) return ACTION_DEFINE_SWITCH;    
   return ACTION_NONE;
 }
 
@@ -387,6 +388,28 @@ bool Command_parse(Command* self, char* spec) {
     goto done;
   }
 
+  if(self->action == ACTION_DEFINE_SWITCH) {
+    str = StringList_get(words, i);
+
+    if(str == NULL) {
+      fprintf(stderr, "error: missing crosspoint switch model for 'using'\n");
+      goto error;
+    }
+
+    if(strstr(str, "22106") != NULL) {
+      self->data = SWITCH_22106;
+      goto done;
+    }
+    
+    if(strstr(str, "8808") != NULL) {
+      self->data = SWITCH_8808;
+      goto done;
+    }
+
+    fprintf(stderr, "error: please specify crosspoint switch model (CD74HC22106 or MT8808)\n");
+    goto error;    
+  }
+  
   if(self->action == ACTION_SWAP) {
     if(!parseData(StringList_get(words, i), &data)) {
       if(StringList_get(words, i) != NULL) {
@@ -550,22 +573,23 @@ void Command_print(Command *self, FILE* out) {
   char* action = "unknown";
   
   switch(self->action) {
-  case ACTION_SET:         action = "set";      break;
-  case ACTION_CLEAR:       action = "clear";    break;
-  case ACTION_INVERT:      action = "invert";   break;
-  case ACTION_INCREASE:    action = "increase"; break;
-  case ACTION_DECREASE:    action = "decrease"; break;
-  case ACTION_TRISTATE:    action = "tristate"; break;
-  case ACTION_SLEEP_SHORT: action = "sleep";    break;
-  case ACTION_SLEEP_LONG:  action = "sleep";    break;    
-  case ACTION_EXEC:        action = "exec";     break;
-  case ACTION_DEFINE_META: action = "meta";     break;
-  case ACTION_KEY_DOWN:    action = "down";     break;
-  case ACTION_KEY_UP:      action = "up";       break;
-  case ACTION_TYPE:        action = "type";     break;
-  case ACTION_BOOT:        action = "boot";     break;                
-  case ACTION_SWAP:        action = "swap";     break;
-  case ACTION_KEY_PRESS:   action = "press";    break;                    
+  case ACTION_SET:           action = "set";      break;
+  case ACTION_CLEAR:         action = "clear";    break;
+  case ACTION_INVERT:        action = "invert";   break;
+  case ACTION_INCREASE:      action = "increase"; break;
+  case ACTION_DECREASE:      action = "decrease"; break;
+  case ACTION_TRISTATE:      action = "tristate"; break;
+  case ACTION_SLEEP_SHORT:   action = "sleep";    break;
+  case ACTION_SLEEP_LONG:    action = "sleep";    break;    
+  case ACTION_EXEC:          action = "exec";     break;
+  case ACTION_DEFINE_META:   action = "meta";     break;
+  case ACTION_KEY_DOWN:      action = "down";     break;
+  case ACTION_KEY_UP:        action = "up";       break;
+  case ACTION_TYPE:          action = "type";     break;
+  case ACTION_BOOT:          action = "boot";     break;                
+  case ACTION_SWAP:          action = "swap";     break;
+  case ACTION_KEY_PRESS:     action = "press";    break;
+  case ACTION_DEFINE_SWITCH: action = "using";    break;                        
   };
 
   if(self->action == ACTION_TYPE) {
@@ -605,6 +629,11 @@ void Command_print(Command *self, FILE* out) {
     uint16_t index = self->mask | (self->data << 8);
     uint32_t long_value = config->longs[index];
     fprintf(out, "%s %d", action, long_value);
+  }
+
+  else if(self->action == ACTION_DEFINE_SWITCH) {
+    fprintf(out, "%s %s", action,
+            self->data == SWITCH_22106 ? "CD74HC22106" : "MT8808");
   }
   
   else if(self->action == ACTION_DEFINE_META ||
