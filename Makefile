@@ -16,7 +16,7 @@ keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h ke
 firmware: firmware/main.hex
 
 firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h config.c 
-	(cd firmware && makeg)
+	(cd firmware && make)
 
 firmware-clean:
 	(cd firmware && make clean)
@@ -34,7 +34,7 @@ test: example.conf keyman64
 	./keyman64 example.conf tmp/example.bin
 	./keyman64 tmp/example.bin tmp/roundtrip.conf
 	./keyman64 tmp/roundtrip.conf tmp/roundtrip.bin
-	diff tmp/example.bin tmp/roundtrip.bin || (rm -rf tmp && false)
+	diff tmp/example.bin tmp/roundtrip.bin
 	rm -rf tmp
 
 reverse.prg: reverse.asm
