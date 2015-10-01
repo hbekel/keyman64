@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Programmable C64 Keyboard Interceptor and Controller"
-Date "18 aug 2015"
+Date "1 oct 2015"
 Rev "1"
 Comp "Henning Bekel"
 Comment1 ""
@@ -437,7 +437,7 @@ L CONN_2 P1
 U 1 1 55A772B0
 P 1250 1350
 F 0 "P1" V 1200 1350 40  0000 C CNN
-F 1 "TAPEPORT" V 1300 1350 40  0000 C CNN
+F 1 "SERIAL" V 1300 1350 40  0000 C CNN
 F 2 "" H 1250 1350 60  0000 C CNN
 F 3 "" H 1250 1350 60  0000 C CNN
 	1    1250 1350

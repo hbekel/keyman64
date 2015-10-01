@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source C:/cygwin/home/hb/workspace/keyman64/hardware/keyman64.sch)
-    (date "18.08.2015 14:59:16")
+    (date "01.10.2015 17:20:23")
     (tool "eeschema (2013-07-07 BZR 4022)-stable"))
   (components
     (comp (ref P3)
@@ -41,7 +41,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 55A76F63))
     (comp (ref P1)
-      (value TAPEPORT)
+      (value SERIAL)
       (libsource (lib conn) (part CONN_2))
       (sheetpath (names /) (tstamps /))
       (tstamp 55A772B0))
