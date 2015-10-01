@@ -300,19 +300,19 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
   bool result = false;
   uint8_t byte;
   char* invalid;
+  int base = 0;
 
   if(spec[0] == '$') {
-    byte = strtol(++spec, &invalid, 16);
+    spec++;
+    base = 16;
+  }
+  
+  byte = strtol(spec, &invalid, base);
 
-    if(spec == invalid) {
-      fprintf(stderr, "error: '%s': invalid hex number\n", spec);
-      goto done;
-    }
-    else {
-      *key = byte;
-      result = true;
-      goto done;
-    }
+  if(spec != invalid) {
+    *key = byte;
+    result = true;
+    goto done;
   }
 
   for(int i=0; i<sizeof(symbols)/sizeof(Symbol); i++) {
@@ -593,8 +593,9 @@ void Command_print(Command *self, FILE* out) {
   };
 
   if(self->action == ACTION_TYPE) {
+    uint16_t index = self->mask | (self->data << 8);
     fprintf(out, "%s ", action);
-    fprintf(out, "%s\n", config->strings[self->data]);
+    fprintf(out, "%s\n", config->strings[index]);
     return;
   }
   uint8_t mask  = 0;
