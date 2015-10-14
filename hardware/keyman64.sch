@@ -36,9 +36,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "Programmable C64 Keyboard Interceptor and Controller"
-Date "1 oct 2015"
-Rev "1"
+Title "Programmable C64 Keyboard Interceptor and Hardware Controller"
+Date "14 oct 2015"
+Rev "2"
 Comp "Henning Bekel"
 Comment1 ""
 Comment2 ""
@@ -1271,6 +1271,28 @@ F 1 "VCC" H 5400 3750 30  0000 C CNN
 F 2 "" H 5400 3650 60  0000 C CNN
 F 3 "" H 5400 3650 60  0000 C CNN
 	1    5400 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L CONN_1 P5
+U 1 1 561E3336
+P 1050 950
+F 0 "P5" H 1130 950 40  0000 L CNN
+F 1 "POWER" H 1050 1005 30  0001 C CNN
+F 2 "" H 1050 950 60  0000 C CNN
+F 3 "" H 1050 950 60  0000 C CNN
+	1    1050 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L VCC #PWR045
+U 1 1 561E3345
+P 900 950
+F 0 "#PWR045" H 900 1050 30  0001 C CNN
+F 1 "VCC" H 900 1050 30  0000 C CNN
+F 2 "" H 900 950 60  0000 C CNN
+F 3 "" H 900 950 60  0000 C CNN
+	1    900  950 
 	0    -1   -1   0   
 $EndComp
 $EndSCHEMATC

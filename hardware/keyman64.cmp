@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 03.08.2015 17:41:31
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 14.10.2015 12:41:58
 
 BeginCmp
 TimeStamp = /55A778BF;
@@ -71,16 +71,9 @@ IdModule  = DIP-40__600;
 EndCmp
 
 BeginCmp
-TimeStamp = /55BF8D49;
-Reference = JP1;
-ValeurCmp = JUMPER;
-IdModule  = PIN_ARRAY_2X1;
-EndCmp
-
-BeginCmp
 TimeStamp = /55A772B0;
 Reference = P1;
-ValeurCmp = TAPEPORT;
+ValeurCmp = SERIAL;
 IdModule  = PIN_ARRAY_2X1;
 EndCmp
 
@@ -103,6 +96,13 @@ TimeStamp = /55BF3179;
 Reference = P4;
 ValeurCmp = USER;
 IdModule  = pin_array_8x2;
+EndCmp
+
+BeginCmp
+TimeStamp = /561E3336;
+Reference = P5;
+ValeurCmp = CONN_1;
+IdModule  = PIN_ARRAY_1;
 EndCmp
 
 BeginCmp
