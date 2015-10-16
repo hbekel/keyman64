@@ -1,4 +1,4 @@
-update=03.08.2015 11:50:21
+update=16.10.2015 10:13:55
 version=1
 last_client=cvpcb
 [general]
@@ -50,10 +50,10 @@ LibName31=lib/cd74hc22106
 version=1
 LastNetListRead=keyman64.net
 UseCmpFile=1
-PadDrill=0.899160000000
-PadDrillOvalY=0.899160000000
-PadSizeH=0.899160000000
-PadSizeV=0.899160000000
+PadDrill=0.700000000000
+PadDrillOvalY=0.700000000000
+PadSizeH=1.000000000000
+PadSizeV=1.000000000000
 PcbTextSizeV=1.500000000000
 PcbTextSizeH=1.500000000000
 PcbTextThickness=0.300000000000
@@ -85,6 +85,7 @@ LibName16=valves
 LibName17=mod/pinHeaders
 LibName18=mod/usb-mini-b
 LibName19=mod/10uF
+LibName20=mod/usb-mini-b-through-hole
 LibDir=
 [cvpcb]
 version=1

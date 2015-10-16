@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 14.10.2015 12:41:58
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 16.10.2015 10:22:01
 
 BeginCmp
 TimeStamp = /55A778BF;
@@ -101,15 +101,15 @@ EndCmp
 BeginCmp
 TimeStamp = /561E3336;
 Reference = P5;
-ValeurCmp = CONN_1;
+ValeurCmp = POWER;
 IdModule  = PIN_ARRAY_1;
 EndCmp
 
 BeginCmp
-TimeStamp = /55BF1030;
+TimeStamp = /5620B3A5;
 Reference = P6;
 ValeurCmp = USB;
-IdModule  = USB_MINI_B_CORRECTED;
+IdModule  = USB-MINI-B-H;
 EndCmp
 
 BeginCmp
