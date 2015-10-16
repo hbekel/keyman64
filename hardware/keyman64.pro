@@ -1,6 +1,6 @@
-update=16.10.2015 10:13:55
+update=16.10.2015 18:18:05
 version=1
-last_client=cvpcb
+last_client=pcbnew
 [general]
 version=1
 [eeschema]
@@ -46,14 +46,19 @@ LibName28=atmel
 LibName29=contrib
 LibName30=valves
 LibName31=lib/cd74hc22106
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [pcbnew]
 version=1
 LastNetListRead=keyman64.net
 UseCmpFile=1
 PadDrill=0.700000000000
 PadDrillOvalY=0.700000000000
-PadSizeH=1.000000000000
-PadSizeV=1.000000000000
+PadSizeH=1.100000000000
+PadSizeV=2.300000000000
 PcbTextSizeV=1.500000000000
 PcbTextSizeH=1.500000000000
 PcbTextThickness=0.300000000000
@@ -66,6 +71,7 @@ DrawSegmentWidth=0.200000000000
 BoardOutlineThickness=0.100000000000
 ModuleOutlineThickness=0.150000000000
 [pcbnew/libraries]
+LibDir=
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -86,9 +92,4 @@ LibName17=mod/pinHeaders
 LibName18=mod/usb-mini-b
 LibName19=mod/10uF
 LibName20=mod/usb-mini-b-through-hole
-LibDir=
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
+LibName21=mod/hole
