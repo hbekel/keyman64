@@ -561,6 +561,19 @@ void ExecuteCommand(Command* cmd) {
 
 //------------------------------------------------------------------------------
 
+USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
+  usbRequest_t *request = (void*) data;
+  uint8_t state = request->wValue.bytes[0];
+
+  switch(request->bRequest) {
+  case 0x01: EnterBootloader(); break;
+  }
+  
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+
 int main(void) {
 
   SetupHardware();
@@ -581,7 +594,19 @@ int main(void) {
   Binding *binding;
   bool relayMetaKey = true;
 
+  usbInit();
+  usbDeviceDisconnect();
+  
+  for(uchar i=0; i<250; i++) { // wait 500ms
+    _delay_ms(2);
+  }
+
+  usbDeviceConnect();
+  
   while(true) {
+
+    usbPoll();
+    
     switch(STATE) {
 
     //========================================

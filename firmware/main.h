@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include "config.h"
+#include "usbdrv/usbdrv.h"
 
 #define ATTR_NO_INIT __attribute__ ((section(".noinit")))
 #define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
@@ -58,5 +59,6 @@ void Type(char *string);
 void EnterBootloader(void);
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
 int ReadEeprom(FILE* file);
+USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
 
 #endif // MAIN_H
