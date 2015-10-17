@@ -177,6 +177,19 @@ ISR(PCINT3_vect) {
 
 //------------------------------------------------------------------------------
 
+void SetupUSB(void) {
+
+  cli();
+  usbInit();
+
+  usbDeviceDisconnect();
+  
+  _delay_ms(500);
+
+  usbDeviceConnect();
+  sei();
+}
+
 void SetupKeyboardLayout(void) {
   for(uint8_t i=0; i<64; i++) {
     layout[i] = i;
@@ -590,18 +603,11 @@ int main(void) {
   ApplyConfig();
 
   ResetCrosspointSwitch();
+
+  SetupUSB();
   
   Binding *binding;
   bool relayMetaKey = true;
-
-  usbInit();
-  usbDeviceDisconnect();
-  
-  for(uchar i=0; i<250; i++) { // wait 500ms
-    _delay_ms(2);
-  }
-
-  usbDeviceConnect();
   
   while(true) {
 

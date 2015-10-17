@@ -59,6 +59,8 @@ void Type(char *string);
 void EnterBootloader(void);
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
 int ReadEeprom(FILE* file);
+
+void SetupUSB(void);
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
 
 #endif // MAIN_H
