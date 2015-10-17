@@ -4,7 +4,7 @@ MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 MD5SUM=md5sum
 
-PREFIX=/usr/local
+PREFIX?=/usr/local
 DESTDIR=
 
 VERSION=1.0
@@ -67,7 +67,7 @@ install: keyman64
 	install -m755 keyman64 $(DESTDIR)$(PREFIX)/bin
 
 uninstall:
-	rm -f /usr/bin/keyman64
+	rm -f $(PREFIX)/bin/keyman64
 
 release: clean
 	git archive --prefix=keyman64-$(VERSION)/ -o ../keyman64-$(VERSION).tar.gz HEAD && \
