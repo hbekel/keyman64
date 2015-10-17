@@ -77,8 +77,8 @@ void SetupHardware(void) {
   PORTA = 0b11000000;
 
   // USB, Bootloader, Matrix, Serial interface
-  DDRD  = 0b10001111;
-  PORTD = 0b11110110;
+  DDRD  = 0b10001001;
+  PORTD = 0b11110000;
 
   SetupSerial();  
 }
