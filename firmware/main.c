@@ -575,10 +575,12 @@ void ExecuteCommand(Command* cmd) {
 //------------------------------------------------------------------------------
 
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
+
   usbRequest_t *request = (void*) data;
-  uint8_t state = request->wValue.bytes[0];
+  uint8_t argument = request->wValue.bytes[0];
 
   switch(request->bRequest) {
+  case 0x00: ExecuteBinding(argument); break;
   case 0x01: EnterBootloader(); break;
   }
   
