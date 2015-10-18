@@ -35,7 +35,7 @@ void ExpectSerialCommand(void);
 void ExpectSerialArgument(void);
 void ExecuteSerialCommand(uint8_t command, uint8_t argument);
 void SetupKeyboardLayout(void);
-void ApplyConfig(void);
+void ExecuteImmediateCommands(volatile Config *cfg);
 void DisableJTAG(void);
 void ResetCounter(void);
 void ClockMatrix(void);
@@ -62,5 +62,6 @@ int ReadEeprom(FILE* file);
 
 void SetupUSB(void);
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
-
+USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len);
+void ExecuteCommandsFromUSBData(void);
 #endif // MAIN_H

@@ -1,11 +1,17 @@
-#ifndef INTERCEPTOR_H
-#define INTERCEPTOR_H
+#ifndef KEYMAN64_H
+#define KEYMAN64_H
 
 #include <stdio.h>
+
+#define KEYMAN64_VID 0x16d0
+#define KEYMAN64_PID 0x0adc
 
 void version(void);
 void usage(void);
 void keys(void);
+
+int convert(int argc, char **argv);
+int send(int argc, char **argv);
 
 bool Config_parse(Config* self, FILE* in);
 void Config_write(Config *self, FILE* out);
@@ -22,4 +28,4 @@ bool Command_parse(Command* self, char* spec);
 void Command_write(Command *self, FILE* out);
 void Command_print(Command *self, FILE* out);
 
-#endif // INTERCEPTOR_H
+#endif // KEYMAN64_H

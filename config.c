@@ -88,9 +88,17 @@ bool Config_read(volatile Config *self, FILE* in) {
   char c;
   uint32_t value;
   int i;
+
+  uint8_t magic[2] = { 0, 0 };
+
+  magic[0] = fgetc(in);
+  magic[1] = fgetc(in);
   
-  if(!(fgetc(in) == CONFIG_MAGIC[0] &&
-       fgetc(in) == CONFIG_MAGIC[1])) {
+  if(!(magic[0] == CONFIG_MAGIC[0] &&
+       magic[1] == CONFIG_MAGIC[1])) {
+
+    ungetc(magic[1], in);
+    ungetc(magic[0], in);
     return false;
   }
   
@@ -122,12 +130,26 @@ bool Config_read(volatile Config *self, FILE* in) {
   return true;
 }
 
+void Config_free(Config *self) {
+  for(int i=0; i<self->size; i++) {
+    Binding_free(self->bindings[i]);
+  }
+  free(self->bindings);
+
+  for(int i=0; i<self->_size; i++) {
+    free(self->strings[i]);
+  }
+  free(self->strings);
+  free(self->longs);
+  free(self);
+}
+
 //------------------------------------------------------------------------------
 
 Binding* Binding_new(void) {
   Binding* self = (Binding*) calloc(1, sizeof(Binding));
   self->commands = (Command**) calloc(1, sizeof(Command**));
-  self->key = KEY_INIT;
+  self->key = KEY_IMMEDIATE;
   return self;
 }
 
@@ -160,6 +182,16 @@ void Binding_read(Binding *self, FILE* in) {
 
 //------------------------------------------------------------------------------
 
+void Binding_free(Binding *self) {
+  for(int i=0; i<self->size; i++) {
+    Command_free(self->commands[i]);
+  }
+  free(self->commands);
+  free(self);
+}
+
+//------------------------------------------------------------------------------
+
 Command* Command_new(void) {
   Command* self = (Command*) calloc(1, sizeof(Command));
   self->action = ACTION_NONE;
@@ -177,6 +209,12 @@ void Command_read(Command *self, FILE* in) {
   self->action &= 0x7fU;
   self->mask   = fgetc(in);
   self->data   = fgetc(in);
+}
+
+//------------------------------------------------------------------------------
+
+void Command_free(Command *self) {
+  free(self);
 }
 
 //------------------------------------------------------------------------------

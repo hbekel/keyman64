@@ -15,12 +15,14 @@
 #include "range.h"
 #include "symbols.h"
 #include "keyman64.h"
+#include "usb.h"
+#include "protocol.h"
 
 #include "config.c"
 
 //------------------------------------------------------------------------------
 
-Config* config;
+Config* config = NULL;
 
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
@@ -94,13 +96,17 @@ static uint8_t parseBits(char *str, bool *error) {
   if(!(Range_valid(bits) && Range_inside(bits, valid))) {
     fprintf(stderr, "error: '%s': invalid bit range\n", str);
     *error = true;
-    return 0xff;
+    mask = 0xff;
+    goto done;
   }
 
   for(uint8_t bit=bits->start; bit<bits->end+1; bit++) {
     mask |= 1<<bit;
   }
   
+ done:
+  Range_free(valid);
+  Range_free(bits);
   return mask;
 }
 
@@ -259,8 +265,8 @@ bool Config_parse(Config* self, FILE* in) {
       }
     }
     else {
-      // no keyspec given -> bind to initial "key"
-      key = KEY_INIT;
+      // no keyspec given -> bind to immediate "key"
+      key = KEY_IMMEDIATE;
     }
 
     // skip leading whitespace of command spec
@@ -553,7 +559,7 @@ void Config_print(Config *self, FILE* out) {
 void Binding_print(Binding *self, FILE* out) {
   
   for(int i=0; i<self->size; i++) {
-    if(self->key != KEY_INIT) {
+    if(self->key != KEY_IMMEDIATE) {
       Key_print(self->key, out);
     }
     Command_print(self->commands[i], out);
@@ -673,17 +679,9 @@ void Command_print(Command *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
-// Usage: keyman64 [<infile=->] [<outfile=->]
-//------------------------------------------------------------------------------
 
 int main(int argc, char **argv) {
-
-  int result = EXIT_SUCCESS;
   
-  FILE *in  = stdin;
-  FILE *out = stdout;
-  Format output_format = BINARY;
-
   struct option options[] = {
     { "help", no_argument, NULL, 'h' },
     { "version", no_argument, NULL, 'v' },
@@ -711,16 +709,123 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
     break;
   }
+
+  argc--; argv++;
+
+  if(argc && (strcmp(argv[0], "convert") == 0)) {
+    return convert(--argc, ++argv);
+  }
+  else {
+    return send(argc, argv);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+static void join(char* dst, char **src, int size) {
+  for(int i=0; i<size; i++) {
+    strcat(dst, src[i]);
+    if(i<size-1) {
+      strcat(dst, " ");
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+int send(int argc, char **argv) {
+  int result = EXIT_FAILURE;
+  
+  FILE *in = stdin;
+  FILE *out = NULL;
+  char *str = (char*) calloc(1, sizeof(char));
+
+  libusb_device_handle *handle = NULL;
+  char device[] = "/dev/keyman64";
+  DeviceInfo info;
+  
+  if((result = libusb_init(NULL)) < 0) {
+    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
+    goto done;
+  }
+  
+  if(argc) {
+    join(str, argv, argc);
+    
+    if(strlen(str)) {
+      if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
+	fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
+	goto done;
+      }
+    }
+  }
+
+  if(in == stdin) {
+    fprintf(stderr, "reading commands from stdin... (keyman64 --help for instructions)\n");
+  }
   
   config = Config_new();
+
+  if(!(Config_read(config, in) || Config_parse(config, in))) {
+    goto done;
+  }
+
+  char* data = (char*) calloc(1, sizeof(char)*4096);
   
-  argc--; argv++;
+  if((out = fmemopen(data, 4096, "wb+")) == NULL) {
+    fprintf(stderr, "error: %s\n", strerror(errno));
+    goto done;
+  }
+  
+  Config_write(config, out);
+  fseek(out, 0, SEEK_CUR);
+  
+  info.vid = KEYMAN64_VID;
+  info.pid = KEYMAN64_PID;
+
+  usb_lookup(device, &info);
+  handle = usb_open(NULL, &info);
+  
+  if(handle == NULL) {
+    fprintf(stderr, "error: could not open %s\n", device);
+    goto done;
+  }
+  
+  if((result = usb_send(handle, KEYMAN64_CTRL, data, sizeof(data))) < 0) {
+    fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
+    goto done;
+  }
+  result = EXIT_SUCCESS;
+  
+ done:
+  if(handle != NULL) {
+    libusb_close(handle);
+  }
+
+  if(config != NULL) {
+    Config_free(config);
+  }
+  free(str);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+
+int convert(int argc, char **argv) {
+
+  int result = EXIT_FAILURE;
+
+  FILE *in  = stdin;
+  FILE *out = stdout;
+  Format output_format = BINARY;
+
+  config = Config_new();
   
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
       fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
-      return EXIT_FAILURE;      
+      goto done;
     }
   }
 
@@ -728,7 +833,7 @@ int main(int argc, char **argv) {
 
     if((out = fopen(argv[1], "wb")) == NULL) {
       fprintf(stderr, "%s: %s\n", argv[1], strerror(errno));
-      return EXIT_FAILURE;      
+      goto done;
     }
     if(strncasecmp(argv[1]+(strlen(argv[1])-5), ".conf", 5) == 0) {
       output_format = CONFIG;
@@ -748,11 +853,12 @@ int main(int argc, char **argv) {
     output_format == BINARY ?
       Config_write(config, out) :
       Config_print(config, out);
-  }
-  else {
-    result = EXIT_FAILURE;
+
+    result = EXIT_SUCCESS;
   }
 
+ done:
+  Config_free(config);
   fclose(in);
   fclose(out);
 
@@ -770,22 +876,28 @@ void version(void) {
 void usage(void) {
   version();
   printf("\n");
-  printf("Usage: keyman64 [option] [<infile>|-] [<outfile>|-]\n");
+  printf("Usage:\n");
+  printf("      keyman64 <options>\n");
+  printf("      keyman64 convert [<infile>|-] [<outfile>|-]\n");
+  printf("      keyman64 <command..>\n");  
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version : print version information\n");
   printf("           -h, --help    : print this help text\n");
   printf("           -k, --keys    : list key names and synonyms\n");
   printf("\n");
-  printf("  Arguments:\n");
+  printf("  Conversion arguments:\n");
   printf("           <infile>  : input file, format is autodetected\n");
   printf("           <outfile> : output file, format determined by extension:\n");
   printf("\n");
   printf("           *.conf : plain text config file format\n");
   printf("           *.bin  : binary file format (default)\n");  
   printf("\n");
-  printf("  Missing arguments default to stdin or stdout respectively.\n");
+  printf("           Missing arguments default to stdin or stdout\n");
   printf("\n");
+  printf("  Commands:\n");
+  printf("            (any configuration command)\n");
+  printf("\n");  
 }
 
 //------------------------------------------------------------------------------

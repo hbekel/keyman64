@@ -15,16 +15,31 @@ ifeq ($(UNAME), Darwin)
   MD5SUM=md5 -r
 endif
 
+HEADERS=config.h \
+	strings.h \
+	range.h \
+	symbols.h \
+	usb.h \
+	protocol.h \
+	target.h \
+	keyman64.h
+
+SOURCES=strings.c \
+	range.c \
+	usb.c \
+	keyman64.c
+
+LIBS=-lusb-1.0
 
 all: linux
 linux: firmware keyman64
 win32: firmware keyman64.exe
 
-keyman64: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
-	$(CC) $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
+keyman64: $(HEADERS) $(SOURCES) config.c
+	$(CC) $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
 
-keyman64.exe: config.h config.c strings.h strings.c range.h range.c symbols.h keyman64.c
-	$(MINGW32)-gcc $(CFLAGS) -o keyman64 strings.c range.c keyman64.c
+keyman64.exe: $(HEADERS) $(SOURCES) config.c
+	$(MINGW32)-gcc $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
 
 firmware: firmware/main.hex
 
@@ -44,9 +59,9 @@ config: keyman64
 test: example.conf keyman64
 	rm -rf tmp
 	mkdir tmp
-	./keyman64 example.conf tmp/example.bin
-	./keyman64 tmp/example.bin tmp/roundtrip.conf
-	./keyman64 tmp/roundtrip.conf tmp/roundtrip.bin
+	./keyman64 convert example.conf tmp/example.bin
+	./keyman64 convert tmp/example.bin tmp/roundtrip.conf
+	./keyman64 convert tmp/roundtrip.conf tmp/roundtrip.bin
 	diff tmp/example.bin tmp/roundtrip.bin
 	rm -rf tmp
 

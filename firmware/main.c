@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "encoding.h"
+#include "../protocol.h"
 
 uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
@@ -40,6 +41,11 @@ volatile uint8_t meta;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
+
+static volatile uint16_t usbDataReceived;
+static volatile uint16_t usbDataLength;
+static volatile uint8_t *usbData;
+static volatile uint16_t usbDataPos;
 
 uint32_t BootKey ATTR_NO_INIT;
 
@@ -216,11 +222,22 @@ FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
 
 //------------------------------------------------------------------------------
 
-void ApplyConfig(void) {
-  for(int i=0; i<config->size; i++) {
-    if(config->bindings[i]->key == KEY_INIT) {
-      for(int k=0; k<config->bindings[i]->size; k++) {
-        ExecuteCommand(config->bindings[i]->commands[k]);
+int ReadUSBData(FILE* file) {
+  return usbData[usbDataPos++];
+}
+
+//------------------------------------------------------------------------------
+
+FILE usbdata = FDEV_SETUP_STREAM(NULL, ReadUSBData, _FDEV_SETUP_READ);
+
+//------------------------------------------------------------------------------
+
+
+void ExecuteImmediateCommands(volatile Config* cfg) {
+  for(int i=0; i<cfg->size; i++) {
+    if(cfg->bindings[i]->key == KEY_IMMEDIATE) {
+      for(int k=0; k<cfg->bindings[i]->size; k++) {
+        ExecuteCommand(cfg->bindings[i]->commands[k]);
       }
     }
   }
@@ -577,14 +594,55 @@ void ExecuteCommand(Command* cmd) {
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *request = (void*) data;
-  uint8_t argument = request->wValue.bytes[0];
 
   switch(request->bRequest) {
-  case 0x00: ExecuteBinding(argument); break;
-  case 0x01: EnterBootloader(); break;
+    
+  case KEYMAN64_CTRL:
+    usbDataLength = request->wLength.word;
+    usbDataReceived = 0;
+
+    usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+
+    if(usbData != NULL) {
+      return USB_NO_MSG;
+    }    
+    break;
   }
   
   return 0;
+}
+
+//------------------------------------------------------------------------------
+
+USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
+
+  for(int i=0; usbDataReceived < usbDataLength && i < len; usbDataReceived++) {
+    usbData[usbDataReceived] = data[i];    
+  }
+
+  if(usbDataReceived < usbDataLength) {
+    return 0;
+  }
+  else {
+    ExecuteCommandsFromUSBData();
+  }
+  
+  free((void*)usbData);
+  return 1;
+}
+
+//------------------------------------------------------------------------------
+
+void ExecuteCommandsFromUSBData(void) {
+
+  Config *cfg = Config_new();
+
+  usbDataPos = 0;
+  Config_read(cfg, &usbdata);
+
+  ExecuteImmediateCommands(cfg);
+  
+  Config_free(cfg);
 }
 
 //------------------------------------------------------------------------------
@@ -602,7 +660,7 @@ int main(void) {
   config = Config_new();
   Config_read(config, &eeprom);
 
-  ApplyConfig();
+  ExecuteImmediateCommands(config);
 
   ResetCrosspointSwitch();
 
