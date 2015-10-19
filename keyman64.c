@@ -722,11 +722,20 @@ int main(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-static void join(char* dst, char **src, int size) {
+static void join(char** dst, char **src, int size) {
+
+  int required = 0;
   for(int i=0; i<size; i++) {
-    strcat(dst, src[i]);
+    required += strlen(src[i])+1;
+  }
+  required += 1;
+
+  *dst = realloc(*dst, required*sizeof(char));
+  
+  for(int i=0; i<size; i++) {
+    strcat(*dst, src[i]);
     if(i<size-1) {
-      strcat(dst, " ");
+      strcat(*dst, " ");
     }
   }
 }
@@ -739,7 +748,8 @@ int send(int argc, char **argv) {
   FILE *in = stdin;
   FILE *out = NULL;
   char *str = (char*) calloc(1, sizeof(char));
-
+  uint8_t *data = NULL;
+  
   libusb_device_handle *handle = NULL;
   char device[] = "/dev/keyman64";
   DeviceInfo info;
@@ -750,12 +760,12 @@ int send(int argc, char **argv) {
   }
   
   if(argc) {
-    join(str, argv, argc);
+    join(&str, argv, argc);
     
     if(strlen(str)) {
       if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
-	fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
-	goto done;
+        fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
+        goto done;
       }
     }
   }
@@ -769,16 +779,18 @@ int send(int argc, char **argv) {
   if(!(Config_read(config, in) || Config_parse(config, in))) {
     goto done;
   }
-
-  char* data = (char*) calloc(1, sizeof(char)*4096);
+  fclose(in);
   
-  if((out = fmemopen(data, 4096, "wb+")) == NULL) {
+  data = (uint8_t*) calloc(4096, sizeof(char));
+  
+  if((out = fmemopen(data, 4096, "wb")) == NULL) {
     fprintf(stderr, "error: %s\n", strerror(errno));
     goto done;
   }
   
   Config_write(config, out);
-  fseek(out, 0, SEEK_CUR);
+  int size = ftell(out);
+  fclose(out);
   
   info.vid = KEYMAN64_VID;
   info.pid = KEYMAN64_PID;
@@ -790,8 +802,8 @@ int send(int argc, char **argv) {
     fprintf(stderr, "error: could not open %s\n", device);
     goto done;
   }
-  
-  if((result = usb_send(handle, KEYMAN64_CTRL, data, sizeof(data))) < 0) {
+
+  if((result = usb_send(handle, KEYMAN64_CTRL, data, size)) < 0) {
     fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
     goto done;
   }
@@ -801,9 +813,14 @@ int send(int argc, char **argv) {
   if(handle != NULL) {
     libusb_close(handle);
   }
-
+  libusb_exit(NULL);
+  
   if(config != NULL) {
     Config_free(config);
+  }
+
+  if(data != NULL) {
+    free(data);
   }
   free(str);
   return result;

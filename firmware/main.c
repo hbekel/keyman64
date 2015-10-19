@@ -194,6 +194,8 @@ void SetupUSB(void) {
 
   usbDeviceConnect();
   sei();
+
+  usbData = NULL;
 }
 
 void SetupKeyboardLayout(void) {
@@ -237,7 +239,7 @@ void ExecuteImmediateCommands(volatile Config* cfg) {
   for(int i=0; i<cfg->size; i++) {
     if(cfg->bindings[i]->key == KEY_IMMEDIATE) {
       for(int k=0; k<cfg->bindings[i]->size; k++) {
-        ExecuteCommand(cfg->bindings[i]->commands[k]);
+        ExecuteCommand(cfg, cfg->bindings[i]->commands[k]);
       }
     }
   }
@@ -445,7 +447,7 @@ void ExecuteBinding(uint8_t key) {
     binding = config->bindings[i];
     if(key == binding->key) {    
       for(int k=0; k<binding->size; k++) {
-        ExecuteCommand(binding->commands[k]);
+        ExecuteCommand(config, binding->commands[k]);
       }
     }
   }
@@ -453,7 +455,7 @@ void ExecuteBinding(uint8_t key) {
 
 //------------------------------------------------------------------------------
 
-void ExecuteCommand(Command* cmd) {
+void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
   uint8_t value;
@@ -540,7 +542,7 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_SLEEP_LONG:
     index = cmd->mask | (cmd->data << 8);
-    duration = config->longs[index];
+    duration = cfg->longs[index];
     while(duration--) {
       _delay_ms(1);
     }
@@ -560,7 +562,7 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_TYPE:
     index = cmd->mask | (cmd->data << 8);
-    Type(config->strings[index]);
+    Type(cfg->strings[index]);
     break;
 
   case ACTION_BOOT:
@@ -601,11 +603,10 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     usbDataLength = request->wLength.word;
     usbDataReceived = 0;
 
-    usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
-
-    if(usbData != NULL) {
-      return USB_NO_MSG;
-    }    
+    if(usbData == NULL) {
+      usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+    }
+    return USB_NO_MSG;
     break;
   }
   
@@ -616,8 +617,8 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
 USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
 
-  for(int i=0; usbDataReceived < usbDataLength && i < len; usbDataReceived++) {
-    usbData[usbDataReceived] = data[i];    
+  for(int i=0; usbDataReceived < usbDataLength && i < len; i++, usbDataReceived++) {
+    usbData[usbDataReceived] = (uint8_t) data[i];
   }
 
   if(usbDataReceived < usbDataLength) {
@@ -628,6 +629,7 @@ USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
   }
   
   free((void*)usbData);
+  usbData = NULL;
   return 1;
 }
 
@@ -636,12 +638,11 @@ USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
 void ExecuteCommandsFromUSBData(void) {
 
   Config *cfg = Config_new();
-
   usbDataPos = 0;
-  Config_read(cfg, &usbdata);
-
-  ExecuteImmediateCommands(cfg);
   
+  if(Config_read(cfg, &usbdata)) {
+    ExecuteImmediateCommands(cfg);
+  }
   Config_free(cfg);
 }
 
@@ -705,7 +706,7 @@ int main(void) {
           if(QueryKeyDown(binding->key)) {  
             
             for(int k=0; k<binding->size; k++) {
-              ExecuteCommand(binding->commands[k]);
+              ExecuteCommand(config, binding->commands[k]);
             }
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;
