@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 17.10.2015 09:58:45
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 23.10.2015 14:48:14
 
 BeginCmp
 TimeStamp = /55A778BF;
@@ -99,13 +99,6 @@ IdModule  = pin_array_8x2;
 EndCmp
 
 BeginCmp
-TimeStamp = /5622005B;
-Reference = P5;
-ValeurCmp = POWER;
-IdModule  = pinHeader-2x1;
-EndCmp
-
-BeginCmp
 TimeStamp = /5620B3A5;
 Reference = P6;
 ValeurCmp = USB;
@@ -145,6 +138,13 @@ TimeStamp = /55B3E8F4;
 Reference = SW2;
 ValeurCmp = BOOTLOADER;
 IdModule  = SW_PUSH_SMALL;
+EndCmp
+
+BeginCmp
+TimeStamp = /562A2E46;
+Reference = SW3;
+ValeurCmp = POWER;
+IdModule  = PIN_ARRAY_3X1;
 EndCmp
 
 BeginCmp

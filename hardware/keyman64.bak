@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Programmable C64 Keyboard Interceptor and Hardware Controller"
-Date "17 oct 2015"
+Date "23 oct 2015"
 Rev "2"
 Comp "Henning Bekel"
 Comment1 ""
@@ -1217,7 +1217,7 @@ Text Notes 5850 800  0    60   ~ 0
 Reset Signal for Counters
 Text Notes 8950 800  0    60   ~ 0
 Negative power supply
-Text Notes 900  600  0    60   ~ 0
+Text Notes 900  700  0    60   ~ 0
 Connectors
 Text Notes 5350 2900 0    60   ~ 0
 Counters for serial Matrix scan\n
@@ -1268,29 +1268,32 @@ F 3 "" H 1300 2100 60  0000 C CNN
 $EndComp
 Text Label 900  1900 2    60   ~ 0
 UVCC
-$Comp
-L CONN_2 P5
-U 1 1 5622005B
-P 1250 1000
-F 0 "P5" V 1200 1000 40  0000 C CNN
-F 1 "POWER" V 1300 1000 40  0000 C CNN
-F 2 "" H 1250 1000 60  0000 C CNN
-F 3 "" H 1250 1000 60  0000 C CNN
-	1    1250 1000
-	1    0    0    -1  
-$EndComp
 Text Label 900  900  2    60   ~ 0
 UVCC
 $Comp
 L VCC #PWR045
 U 1 1 5622006F
-P 900 1100
-F 0 "#PWR045" H 900 1200 30  0001 C CNN
-F 1 "VCC" H 900 1200 30  0000 C CNN
-F 2 "" H 900 1100 60  0000 C CNN
-F 3 "" H 900 1100 60  0000 C CNN
-	1    900  1100
-	0    -1   -1   0   
+P 1900 1000
+F 0 "#PWR045" H 1900 1100 30  0001 C CNN
+F 1 "VCC" H 1900 1100 30  0000 C CNN
+F 2 "" H 1900 1000 60  0000 C CNN
+F 3 "" H 1900 1000 60  0000 C CNN
+	1    1900 1000
+	0    1    1    0   
 $EndComp
-NoConn ~ 900  2950
+$Comp
+L DUAL_SWITCH_INV SW?
+U 1 1 562A2E46
+P 1400 1000
+F 0 "SW?" H 1200 1150 50  0000 C CNN
+F 1 "POWER" H 1250 850 50  0000 C CNN
+F 2 "~" H 1400 1000 60  0000 C CNN
+F 3 "~" H 1400 1000 60  0000 C CNN
+	1    1400 1000
+	-1   0    0    1   
+$EndComp
+Text Label 900  1100 2    60   ~ 0
+KVCC
+Text Label 900  2950 2    60   ~ 0
+KVCC
 $EndSCHEMATC
