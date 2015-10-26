@@ -11,7 +11,7 @@ void usage(void);
 void keys(void);
 
 int convert(int argc, char **argv);
-int send(int argc, char **argv);
+int command(int argc, char **argv);
 
 bool Config_parse(Config* self, FILE* in);
 void Config_write(Config *self, FILE* out);

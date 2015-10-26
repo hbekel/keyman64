@@ -17,6 +17,7 @@
 #include "keyman64.h"
 #include "usb.h"
 #include "protocol.h"
+#include "target.h"
 
 #include "config.c"
 
@@ -26,6 +27,7 @@ Config* config = NULL;
 
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
+char *device;
 
 //------------------------------------------------------------------------------
 // Utility functions for parsing
@@ -680,44 +682,89 @@ void Command_print(Command *self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
+#if windows
+#include <io.h>
+FILE* fmemopen(void *buf, int size, const char *mode) {
+
+  FILE* result;
+  char *name = ".keyman64-commands-tmp";
+  
+  result = fopen(name, "wbD+");
+  fwrite(buf, sizeof(char), size, result);
+  fseek(result, 0, SEEK_CUR);
+  
+  return result;
+}
+#endif
+
+//------------------------------------------------------------------------------
+
 int main(int argc, char **argv) {
+
+#if linux
+  const char* default_device = "/dev/keyman64";
+#else
+  const char* default_device = "usb";
+#endif
+
+  int result = EXIT_SUCCESS;
+  
+  device = (char*) calloc(strlen(default_device)+1, sizeof(char));
+  strcpy(device, default_device);
   
   struct option options[] = {
-    { "help", no_argument, NULL, 'h' },
-    { "version", no_argument, NULL, 'v' },
-    { "keys", no_argument, NULL, 'k' },
+    { "help",    no_argument,       0, 'h' },
+    { "version", no_argument,       0, 'v' },
+    { "device",  required_argument, 0, 'd' },
+    { "keys",    no_argument,       0, 'k' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
 
-  option = getopt_long(argc, argv, "hvk", options, &option_index);
+
+  while(1) {
+    option = getopt_long(argc, argv, "hvd:k", options, &option_index);
+
+    if(option == -1)
+      break;
     
-  switch (option) {
-    
-  case 'h':
-    usage();
-    return EXIT_SUCCESS;
-    break;      
-    
-  case 'v':
-    version();
-    return EXIT_SUCCESS;
-    break;
-    
-  case 'k':
-    keys();
-    return EXIT_SUCCESS;
-    break;
+    switch (option) {
+      
+    case 'h':
+      usage();
+      goto done;
+      break;      
+      
+    case 'v':
+      version();
+      goto done;
+      break;
+      
+    case 'd':
+      device = (char*) realloc(device, strlen(optarg)+1);
+      strcpy(device, optarg);
+      break;
+      
+    case 'k':
+      keys();
+      goto done;
+      break;
+    }
   }
 
-  argc--; argv++;
+  argc -= optind;
+  argv += optind;
 
   if(argc && (strcmp(argv[0], "convert") == 0)) {
-    return convert(--argc, ++argv);
+    result = convert(--argc, ++argv);
   }
   else {
-    return send(argc, argv);
+    result = command(argc, argv);
   }
+  
+ done:
+  free(device);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -742,7 +789,7 @@ static void join(char** dst, char **src, int size) {
 
 //------------------------------------------------------------------------------
 
-int send(int argc, char **argv) {
+int command(int argc, char **argv) {
   int result = EXIT_FAILURE;
   
   FILE *in = stdin;
@@ -751,7 +798,6 @@ int send(int argc, char **argv) {
   uint8_t *data = NULL;
   
   libusb_device_handle *handle = NULL;
-  char device[] = "/dev/keyman64";
   DeviceInfo info;
   
   if((result = libusb_init(NULL)) < 0) {
@@ -791,7 +837,7 @@ int send(int argc, char **argv) {
   Config_write(config, out);
   int size = ftell(out);
   fclose(out);
-  
+
   info.vid = KEYMAN64_VID;
   info.pid = KEYMAN64_PID;
 
@@ -901,6 +947,11 @@ void usage(void) {
   printf("  Options:\n");
   printf("           -v, --version : print version information\n");
   printf("           -h, --help    : print this help text\n");
+#if linux
+  printf("           -d, --device  : specify usb device (default: /dev/keyman64\n");
+#elif windows
+  printf("           -d, --device  : specify usb device (default: usb\n");
+#endif
   printf("           -k, --keys    : list key names and synonyms\n");
   printf("\n");
   printf("  Conversion arguments:\n");
