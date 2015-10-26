@@ -53,10 +53,10 @@ typedef struct {
 } Config;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
-uint8_t KEY_EOF    = 0xff;
-uint8_t KEY_INIT   = 0xfe;
-uint8_t KEY_STRING = 0xfd;
-uint8_t KEY_LONG   = 0xfc;
+uint8_t KEY_EOF       = 0xff;
+uint8_t KEY_IMMEDIATE = 0xfe;
+uint8_t KEY_STRING    = 0xfd;
+uint8_t KEY_LONG      = 0xfc;
 
 Config* Config_new(void);
 Binding* Config_add_binding(volatile Config *self, Binding* binding);
@@ -67,13 +67,16 @@ uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index);
 uint16_t Config_add_long(volatile Config *self, uint32_t value);
 bool Config_read(volatile Config *self, FILE* in);
+void Config_free(Config *self);
 
 Binding* Binding_new(void);
 void Binding_set_key(Binding* self, uint8_t key);
 Command* Binding_add(Binding* self, Command* command);
 void Binding_read(Binding *self, FILE* in);
+void Binding_free(Binding *self);
 
 Command* Command_new(void);
 void Command_read(Command *self, FILE* in);
+void Command_free(Command *self);
 
 #endif // CONFIG_H

@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "encoding.h"
+#include "../protocol.h"
 
 uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
@@ -40,6 +41,11 @@ volatile uint8_t meta;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
+
+static volatile uint16_t usbDataReceived;
+static volatile uint16_t usbDataLength;
+static volatile uint8_t *usbData;
+static volatile uint16_t usbDataPos;
 
 uint32_t BootKey ATTR_NO_INIT;
 
@@ -77,8 +83,8 @@ void SetupHardware(void) {
   PORTA = 0b11000000;
 
   // USB, Bootloader, Matrix, Serial interface
-  DDRD  = 0b10001111;
-  PORTD = 0b11110110;
+  DDRD  = 0b10001001;
+  PORTD = 0b11110000;
 
   SetupSerial();  
 }
@@ -177,6 +183,21 @@ ISR(PCINT3_vect) {
 
 //------------------------------------------------------------------------------
 
+void SetupUSB(void) {
+
+  cli();
+  usbInit();
+
+  usbDeviceDisconnect();
+  
+  _delay_ms(500);
+
+  usbDeviceConnect();
+  sei();
+
+  usbData = NULL;
+}
+
 void SetupKeyboardLayout(void) {
   for(uint8_t i=0; i<64; i++) {
     layout[i] = i;
@@ -203,11 +224,22 @@ FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
 
 //------------------------------------------------------------------------------
 
-void ApplyConfig(void) {
-  for(int i=0; i<config->size; i++) {
-    if(config->bindings[i]->key == KEY_INIT) {
-      for(int k=0; k<config->bindings[i]->size; k++) {
-        ExecuteCommand(config->bindings[i]->commands[k]);
+int ReadUSBData(FILE* file) {
+  return usbData[usbDataPos++];
+}
+
+//------------------------------------------------------------------------------
+
+FILE usbdata = FDEV_SETUP_STREAM(NULL, ReadUSBData, _FDEV_SETUP_READ);
+
+//------------------------------------------------------------------------------
+
+
+void ExecuteImmediateCommands(volatile Config* cfg) {
+  for(int i=0; i<cfg->size; i++) {
+    if(cfg->bindings[i]->key == KEY_IMMEDIATE) {
+      for(int k=0; k<cfg->bindings[i]->size; k++) {
+        ExecuteCommand(cfg, cfg->bindings[i]->commands[k]);
       }
     }
   }
@@ -415,7 +447,7 @@ void ExecuteBinding(uint8_t key) {
     binding = config->bindings[i];
     if(key == binding->key) {    
       for(int k=0; k<binding->size; k++) {
-        ExecuteCommand(binding->commands[k]);
+        ExecuteCommand(config, binding->commands[k]);
       }
     }
   }
@@ -423,7 +455,7 @@ void ExecuteBinding(uint8_t key) {
 
 //------------------------------------------------------------------------------
 
-void ExecuteCommand(Command* cmd) {
+void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
   uint8_t value;
@@ -510,7 +542,7 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_SLEEP_LONG:
     index = cmd->mask | (cmd->data << 8);
-    duration = config->longs[index];
+    duration = cfg->longs[index];
     while(duration--) {
       _delay_ms(1);
     }
@@ -530,7 +562,7 @@ void ExecuteCommand(Command* cmd) {
 
   case ACTION_TYPE:
     index = cmd->mask | (cmd->data << 8);
-    Type(config->strings[index]);
+    Type(cfg->strings[index]);
     break;
 
   case ACTION_BOOT:
@@ -561,6 +593,61 @@ void ExecuteCommand(Command* cmd) {
 
 //------------------------------------------------------------------------------
 
+USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
+
+  usbRequest_t *request = (void*) data;
+
+  switch(request->bRequest) {
+    
+  case KEYMAN64_CTRL:
+    usbDataLength = request->wLength.word;
+    usbDataReceived = 0;
+
+    if(usbData == NULL) {
+      usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+    }
+    return USB_NO_MSG;
+    break;
+  }
+  
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+
+USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
+
+  for(int i=0; usbDataReceived < usbDataLength && i < len; i++, usbDataReceived++) {
+    usbData[usbDataReceived] = (uint8_t) data[i];
+  }
+
+  if(usbDataReceived < usbDataLength) {
+    return 0;
+  }
+  else {
+    ExecuteCommandsFromUSBData();
+  }
+  
+  free((void*)usbData);
+  usbData = NULL;
+  return 1;
+}
+
+//------------------------------------------------------------------------------
+
+void ExecuteCommandsFromUSBData(void) {
+
+  Config *cfg = Config_new();
+  usbDataPos = 0;
+  
+  if(Config_read(cfg, &usbdata)) {
+    ExecuteImmediateCommands(cfg);
+  }
+  Config_free(cfg);
+}
+
+//------------------------------------------------------------------------------
+
 int main(void) {
 
   SetupHardware();
@@ -574,14 +661,19 @@ int main(void) {
   config = Config_new();
   Config_read(config, &eeprom);
 
-  ApplyConfig();
+  ExecuteImmediateCommands(config);
 
   ResetCrosspointSwitch();
+
+  SetupUSB();
   
   Binding *binding;
   bool relayMetaKey = true;
-
+  
   while(true) {
+
+    usbPoll();
+    
     switch(STATE) {
 
     //========================================
@@ -614,7 +706,7 @@ int main(void) {
           if(QueryKeyDown(binding->key)) {  
             
             for(int k=0; k<binding->size; k++) {
-              ExecuteCommand(binding->commands[k]);
+              ExecuteCommand(config, binding->commands[k]);
             }
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;

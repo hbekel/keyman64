@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include "config.h"
+#include "usbdrv/usbdrv.h"
 
 #define ATTR_NO_INIT __attribute__ ((section(".noinit")))
 #define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
@@ -34,7 +35,7 @@ void ExpectSerialCommand(void);
 void ExpectSerialArgument(void);
 void ExecuteSerialCommand(uint8_t command, uint8_t argument);
 void SetupKeyboardLayout(void);
-void ApplyConfig(void);
+void ExecuteImmediateCommands(volatile Config *cfg);
 void DisableJTAG(void);
 void ResetCounter(void);
 void ClockMatrix(void);
@@ -47,7 +48,7 @@ bool IsKey(volatile uint8_t key);
 bool QueryKeyDown(volatile uint8_t key);
 bool QueryKeyUp(volatile uint8_t key);
 void ExecuteBinding(uint8_t key);
-void ExecuteCommand(Command* command);
+void ExecuteCommand(volatile Config *config, Command* command);
 void ResetCrosspointSwitch22106(void);
 void StrobeCrosspointSwitch22106(void);
 void ResetCrosspointSwitch8808(void);
@@ -59,4 +60,8 @@ void EnterBootloader(void);
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
 int ReadEeprom(FILE* file);
 
+void SetupUSB(void);
+USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
+USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len);
+void ExecuteCommandsFromUSBData(void);
 #endif // MAIN_H
