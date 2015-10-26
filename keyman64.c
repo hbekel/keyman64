@@ -683,8 +683,7 @@ void Command_print(Command *self, FILE* out) {
 //------------------------------------------------------------------------------
 
 #if windows
-#include <io.h>
-FILE* fmemopen(void *buf, int size, const char *mode) {
+FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
   char *name = ".keyman64-commands-tmp";
