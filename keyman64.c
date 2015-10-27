@@ -10,6 +10,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#if windows
+  #include <windows.h>
+#endif
+
 #include "config.h"
 #include "strings.h"
 #include "range.h"
@@ -682,13 +686,17 @@ void Command_print(Command *self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-#if windows
+#if defined(WIN32) && !defined(__CYGWIN__)
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
-  char *name = ".keyman64-commands-tmp";
-  
-  result = fopen(name, "wbD+");
+  char path[MAX_PATH+1]; 
+  char file[MAX_PATH+1];
+
+  if(!GetTempPath(MAX_PATH+1, path)) return NULL;
+  if(!GetTempFileName(path, "key", 0, file)) return NULL;
+
+  result = fopen(file, "wbD+");
   fwrite(buf, sizeof(char), size, result);
   fseek(result, 0, SEEK_CUR);
   
