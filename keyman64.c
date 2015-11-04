@@ -985,7 +985,7 @@ void keys(void) {
   for(int i=0; i<64; i++) {
     printf("%02X: ", i);
     symbol = symbols[i];
-    printf(symbol.name);
+    printf("%s", symbol.name);
     for(int k=64; k<total; k++) {
       synonym = symbols[k];
       if(symbol.key == synonym.key) {
