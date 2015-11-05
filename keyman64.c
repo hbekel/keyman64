@@ -32,6 +32,7 @@ Config* config = NULL;
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
 char *device;
+uint16_t delay = 0;
 
 //------------------------------------------------------------------------------
 // Utility functions for parsing
@@ -724,13 +725,14 @@ int main(int argc, char **argv) {
     { "version", no_argument,       0, 'v' },
     { "device",  required_argument, 0, 'd' },
     { "keys",    no_argument,       0, 'k' },
+    { "delay",   required_argument, 0, 'D' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
 
 
   while(1) {
-    option = getopt_long(argc, argv, "hvd:k", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:", options, &option_index);
 
     if(option == -1)
       break;
@@ -755,6 +757,10 @@ int main(int argc, char **argv) {
     case 'k':
       keys();
       goto done;
+      break;
+
+    case 'D':
+      delay = strtol(optarg, NULL, 0);
       break;
     }
   }
@@ -811,14 +817,18 @@ int command(int argc, char **argv) {
     fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
     goto done;
   }
-  
+
   if(argc) {
-    join(&str, argv, argc);
+
+    if((in = fopen(argv[0], "rb")) == NULL) {
     
-    if(strlen(str)) {
-      if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
-        fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
-        goto done;
+      join(&str, argv, argc);
+    
+      if(strlen(str)) {
+        if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
+          fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
+          goto done;
+        }
       }
     }
   }
@@ -856,7 +866,7 @@ int command(int argc, char **argv) {
     goto done;
   }
 
-  if((result = usb_send(handle, KEYMAN64_CTRL, data, size)) < 0) {
+  if((result = usb_send(handle, KEYMAN64_CTRL, delay, data, size)) < 0) {
     fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
     goto done;
   }
@@ -949,7 +959,8 @@ void usage(void) {
   printf("Usage:\n");
   printf("      keyman64 <options>\n");
   printf("      keyman64 convert [<infile>|-] [<outfile>|-]\n");
-  printf("      keyman64 <command..>\n");  
+  printf("      keyman64 <command..>\n");
+  printf("      keyman64 <file>\n");    
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version : print version information\n");
@@ -959,6 +970,7 @@ void usage(void) {
 #elif windows
   printf("           -d, --device  : specify usb device (default: usb\n");
 #endif
+  printf("           -D, --delay   : delay in ms between commands\n");  
   printf("           -k, --keys    : list key names and synonyms\n");
   printf("\n");
   printf("  Conversion arguments:\n");

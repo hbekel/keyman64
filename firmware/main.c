@@ -46,6 +46,7 @@ static volatile uint16_t usbDataReceived;
 static volatile uint16_t usbDataLength;
 static volatile uint8_t *usbData;
 static volatile uint16_t usbDataPos;
+static volatile uint16_t usbDelay;
 
 uint32_t BootKey ATTR_NO_INIT;
 
@@ -235,11 +236,19 @@ FILE usbdata = FDEV_SETUP_STREAM(NULL, ReadUSBData, _FDEV_SETUP_READ);
 //------------------------------------------------------------------------------
 
 
-void ExecuteImmediateCommands(volatile Config* cfg) {
+void ExecuteImmediateCommands(volatile Config* cfg, uint16_t delay) {
+  uint16_t ms;
   for(int i=0; i<cfg->size; i++) {
     if(cfg->bindings[i]->key == KEY_IMMEDIATE) {
       for(int k=0; k<cfg->bindings[i]->size; k++) {
         ExecuteCommand(cfg, cfg->bindings[i]->commands[k]);
+
+        if(delay) {
+          ms = delay;
+          while(ms--) {
+            _delay_ms(1);
+          }
+        }
       }
     }
   }
@@ -601,15 +610,15 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     
   case KEYMAN64_CTRL:
     usbDataLength = request->wLength.word;
+    usbDelay = request->wValue.word;
     usbDataReceived = 0;
-
+    
     if(usbData == NULL) {
       usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
     }
     return USB_NO_MSG;
     break;
   }
-  
   return 0;
 }
 
@@ -641,7 +650,7 @@ void ExecuteCommandsFromUSBData(void) {
   usbDataPos = 0;
   
   if(Config_read(cfg, &usbdata)) {
-    ExecuteImmediateCommands(cfg);
+    ExecuteImmediateCommands(cfg, usbDelay);
   }
   Config_free(cfg);
 }
@@ -661,7 +670,7 @@ int main(void) {
   config = Config_new();
   Config_read(config, &eeprom);
 
-  ExecuteImmediateCommands(config);
+  ExecuteImmediateCommands(config, 0);
 
   ResetCrosspointSwitch();
 

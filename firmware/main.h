@@ -35,7 +35,7 @@ void ExpectSerialCommand(void);
 void ExpectSerialArgument(void);
 void ExecuteSerialCommand(uint8_t command, uint8_t argument);
 void SetupKeyboardLayout(void);
-void ExecuteImmediateCommands(volatile Config *cfg);
+void ExecuteImmediateCommands(volatile Config *cfg, uint16_t delay);
 void DisableJTAG(void);
 void ResetCounter(void);
 void ClockMatrix(void);
