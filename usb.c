@@ -148,7 +148,8 @@ libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
 // USB utility functions
 //------------------------------------------------------------------------------
 
-int usb_send(libusb_device_handle *handle, int message, uint16_t value, uint8_t* buf, int size) {
+int usb_send(libusb_device_handle *handle, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+
   return libusb_control_transfer(handle,
                                  LIBUSB_REQUEST_TYPE_VENDOR |
                                  LIBUSB_RECIPIENT_DEVICE |

@@ -699,11 +699,18 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   result = fopen(file, "wbD+");
   fwrite(buf, sizeof(char), size, result);
-  fseek(result, 0, SEEK_CUR);
+  fseek(result, 0, SEEK_SET);
   
   return result;
 }
 #endif
+
+void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+  fseek(fp, 0, SEEK_SET);
+  fread(buf, sizeof(uint8_t), size, fp);
+#endif
+}
 
 //------------------------------------------------------------------------------
 
@@ -809,6 +816,7 @@ int command(int argc, char **argv) {
   FILE *out = NULL;
   char *str = (char*) calloc(1, sizeof(char));
   uint8_t *data = NULL;
+  uint16_t size = 0;
   
   libusb_device_handle *handle = NULL;
   DeviceInfo info;
@@ -852,7 +860,8 @@ int command(int argc, char **argv) {
   }
   
   Config_write(config, out);
-  int size = ftell(out);
+  size = ftell(out);
+  fmemupdate(out, data, size);  
   fclose(out);
 
   info.vid = KEYMAN64_VID;
