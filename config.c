@@ -10,6 +10,7 @@ Config* Config_new(void) {
   self->longs = (uint32_t*) NULL;
   self->size = 0;
   self->_size = 0;
+  self->__size = 0;
   return self;
 }
 

@@ -30,6 +30,7 @@ volatile uint8_t STATE = STATE_RELAY;
 #define DEBOUNCE  _delay_ms(20)
 #define DELAY     _delay_ms(20)
 #define PROPAGATE _delay_ms(1)
+#define WITHOUT_DELAY 0
 
 volatile bool matrix[64];
 volatile bool locked[64];
@@ -670,7 +671,7 @@ int main(void) {
   config = Config_new();
   Config_read(config, &eeprom);
 
-  ExecuteImmediateCommands(config, 0);
+  ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
   ResetCrosspointSwitch();
 
