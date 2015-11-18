@@ -1,5 +1,4 @@
 EESchema Schematic File Version 2
-LIBS:keyman64-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -30,6 +29,7 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:cd74hc22106
+LIBS:legacy
 LIBS:keyman64-cache
 EELAYER 25 0
 EELAYER END
@@ -1280,17 +1280,6 @@ F 3 "" H 1900 1000 60  0000 C CNN
 	1    1900 1000
 	0    1    1    0   
 $EndComp
-$Comp
-L DUAL_SWITCH_INV SW3
-U 1 1 562A2E46
-P 1400 1000
-F 0 "SW3" H 1200 1150 50  0000 C CNN
-F 1 "POWER" H 1250 850 50  0000 C CNN
-F 2 "pinHeaders:pinHeader-3x1" H 1400 1000 60  0001 C CNN
-F 3 "~" H 1400 1000 60  0000 C CNN
-	1    1400 1000
-	-1   0    0    1   
-$EndComp
 Text Label 900  1100 2    60   ~ 0
 KVCC
 Text Label 900  2950 2    60   ~ 0
@@ -1478,4 +1467,15 @@ NoConn ~ 10900 5000
 NoConn ~ 10750 5000
 NoConn ~ 10600 5000
 NoConn ~ 10450 5000
+$Comp
+L SWITCH_INV J1
+U 1 1 564C829F
+P 1400 1000
+F 0 "J1" H 1200 1150 50  0000 C CNN
+F 1 "POWER" H 1250 850 50  0000 C CNN
+F 2 "pinHeaders:pinHeader-3x1" H 1400 1000 60  0001 C CNN
+F 3 "" H 1400 1000 60  0000 C CNN
+	1    1400 1000
+	-1   0    0    1   
+$EndComp
 $EndSCHEMATC
