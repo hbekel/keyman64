@@ -56,13 +56,13 @@ config: keyman64
 	./keyman64 example.conf example.bin && \
 	avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
-test: example.conf keyman64
+test: test.conf keyman64
 	rm -rf tmp
 	mkdir tmp
-	./keyman64 convert example.conf tmp/example.bin
-	./keyman64 convert tmp/example.bin tmp/roundtrip.conf
+	./keyman64 convert test.conf tmp/test.bin
+	./keyman64 convert tmp/test.bin tmp/roundtrip.conf
 	./keyman64 convert tmp/roundtrip.conf tmp/roundtrip.bin
-	diff tmp/example.bin tmp/roundtrip.bin
+	diff tmp/test.bin tmp/roundtrip.bin
 	rm -rf tmp
 
 reverse.prg: reverse.asm

@@ -90,12 +90,12 @@ bool Config_read(volatile Config *self, FILE* in) {
   uint32_t value;
   int i;
 
-  if(!((c = fgetc(in)) == CONFIG_MAGIC[0])) {
+  if(!(((uint8_t)(c = fgetc(in))) == CONFIG_MAGIC[0])) {
     ungetc(c, in);
     return false;
   }
 
-  if(!((c = fgetc(in)) == CONFIG_MAGIC[1])) {
+  if(!(((uint8_t)(c = fgetc(in))) == CONFIG_MAGIC[1])) {
     ungetc(c, in);
     return false;
   }
