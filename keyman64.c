@@ -957,7 +957,7 @@ int convert(int argc, char **argv) {
 //------------------------------------------------------------------------------
 
 void version(void) {
-  printf("keyman64 version 1.0 (c) 2015 Henning Bekel. All rights reserverd.\n");
+  printf("keyman64 version %.1f (c) 2015 Henning Bekel. All rights reserverd.\n", VERSION);
 }
 
 //------------------------------------------------------------------------------

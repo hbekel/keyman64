@@ -1,13 +1,13 @@
+VERSION=1.1
+
 CC?=gcc
-CFLAGS=-std=gnu99 -Wall -Wno-unused -O2
+CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)
 MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 MD5SUM=md5sum
 
 PREFIX?=/usr/local
 DESTDIR=
-
-VERSION=1.0
 
 UNAME=$(shell uname)
 
