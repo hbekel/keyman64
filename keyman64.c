@@ -247,18 +247,22 @@ bool Config_parse(Config* self, FILE* in) {
     line += strspn(line, ws);
 
     // skip empty lines and comments
-    if(line[0] == '\n' || line[0] == '#') continue;
+    if(line[0] == '\n' || line[0] == '\r' || line[0] == '#') continue;
 
     // remove comment at the end of the line
     if((comment = strstr(line, "#")) != NULL) {
       comment[0] = '\0';
     }
 
-    // discard newline
+    // discard newlines
     if(line[strlen(line)-1] == '\n') {
       line[strlen(line)-1] = '\0';
     }
 
+    if(line[strlen(line)-1] == '\r') {
+      line[strlen(line)-1] = '\0';
+    }
+    
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
       keyspec = line;
