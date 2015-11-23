@@ -1,3 +1,5 @@
+/* -*- mode: kasm -*- */
+
 /* Simple Test program for reverse keyboard scan
  * Port B is used for output and Port A for input
  * This tests wether the 7422106 is truly bidirectional

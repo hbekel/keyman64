@@ -1,3 +1,5 @@
+/* -*- mode: kasm -*- */
+        
 serial: {
 
 .var tmp = $02

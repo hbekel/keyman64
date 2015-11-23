@@ -1,3 +1,5 @@
+/* -*- mode: kasm -*- */
+
 .namespace Command {
 .label exec  = $01
 .label down  = $02
