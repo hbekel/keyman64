@@ -1,0 +1,2 @@
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="05dc", ATTRS{product}=="USBasp" MODE:="0666", SYMLINK+="usbasp"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0adc", MODE:="0666", SYMLINK+="keyman64"
