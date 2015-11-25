@@ -1,4 +1,4 @@
-update=11.11.2015 15:36:37
+update=25.11.2015 09:08:00
 version=1
 last_client=kicad
 [general]
@@ -84,4 +84,3 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=lib/cd74hc22106
-LibName31=lib/legacy
