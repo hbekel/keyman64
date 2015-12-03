@@ -4,15 +4,20 @@ CC?=gcc
 CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)
 MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
-MD5SUM=md5sum
 
 PREFIX?=/usr/local
 DESTDIR=
 
 UNAME=$(shell uname)
 
+MD5SUM=md5sum
 ifeq ($(UNAME), Darwin)
   MD5SUM=md5 -r
+endif
+
+UDEV=0
+ifeq ($(UNAME), Linux)
+  UDEV=1
 endif
 
 HEADERS=config.h \
@@ -30,6 +35,8 @@ SOURCES=strings.c \
 	keyman64.c
 
 LIBS=-lusb-1.0
+
+print-%: ; @echo $*=$($*)
 
 all: linux
 linux: firmware keyman64
@@ -80,9 +87,18 @@ clean: firmware-clean
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 keyman64 $(DESTDIR)$(PREFIX)/bin
+	([[ "$(UDEV)" = "1" ]] && make udev-install) || true
+
+udev-install:
+	install -d $(DESTDIR)/etc/udev/rules.d
+	install -m644 etc/udev/rules.d/10-keyman64.rules $(DESTDIR)/etc/udev/rules.d
 
 uninstall:
 	rm -f $(PREFIX)/bin/keyman64
+	([[ "$(UDEV)" = "1" ]] && make udev-uninstall) || true
+
+udev-uninstall:
+	rm -f /etc/udev/rules.d/10-keyman64.rules
 
 release: clean
 	git archive --prefix=keyman64-$(VERSION)/ -o ../keyman64-$(VERSION).tar.gz HEAD && \
