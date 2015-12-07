@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#define KEYMAN64_VID 0x16d0
-#define KEYMAN64_PID 0x0adc
+#define KEYMAN64_VID 0x1d50
+#define KEYMAN64_PID 0x60e9
 
 void version(void);
 void usage(void);
