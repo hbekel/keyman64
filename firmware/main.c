@@ -665,8 +665,8 @@ int main(void) {
 
   meta = KEY_ARROWLEFT;
 
-  ResetCrosspointSwitch = &ResetCrosspointSwitch22106;
-  StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;  
+  ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
+  StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
   
   config = Config_new();
   Config_read(config, &eeprom);
