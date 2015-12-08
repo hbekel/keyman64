@@ -580,7 +580,7 @@ void Binding_print(Binding *self, FILE* out) {
 //------------------------------------------------------------------------------
 
 void Key_print(uint8_t key, FILE* out) {
-  fprintf(out, "$%02X: ", key);	 
+  fprintf(out, "$%02X: ", key);  
 }
 
 //------------------------------------------------------------------------------
@@ -655,10 +655,10 @@ void Command_print(Command *self, FILE* out) {
   }
   
   else if(self->action == ACTION_DEFINE_META ||
-	  self->action == ACTION_EXEC ||
-	  self->action == ACTION_KEY_DOWN ||
-	  self->action == ACTION_KEY_UP ||
-	  self->action == ACTION_KEY_PRESS) {
+          self->action == ACTION_EXEC ||
+          self->action == ACTION_KEY_DOWN ||
+          self->action == ACTION_KEY_UP ||
+          self->action == ACTION_KEY_PRESS) {
 
     fprintf(out, "%s $%02X", action, self->data);    
   }
@@ -671,16 +671,16 @@ void Command_print(Command *self, FILE* out) {
     if(start == end) {
 
       fprintf(out, "%s port %s bit %d ",
-	      action,
-	      (self->port == PORT_A) ? "a" : "b",
-	      start);
+              action,
+              (self->port == PORT_A) ? "a" : "b",
+              start);
     } else {
       
       fprintf(out, "%s port %s bits %d-%d ",
-	      action,
-	      (self->port == PORT_A) ? "a" : "b",
-	      start,
-	      end);
+              action,
+              (self->port == PORT_A) ? "a" : "b",
+              start,
+              end);
     }
   }
   if(self->action == ACTION_SET) {
@@ -773,7 +773,11 @@ int main(int argc, char **argv) {
     case 'D':
       delay = strtol(optarg, NULL, 0);
       break;
-    }
+
+    case '?':
+    case ':':
+      goto done;
+    }    
   }
 
   argc -= optind;
@@ -976,16 +980,16 @@ void usage(void) {
   printf("Usage:\n");
   printf("      keyman64 <options>\n");
   printf("      keyman64 convert [<infile>|-] [<outfile>|-]\n");
-  printf("      keyman64 <command..>\n");
-  printf("      keyman64 <file>\n");    
+  printf("      keyman64 [<options>] <command>\n");
+  printf("      keyman64 [<options>] [<file>]\n");    
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version : print version information\n");
   printf("           -h, --help    : print this help text\n");
 #if linux
-  printf("           -d, --device  : specify usb device (default: /dev/keyman64\n");
+  printf("           -d, --device  : specify usb device (default: /dev/keyman64)\n");
 #elif windows
-  printf("           -d, --device  : specify usb device (default: usb\n");
+  printf("           -d, --device  : specify usb device (default: usb)\n");
 #endif
   printf("           -D, --delay   : delay in ms between commands\n");  
   printf("           -k, --keys    : list key names and synonyms\n");
@@ -999,8 +1003,8 @@ void usage(void) {
   printf("\n");
   printf("           Missing arguments default to stdin or stdout\n");
   printf("\n");
-  printf("  Commands:\n");
-  printf("            (any configuration command)\n");
+  printf("  Command:\n");
+  printf("            (any valid keyman64 command)\n");
   printf("\n");  
 }
 
