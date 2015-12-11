@@ -19,8 +19,10 @@ lines can be used to control additional hardware instead of using
 physical buttons or switches.
 
 Additional features include the ability to send predefined keyboard
-macros or to redefine the keyboard layout. A simple serial interface
-for remote control is provided as well.
+macros or to redefine the keyboard layout. Commands can also be sent
+from a remote PC via USB, or send on simple serial wire interface,
+allowing remote control from either a PC or another microcontroller or
+similar device.
 
 *For some concrete examples of what the keyman64 can do, see the
 [configuration

@@ -850,7 +850,7 @@ int command(int argc, char **argv) {
   }
 
   if(in == stdin) {
-    fprintf(stderr, "reading commands from stdin... (keyman64 --help for instructions)\n");
+    fprintf(stderr, "reading commands from stdin...\n");
   }
   
   config = Config_new();
