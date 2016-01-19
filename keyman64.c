@@ -33,6 +33,7 @@ typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
 char *device;
 uint16_t delay = 0;
+bool preserve_state = false;
 
 //------------------------------------------------------------------------------
 // Utility functions for parsing
@@ -569,6 +570,46 @@ void State_write(State *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
+
+bool State_fetch(State *self) {
+  
+  int result = false;
+  
+  libusb_device_handle *handle = NULL;
+  DeviceInfo info;
+
+  if((result = libusb_init(NULL)) < 0) {
+    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
+    goto done;
+  }
+  
+  info.vid = KEYMAN64_VID;
+  info.pid = KEYMAN64_PID;
+
+  usb_lookup(device, &info);
+  handle = usb_open(NULL, &info);
+  
+  if(handle == NULL) {
+    fprintf(stderr, "error: could not open %s\n", device);
+    goto done;
+  }
+  
+  if((result = usb_receive(handle, KEYMAN64_STATE, 0, (uint8_t*) self, sizeof(State))) < 0) {
+    fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
+    goto done;
+  }
+  result = true;
+
+ done:
+  if(handle != NULL) {
+    libusb_close(handle);
+  }
+  libusb_exit(NULL);
+  
+  return result;  
+}
+
+//------------------------------------------------------------------------------
 // Functions for writing canonical config file format
 //------------------------------------------------------------------------------
 
@@ -749,18 +790,19 @@ int main(int argc, char **argv) {
   strcpy(device, default_device);
   
   struct option options[] = {
-    { "help",    no_argument,       0, 'h' },
-    { "version", no_argument,       0, 'v' },
-    { "device",  required_argument, 0, 'd' },
-    { "keys",    no_argument,       0, 'k' },
-    { "delay",   required_argument, 0, 'D' },
+    { "help",     no_argument,       0, 'h' },
+    { "version",  no_argument,       0, 'v' },
+    { "device",   required_argument, 0, 'd' },
+    { "keys",     no_argument,       0, 'k' },
+    { "delay",    required_argument, 0, 'D' },
+    { "preserve", no_argument,       0, 'p' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
 
 
   while(1) {
-    option = getopt_long(argc, argv, "hvd:kD:", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:p", options, &option_index);
 
     if(option == -1)
       break;
@@ -791,6 +833,10 @@ int main(int argc, char **argv) {
       delay = strtol(optarg, NULL, 0);
       break;
 
+    case 'p':
+      preserve_state = true;
+      break;      
+      
     case '?':
     case ':':
       goto done;
@@ -964,6 +1010,12 @@ int convert(int argc, char **argv) {
   
   if(Config_read(config, in) || Config_parse(config, in)) {
 
+    if(preserve_state) {
+      if(!State_fetch(config->state)) {
+        fprintf(stderr, "warning: could not fetch saved state from device\n");
+      }        
+    }
+
     output_format == BINARY ?
       Config_write(config, out) :
       Config_print(config, out);
@@ -996,20 +1048,21 @@ void usage(void) {
   printf("\n");
   printf("Usage:\n");
   printf("      keyman64 <options>\n");
-  printf("      keyman64 convert [<infile>|-] [<outfile>|-]\n");
+  printf("      keyman64 <options> convert [<infile>|-] [<outfile>|-]\n");
   printf("      keyman64 [<options>] <command>\n");
   printf("      keyman64 [<options>] [<file>]\n");    
   printf("\n");
   printf("  Options:\n");
-  printf("           -v, --version : print version information\n");
-  printf("           -h, --help    : print this help text\n");
+  printf("           -v, --version  : print version information\n");
+  printf("           -h, --help     : print this help text\n");
 #if linux
-  printf("           -d, --device  : specify usb device (default: /dev/keyman64)\n");
+  printf("           -d, --device   : specify usb device (default: /dev/keyman64)\n");
 #elif windows
-  printf("           -d, --device  : specify usb device (default: usb)\n");
+  printf("           -d, --device   : specify usb device (default: usb)\n");
 #endif
-  printf("           -D, --delay   : delay in ms between commands\n");  
-  printf("           -k, --keys    : list key names and synonyms\n");
+  printf("           -D, --delay    : delay in ms between commands\n");  
+  printf("           -k, --keys     : list key names and synonyms\n");
+  printf("           -p, --preserve : preserve saved state during convert\n");  
   printf("\n");
   printf("  Conversion arguments:\n");
   printf("           <infile>  : input file, format is autodetected\n");

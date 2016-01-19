@@ -159,3 +159,15 @@ int usb_send(libusb_device_handle *handle, uint8_t message, uint16_t value, uint
 }
 
 //------------------------------------------------------------------------------
+
+int usb_receive(libusb_device_handle *handle, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+
+  return libusb_control_transfer(handle,
+                                 LIBUSB_REQUEST_TYPE_VENDOR |
+                                 LIBUSB_RECIPIENT_DEVICE |
+                                 LIBUSB_ENDPOINT_IN, 
+                                 message, value, 0,
+                                 buf, size, 5000);
+}
+
+//------------------------------------------------------------------------------
