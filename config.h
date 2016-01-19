@@ -22,6 +22,8 @@
 #define ACTION_KEY_PRESS     15
 #define ACTION_SLEEP_LONG    16
 #define ACTION_DEFINE_SWITCH 17
+#define ACTION_SAVE_STATE    18
+#define ACTION_RESTORE_STATE 19
 
 #define PORT_A    0
 #define PORT_B    1
@@ -44,12 +46,20 @@ typedef struct {
 } Binding;
 
 typedef struct {
+  uint8_t ddra;
+  uint8_t porta;
+  uint8_t ddrb;
+  uint8_t portb;
+} State;
+
+typedef struct {
   uint16_t size;
   uint16_t _size;
   uint16_t __size;
   Binding **bindings;
   char **strings;
   uint32_t *longs;
+  State *state;
 } Config;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
@@ -78,5 +88,9 @@ void Binding_free(Binding *self);
 Command* Command_new(void);
 void Command_read(Command *self, FILE* in);
 void Command_free(Command *self);
+
+State* State_new(void);
+void State_read(State* self, FILE* in);
+void State_free(State* self);
 
 #endif // CONFIG_H

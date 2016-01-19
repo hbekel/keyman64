@@ -6,6 +6,7 @@
 #include <avr/wdt.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 
 #include "main.h"
@@ -207,7 +208,7 @@ void SetupKeyboardLayout(void) {
 }
 
 //------------------------------------------------------------------------------
-  
+
 int ReadEeprom(FILE* file) {
 
   static volatile uint16_t addr = 0;
@@ -598,7 +599,39 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
       ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
       StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
     }
+    break;
+
+  case ACTION_SAVE_STATE:
+    SaveState();
+    break;
+
+  case ACTION_RESTORE_STATE:
+    RestoreState();
+    break;    
   }
+}
+
+//------------------------------------------------------------------------------
+
+void SaveState(void) {
+  config->state->ddra  = DDRB;
+  config->state->porta = PORTB;
+  config->state->ddrb  = DDRC;
+  config->state->portb = PORTC;
+
+  eeprom_write_byte((uint8_t *)2, config->state->ddra);
+  eeprom_write_byte((uint8_t *)3, config->state->porta);
+  eeprom_write_byte((uint8_t *)4, config->state->ddrb);
+  eeprom_write_byte((uint8_t *)5, config->state->portb);
+}
+
+//------------------------------------------------------------------------------
+
+void RestoreState(void) {
+  DDRB  = config->state->ddra;
+  PORTB = config->state->porta;
+  DDRC  = config->state->ddrb;
+  PORTC = config->state->portb;   
 }
 
 //------------------------------------------------------------------------------

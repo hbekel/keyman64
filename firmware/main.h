@@ -56,6 +56,8 @@ void StrobeCrosspointSwitch8808(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 void SetCrosspointSwitchLocked(uint8_t index, bool closed);
 void Type(char *string);
+void SaveState(void);
+void RestoreState(void);
 void EnterBootloader(void);
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
 int ReadEeprom(FILE* file);

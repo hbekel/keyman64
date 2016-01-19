@@ -8,6 +8,7 @@ Config* Config_new(void) {
   self->bindings = (Binding**) calloc(1, sizeof(Binding**));
   self->strings = (char**) NULL;
   self->longs = (uint32_t*) NULL;
+  self->state = State_new();
   self->size = 0;
   self->_size = 0;
   self->__size = 0;
@@ -99,6 +100,8 @@ bool Config_read(volatile Config *self, FILE* in) {
     ungetc(c, in);
     return false;
   }
+
+  State_read(self->state, in);
   
   while((byte = fgetc(in)) != KEY_EOF) {
 
@@ -217,3 +220,23 @@ void Command_free(Command *self) {
 
 //------------------------------------------------------------------------------
 
+State* State_new(void) {
+  return (State*) calloc(1, sizeof(State));
+}
+
+//------------------------------------------------------------------------------
+
+void State_read(State* self, FILE* in) {
+  self->ddra  = fgetc(in);
+  self->porta = fgetc(in);
+  self->ddrb  = fgetc(in);
+  self->portb = fgetc(in);
+}
+
+//------------------------------------------------------------------------------
+
+void State_free(State* self) {
+  free(self);
+}
+
+//------------------------------------------------------------------------------

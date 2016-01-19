@@ -41,22 +41,24 @@ uint16_t delay = 0;
 static uint8_t parseAction(char* str) {
   if(str == NULL) return ACTION_NONE;
   
-  if(strncasecmp(str, "set",   3) == 0) return ACTION_SET;
-  if(strncasecmp(str, "clear", 5) == 0) return ACTION_CLEAR;
-  if(strncasecmp(str, "inv",   3) == 0) return ACTION_INVERT;
-  if(strncasecmp(str, "inc",   3) == 0) return ACTION_INCREASE;
-  if(strncasecmp(str, "dec",   3) == 0) return ACTION_DECREASE;
-  if(strncasecmp(str, "tri",   3) == 0) return ACTION_TRISTATE;
-  if(strncasecmp(str, "sleep", 5) == 0) return ACTION_SLEEP_SHORT;
-  if(strncasecmp(str, "exec",  4) == 0) return ACTION_EXEC;
-  if(strncasecmp(str, "meta",  4) == 0) return ACTION_DEFINE_META;
-  if(strncasecmp(str, "down",  2) == 0) return ACTION_KEY_DOWN;
-  if(strncasecmp(str, "up",    2) == 0) return ACTION_KEY_UP;
-  if(strncasecmp(str, "type",  4) == 0) return ACTION_TYPE;  
-  if(strncasecmp(str, "boot",  4) == 0) return ACTION_BOOT;    
-  if(strncasecmp(str, "swap",  4) == 0) return ACTION_SWAP;  
-  if(strncasecmp(str, "press", 5) == 0) return ACTION_KEY_PRESS;
-  if(strncasecmp(str, "using", 5) == 0) return ACTION_DEFINE_SWITCH;    
+  if(strncasecmp(str, "set",      3) == 0) return ACTION_SET;
+  if(strncasecmp(str, "clear",    5) == 0) return ACTION_CLEAR;
+  if(strncasecmp(str, "inv",      3) == 0) return ACTION_INVERT;
+  if(strncasecmp(str, "inc",      3) == 0) return ACTION_INCREASE;
+  if(strncasecmp(str, "dec",      3) == 0) return ACTION_DECREASE;
+  if(strncasecmp(str, "tri",      3) == 0) return ACTION_TRISTATE;
+  if(strncasecmp(str, "sleep",    5) == 0) return ACTION_SLEEP_SHORT;
+  if(strncasecmp(str, "exec",     4) == 0) return ACTION_EXEC;
+  if(strncasecmp(str, "meta",     4) == 0) return ACTION_DEFINE_META;
+  if(strncasecmp(str, "down",     2) == 0) return ACTION_KEY_DOWN;
+  if(strncasecmp(str, "up",       2) == 0) return ACTION_KEY_UP;
+  if(strncasecmp(str, "type",     4) == 0) return ACTION_TYPE;  
+  if(strncasecmp(str, "boot",     4) == 0) return ACTION_BOOT;    
+  if(strncasecmp(str, "swap",     4) == 0) return ACTION_SWAP;  
+  if(strncasecmp(str, "press",    5) == 0) return ACTION_KEY_PRESS;
+  if(strncasecmp(str, "using",    5) == 0) return ACTION_DEFINE_SWITCH;
+  if(strncasecmp(str, "save",     4) == 0) return ACTION_SAVE_STATE;
+  if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;        
   return ACTION_NONE;
 }
 
@@ -509,6 +511,8 @@ bool Command_parse(Command* self, char* spec) {
 void Config_write(Config *self, FILE *out) {
   fputc(CONFIG_MAGIC[0], out);
   fputc(CONFIG_MAGIC[1], out);
+
+  State_write(self->state, out);
   
   for(int i=0; i<self->size; i++) {
     Binding_write(self->bindings[i], out);
@@ -553,6 +557,15 @@ void Command_write(Command *self, FILE* out) {
   fputc(action, out);
   fputc(self->mask, out);
   fputc(self->data, out);
+}
+
+//------------------------------------------------------------------------------
+
+void State_write(State *self, FILE* out) {
+  fputc(self->ddra, out);
+  fputc(self->porta, out);
+  fputc(self->ddrb, out);
+  fputc(self->portb, out);
 }
 
 //------------------------------------------------------------------------------
@@ -606,7 +619,9 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_BOOT:          action = "boot";     break;                
   case ACTION_SWAP:          action = "swap";     break;
   case ACTION_KEY_PRESS:     action = "press";    break;
-  case ACTION_DEFINE_SWITCH: action = "using";    break;                        
+  case ACTION_DEFINE_SWITCH: action = "using";    break;
+  case ACTION_SAVE_STATE:    action = "save";     break;
+  case ACTION_RESTORE_STATE: action = "restore";  break;                                
   };
 
   if(self->action == ACTION_TYPE) {
@@ -634,7 +649,9 @@ void Command_print(Command *self, FILE* out) {
     }
   }
 
-  if(self->action == ACTION_BOOT) {
+  if(self->action == ACTION_BOOT ||
+     self->action == ACTION_SAVE_STATE ||
+     self->action == ACTION_RESTORE_STATE) {
     fprintf(out, "%s", action);
   }
 

@@ -28,4 +28,6 @@ bool Command_parse(Command* self, char* spec);
 void Command_write(Command *self, FILE* out);
 void Command_print(Command *self, FILE* out);
 
+void State_write(State* self, FILE* out);
+
 #endif // KEYMAN64_H
