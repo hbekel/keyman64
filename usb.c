@@ -11,7 +11,7 @@
 // USB device discovery & handling
 //------------------------------------------------------------------------------
 
-bool usb_lookup(char *path, DeviceInfo *info) {
+static bool usb_lookup(char *path, DeviceInfo *info) {
 
   info->bus     = -1;
   info->address = -1;
@@ -54,7 +54,7 @@ bool usb_lookup(char *path, DeviceInfo *info) {
 
 //------------------------------------------------------------------------------
 
-libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
+static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
 
   libusb_device **devices;
   libusb_device *device;
@@ -145,29 +145,62 @@ libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
 }
 
 //------------------------------------------------------------------------------
+
+static int usb_message(char* device, int direction, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+
+  libusb_device_handle *handle = NULL;
+  DeviceInfo info;
+  int result;
+  
+  if((result = libusb_init(NULL)) < 0) {
+    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
+    goto done;
+  }
+  
+  info.vid = KEYMAN64_VID;
+  info.pid = KEYMAN64_PID;
+
+  usb_lookup(device, &info);
+  handle = usb_open(NULL, &info);
+  
+  if(handle == NULL) {
+    fprintf(stderr, "error: could not open usb device \"%s\"\n", device);
+    goto done;
+  }
+
+  result = libusb_control_transfer(handle,
+                                   LIBUSB_REQUEST_TYPE_VENDOR |
+                                   LIBUSB_RECIPIENT_DEVICE |
+                                   direction,
+                                   message, value, 0,
+                                   buf, size, 5000);
+  
+  if(!result) {
+    fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
+    goto done;
+  }
+
+ done:
+  if(handle != NULL) {
+    libusb_close(handle);
+  }
+  libusb_exit(NULL);
+  
+  return result;    
+}
+
+//------------------------------------------------------------------------------
 // USB utility functions
 //------------------------------------------------------------------------------
 
-int usb_send(libusb_device_handle *handle, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
-
-  return libusb_control_transfer(handle,
-                                 LIBUSB_REQUEST_TYPE_VENDOR |
-                                 LIBUSB_RECIPIENT_DEVICE |
-                                 LIBUSB_ENDPOINT_OUT, 
-                                 message, value, 0,
-                                 buf, size, 5000);
+int usb_send(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+  return usb_message(device, LIBUSB_ENDPOINT_OUT, message, value, buf, size);  
 }
 
 //------------------------------------------------------------------------------
 
-int usb_receive(libusb_device_handle *handle, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
-
-  return libusb_control_transfer(handle,
-                                 LIBUSB_REQUEST_TYPE_VENDOR |
-                                 LIBUSB_RECIPIENT_DEVICE |
-                                 LIBUSB_ENDPOINT_IN, 
-                                 message, value, 0,
-                                 buf, size, 5000);
+int usb_receive(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+  return usb_message(device, LIBUSB_ENDPOINT_IN, message, value, buf, size); 
 }
 
 //------------------------------------------------------------------------------

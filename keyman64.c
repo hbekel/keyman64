@@ -572,41 +572,12 @@ void State_write(State *self, FILE* out) {
 //------------------------------------------------------------------------------
 
 bool State_fetch(State *self) {
+  int result;
   
-  int result = false;
-  
-  libusb_device_handle *handle = NULL;
-  DeviceInfo info;
-
-  if((result = libusb_init(NULL)) < 0) {
-    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
-    goto done;
-  }
-  
-  info.vid = KEYMAN64_VID;
-  info.pid = KEYMAN64_PID;
-
-  usb_lookup(device, &info);
-  handle = usb_open(NULL, &info);
-  
-  if(handle == NULL) {
-    fprintf(stderr, "error: could not open %s\n", device);
-    goto done;
-  }
-  
-  if((result = usb_receive(handle, KEYMAN64_STATE, 0, (uint8_t*) self, sizeof(State))) < 0) {
+  if((result = usb_receive(device, KEYMAN64_STATE, 0, (uint8_t*) self, sizeof(State))) < 0) {
     fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
-    goto done;
   }
-  result = true;
-
- done:
-  if(handle != NULL) {
-    libusb_close(handle);
-  }
-  libusb_exit(NULL);
-  
-  return result;  
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -889,14 +860,6 @@ int command(int argc, char **argv) {
   uint8_t *data = NULL;
   uint16_t size = 0;
   
-  libusb_device_handle *handle = NULL;
-  DeviceInfo info;
-  
-  if((result = libusb_init(NULL)) < 0) {
-    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
-    goto done;
-  }
-
   if(argc) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
@@ -935,29 +898,13 @@ int command(int argc, char **argv) {
   fmemupdate(out, data, size);  
   fclose(out);
 
-  info.vid = KEYMAN64_VID;
-  info.pid = KEYMAN64_PID;
-
-  usb_lookup(device, &info);
-  handle = usb_open(NULL, &info);
-  
-  if(handle == NULL) {
-    fprintf(stderr, "error: could not open %s\n", device);
-    goto done;
-  }
-
-  if((result = usb_send(handle, KEYMAN64_CTRL, delay, data, size)) < 0) {
+  if((result = usb_send(device, KEYMAN64_CTRL, delay, data, size)) < 0) {
     fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
     goto done;
   }
   result = EXIT_SUCCESS;
   
  done:
-  if(handle != NULL) {
-    libusb_close(handle);
-  }
-  libusb_exit(NULL);
-  
   if(config != NULL) {
     Config_free(config);
   }
