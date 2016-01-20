@@ -654,7 +654,7 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     break;
 
   case KEYMAN64_STATE:
-    usbMsgPtr = (uint8_t *) config->state;
+    usbMsgPtr = (uchar *) config->state;
     return 4;
   }
   return 0;

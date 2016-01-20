@@ -356,7 +356,7 @@ section at the end of this file).
 #define USB_CFG_DESCR_PROPS_UNKNOWN                 0
 
 
-#define usbMsgPtr_t unsigned short
+// #define usbMsgPtr_t unsigned short
 /* If usbMsgPtr_t is not defined, it defaults to 'uchar *'. We define it to
  * a scalar type here because gcc generates slightly shorter code for scalar
  * arithmetics than for pointer arithmetics. Remove this define for backward
