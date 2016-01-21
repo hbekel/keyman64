@@ -32,16 +32,25 @@
 #define SWITCH_22106 0
 #define SWITCH_8808  1
 
+const uint8_t POLICY_ALWAYS  = 0b00000000;
+const uint8_t POLICY_EVEN    = 0b01000000;
+const uint8_t POLICY_ODD     = 0b01100000;
+
+const uint8_t STATE_EVEN    = 0b01000000;
+const uint8_t STATE_ODD     = 0b01100000;
+
 typedef struct {
   uint8_t action;
   uint8_t port;
   uint8_t mask;
   uint8_t data;
+  uint8_t policy;
 } Command;
 
 typedef struct {
   uint8_t size;
   uint8_t key;
+  uint8_t state;
   Command** commands;
 } Binding;
 

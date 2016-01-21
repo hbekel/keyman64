@@ -151,6 +151,7 @@ Binding* Binding_new(void) {
   Binding* self = (Binding*) calloc(1, sizeof(Binding));
   self->commands = (Command**) calloc(1, sizeof(Command**));
   self->key = KEY_IMMEDIATE;
+  self->state = STATE_EVEN;
   return self;
 }
 
@@ -199,6 +200,7 @@ Command* Command_new(void) {
   self->port = PORT_A;
   self->mask = 0xff;
   self->data = 0xff;
+  self->policy = POLICY_ALWAYS;
   return self;
 }
 
@@ -207,7 +209,8 @@ Command* Command_new(void) {
 void Command_read(Command *self, FILE* in) {
   self->action = fgetc(in);
   self->port   = (self->action & 0x80) == 0 ? 0 : 1;
-  self->action &= 0x7fU;
+  self->policy = (self->action & 0x60);
+  self->action &= 0x1f;
   self->mask   = fgetc(in);
   self->data   = fgetc(in);
 }

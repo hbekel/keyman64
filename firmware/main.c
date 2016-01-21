@@ -453,13 +453,24 @@ void Type(char *string) {
 
 void ExecuteBinding(uint8_t key) {
   Binding *binding;
-
+  Command *command;
+  
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
+
     if(key == binding->key) {    
+      
       for(int k=0; k<binding->size; k++) {
-        ExecuteCommand(config, binding->commands[k]);
+        command = binding->commands[k];
+        
+        if((command->policy == POLICY_ALWAYS) ||
+           (command->policy == POLICY_EVEN && binding->state == STATE_EVEN) ||
+           (command->policy == POLICY_ODD  && binding->state == STATE_ODD)) {
+           
+          ExecuteCommand(config, command);
+        }
       }
+      binding->state = binding->state == STATE_EVEN ? STATE_ODD : STATE_EVEN;
     }
   }
 }

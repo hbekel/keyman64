@@ -155,6 +155,21 @@ static bool parseData(char *str, uint8_t *data) {
   return result;    
 }
 
+static bool parsePolicy(Command* command, char *str) {
+  bool result = true;
+
+  if(strcmp(str, "0") == 0) {
+    command->policy = POLICY_EVEN;
+  }
+  else if(strcmp(str, "1") == 0) {
+    command->policy = POLICY_ODD;
+  }
+  else {
+    result = false;
+  }
+  return result;
+}
+
 //------------------------------------------------------------------------------
 
 static uint32_t parseDuration(char *str) {
@@ -265,7 +280,7 @@ bool Config_parse(Config* self, FILE* in) {
     if(line[strlen(line)-1] == '\r') {
       line[strlen(line)-1] = '\0';
     }
-    
+
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
       keyspec = line;
@@ -366,6 +381,10 @@ bool Command_parse(Command* self, char* spec) {
   
   StringList_append_tokenized(words, spec, ws);
 
+  if(parsePolicy(self, StringList_get(words, i))) {
+    i++;
+  }
+  
   if((self->action = parseAction(StringList_get(words, i++))) == ACTION_NONE) {
     fprintf(stderr, "error: '%s': invalid command\n", StringList_get(words, i-1));
     goto error;
@@ -555,6 +574,7 @@ void Key_write(uint8_t key, FILE* out) {
 void Command_write(Command *self, FILE* out) {
   uint8_t action = self->action;
   action |= self->port<<7;
+  action |= self->policy;
   fputc(action, out);
   fputc(self->mask, out);
   fputc(self->data, out);
@@ -636,6 +656,14 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_RESTORE_STATE: action = "restore";  break;                                
   };
 
+  if(self->policy == POLICY_EVEN) {
+    fprintf(out, "0 ");
+  }
+  
+  if(self->policy == POLICY_ODD) {
+    fprintf(out, "1 ");
+  }
+  
   if(self->action == ACTION_TYPE) {
     uint16_t index = self->mask | (self->data << 8);
     fprintf(out, "%s ", action);
