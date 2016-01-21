@@ -208,9 +208,9 @@ Command* Command_new(void) {
 
 void Command_read(Command *self, FILE* in) {
   self->action = fgetc(in);
-  self->port   = (self->action & 0x80) == 0 ? 0 : 1;
-  self->policy = (self->action & 0x60);
-  self->action &= 0x1f;
+  self->port   = (self->action & 0x80U) == 0 ? 0 : 1;
+  self->policy = (self->action & 0x60U);
+  self->action &= 0x1fU;
   self->mask   = fgetc(in);
   self->data   = fgetc(in);
 }

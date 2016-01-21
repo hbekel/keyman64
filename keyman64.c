@@ -377,12 +377,14 @@ bool Command_parse(Command* self, char* spec) {
   uint8_t data;
   uint16_t index;
   uint32_t value;
+  bool has_policy = false;
   int i = 0;
   
   StringList_append_tokenized(words, spec, ws);
 
   if(parsePolicy(self, StringList_get(words, i))) {
     i++;
+    has_policy = true;
   }
   
   if((self->action = parseAction(StringList_get(words, i++))) == ACTION_NONE) {
@@ -392,6 +394,10 @@ bool Command_parse(Command* self, char* spec) {
 
   if(self->action == ACTION_TYPE) {
     str = spec + strcspn(spec, ws) + 1;
+
+    if(has_policy) {
+      str = str + strcspn(str, ws) + 1;
+    }
 
     if(!Config_has_string(config, str, &index)) {
       index = Config_add_string(config, str);

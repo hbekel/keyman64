@@ -470,7 +470,7 @@ void ExecuteBinding(uint8_t key) {
           ExecuteCommand(config, command);
         }
       }
-      binding->state = binding->state == STATE_EVEN ? STATE_ODD : STATE_EVEN;
+      binding->state = (binding->state == STATE_EVEN) ? STATE_ODD : STATE_EVEN;
     }
   }
 }
@@ -763,9 +763,8 @@ int main(void) {
           
           if(QueryKeyDown(binding->key)) {  
             
-            for(int k=0; k<binding->size; k++) {
-              ExecuteCommand(config, binding->commands[k]);
-            }
+            ExecuteBinding(binding->key);
+
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;
           }

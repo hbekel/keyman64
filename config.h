@@ -36,8 +36,8 @@ const uint8_t POLICY_ALWAYS  = 0b00000000;
 const uint8_t POLICY_EVEN    = 0b01000000;
 const uint8_t POLICY_ODD     = 0b01100000;
 
-const uint8_t STATE_EVEN    = 0b01000000;
-const uint8_t STATE_ODD     = 0b01100000;
+const uint8_t STATE_EVEN     = 0b01000000;
+const uint8_t STATE_ODD      = 0b01100000;
 
 typedef struct {
   uint8_t action;
