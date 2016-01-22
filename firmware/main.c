@@ -137,7 +137,7 @@ void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
   switch(command) {
 
   case SERIAL_COMMAND_EXECUTE:
-    ExecuteBinding(argument);
+    ExecuteKey(argument);
     break;
 
   case SERIAL_COMMAND_KEY_DOWN:
@@ -451,28 +451,34 @@ void Type(char *string) {
 
 //------------------------------------------------------------------------------
 
-void ExecuteBinding(uint8_t key) {
+void ExecuteKey(uint8_t key) {
   Binding *binding;
-  Command *command;
   
   for(int i=0; i<config->size; i++) {
     binding = config->bindings[i];
-
+    
     if(key == binding->key) {    
-      
-      for(int k=0; k<binding->size; k++) {
-        command = binding->commands[k];
-        
-        if((command->policy == POLICY_ALWAYS) ||
-           (command->policy == POLICY_EVEN && binding->state == STATE_EVEN) ||
-           (command->policy == POLICY_ODD  && binding->state == STATE_ODD)) {
-           
-          ExecuteCommand(config, command);
-        }
-      }
-      binding->state = (binding->state == STATE_EVEN) ? STATE_ODD : STATE_EVEN;
+      ExecuteBinding(binding);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+
+void ExecuteBinding(Binding* binding) {
+  Command *command;
+  
+  for(int i=0; i<binding->size; i++) {
+    command = binding->commands[i];
+    
+    if((command->policy == POLICY_ALWAYS) ||
+       (command->policy == POLICY_EVEN && binding->state == STATE_EVEN) ||
+       (command->policy == POLICY_ODD  && binding->state == STATE_ODD)) {
+      
+      ExecuteCommand(config, command);
+    }
+  }
+  binding->state = (binding->state == STATE_EVEN) ? STATE_ODD : STATE_EVEN;
 }
 
 //------------------------------------------------------------------------------
@@ -571,7 +577,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
     
   case ACTION_EXEC:
-    ExecuteBinding(cmd->data);
+    ExecuteKey(cmd->data);
     break;
 
   case ACTION_KEY_DOWN:
@@ -623,7 +629,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 }
 
 //------------------------------------------------------------------------------
-
+ 
 void SaveState(void) {
   config->state->ddra  = DDRB;
   config->state->porta = PORTB;
@@ -763,7 +769,7 @@ int main(void) {
           
           if(QueryKeyDown(binding->key)) {  
             
-            ExecuteBinding(binding->key);
+            ExecuteBinding(binding);
 
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;
