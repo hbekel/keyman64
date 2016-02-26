@@ -240,9 +240,9 @@ FILE usbdata = FDEV_SETUP_STREAM(NULL, ReadUSBData, _FDEV_SETUP_READ);
 
 void ExecuteImmediateCommands(volatile Config* cfg, uint16_t delay) {
   uint16_t ms;
-  for(int i=0; i<cfg->size; i++) {
+  for(int i=0; i<cfg->num_bindings; i++) {
     if(cfg->bindings[i]->key == KEY_IMMEDIATE) {
-      for(int k=0; k<cfg->bindings[i]->size; k++) {
+      for(int k=0; k<cfg->bindings[i]->num_commands; k++) {
         ExecuteCommand(cfg, cfg->bindings[i]->commands[k]);
 
         if(delay) {
@@ -454,7 +454,7 @@ void Type(char *string) {
 void ExecuteKey(uint8_t key) {
   Binding *binding;
   
-  for(int i=0; i<config->size; i++) {
+  for(int i=0; i<config->num_bindings; i++) {
     binding = config->bindings[i];
     
     if(key == binding->key) {    
@@ -468,7 +468,7 @@ void ExecuteKey(uint8_t key) {
 void ExecuteBinding(Binding* binding) {
   Command *command;
   
-  for(int i=0; i<binding->size; i++) {
+  for(int i=0; i<binding->num_commands; i++) {
     command = binding->commands[i];
     
     if((command->policy == POLICY_ALWAYS) ||
@@ -764,7 +764,7 @@ int main(void) {
         STATE = STATE_RELAY;
       }
       else {
-        for(int i=0; i<config->size; i++) {
+        for(int i=0; i<config->num_bindings; i++) {
           binding = config->bindings[i];
           
           if(QueryKeyDown(binding->key)) {  

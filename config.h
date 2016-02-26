@@ -48,7 +48,7 @@ typedef struct {
 } Command;
 
 typedef struct {
-  uint8_t size;
+  uint8_t num_commands;
   uint8_t key;
   uint8_t state;
   Command** commands;
@@ -62,9 +62,9 @@ typedef struct {
 } State;
 
 typedef struct {
-  uint16_t size;
-  uint16_t _size;
-  uint16_t __size;
+  uint16_t num_bindings;
+  uint16_t num_strings;
+  uint16_t num_longs;
   Binding **bindings;
   char **strings;
   uint32_t *longs;

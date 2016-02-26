@@ -540,15 +540,15 @@ void Config_write(Config *self, FILE *out) {
 
   State_write(self->state, out);
   
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_bindings; i++) {
     Binding_write(self->bindings[i], out);
   }
-  for(int i=0; i<self->_size; i++) {
+  for(int i=0; i<self->num_strings; i++) {
     fputc(KEY_STRING, out);
     fputs(self->strings[i], out);
     fputc('\0', out);
   }
-  for(int i=0; i<self->__size; i++) {
+  for(int i=0; i<self->num_longs; i++) {
     fputc(KEY_LONG, out);
     fputc((self->longs[i] >> 0) & 0xff, out);
     fputc((self->longs[i] >> 8) & 0xff, out);
@@ -562,9 +562,9 @@ void Config_write(Config *self, FILE *out) {
 
 void Binding_write(Binding *self, FILE* out) {
   Key_write(self->key, out);
-  fputc(self->size, out);
+  fputc(self->num_commands, out);
   
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_commands; i++) {
     Command_write(self->commands[i], out);
   }
 }
@@ -611,7 +611,7 @@ bool State_fetch(State *self) {
 //------------------------------------------------------------------------------
 
 void Config_print(Config *self, FILE* out) {
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_bindings; i++) {
     Binding_print(self->bindings[i], out);
   }
 }
@@ -620,7 +620,7 @@ void Config_print(Config *self, FILE* out) {
 
 void Binding_print(Binding *self, FILE* out) {
   
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_commands; i++) {
     if(self->key != KEY_IMMEDIATE) {
       Key_print(self->key, out);
     }

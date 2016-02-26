@@ -9,9 +9,9 @@ Config* Config_new(void) {
   self->strings = (char**) NULL;
   self->longs = (uint32_t*) NULL;
   self->state = State_new();
-  self->size = 0;
-  self->_size = 0;
-  self->__size = 0;
+  self->num_bindings = 0;
+  self->num_strings = 0;
+  self->num_longs = 0;
   return self;
 }
 
@@ -19,7 +19,7 @@ Config* Config_new(void) {
 
 bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
 
-  for(uint16_t i=0; i<self->_size; i++) {    
+  for(uint16_t i=0; i<self->num_strings; i++) {    
     if(strcmp(self->strings[i], string) == 0) {
       *index = i;
       return true;
@@ -31,15 +31,15 @@ bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
 //------------------------------------------------------------------------------
 
 uint16_t Config_add_string(volatile Config *self, char* string) {
-  self->strings = (char**) realloc(self->strings, (self->_size+1) * sizeof(char *));
-  self->strings[self->_size] = calloc(strlen(string)+1, sizeof(char));
-  strncpy(self->strings[self->_size], string, strlen(string));
-  self->_size++;
-  return self->_size-1;
+  self->strings = (char**) realloc(self->strings, (self->num_strings+1) * sizeof(char *));
+  self->strings[self->num_strings] = calloc(strlen(string)+1, sizeof(char));
+  strncpy(self->strings[self->num_strings], string, strlen(string));
+  self->num_strings++;
+  return self->num_strings-1;
 }
 
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
-  for(uint16_t i=0; i<self->__size; i++) {
+  for(uint16_t i=0; i<self->num_longs; i++) {
     if(self->longs[i] == value) {
       *index = i;
       return true;
@@ -49,25 +49,25 @@ bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
 }
 
 uint16_t Config_add_long(volatile Config *self, uint32_t value) {
-  self->longs = (uint32_t*) realloc(self->longs, (self->__size+1) * sizeof(uint32_t));
-  self->longs[self->__size] = value;
-  self->__size++;
-  return self->__size-1;
+  self->longs = (uint32_t*) realloc(self->longs, (self->num_longs+1) * sizeof(uint32_t));
+  self->longs[self->num_longs] = value;
+  self->num_longs++;
+  return self->num_longs-1;
 }
 
 //------------------------------------------------------------------------------
 
 Binding* Config_add_binding(volatile Config *self, Binding* binding) {
-  self->bindings = (Binding**) realloc(self->bindings, (self->size+1)*sizeof(Binding**));
-  self->bindings[self->size] = binding;
-  self->size++;
+  self->bindings = (Binding**) realloc(self->bindings, (self->num_bindings+1)*sizeof(Binding**));
+  self->bindings[self->num_bindings] = binding;
+  self->num_bindings++;
   return binding;
 }
 
 //------------------------------------------------------------------------------
 
 Binding* Config_get_binding(volatile Config* self, uint8_t key) {
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_bindings; i++) {
     if(key == self->bindings[i]->key) {
       return self->bindings[i];
     }
@@ -132,12 +132,12 @@ bool Config_read(volatile Config *self, FILE* in) {
 }
 
 void Config_free(Config *self) {
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_bindings; i++) {
     Binding_free(self->bindings[i]);
   }
   free(self->bindings);
 
-  for(int i=0; i<self->_size; i++) {
+  for(int i=0; i<self->num_strings; i++) {
     free(self->strings[i]);
   }
   free(self->strings);
@@ -164,9 +164,9 @@ void Binding_set_key(Binding* self, uint8_t key) {
 //------------------------------------------------------------------------------
 
 Command* Binding_add(Binding* self, Command* command) {
-  self->commands = (Command**) realloc(self->commands, (self->size+1)*sizeof(Command**));
-  self->commands[self->size] = command;
-  self->size++;
+  self->commands = (Command**) realloc(self->commands, (self->num_commands+1)*sizeof(Command**));
+  self->commands[self->num_commands] = command;
+  self->num_commands++;
   return command;
 }
 
@@ -185,7 +185,7 @@ void Binding_read(Binding *self, FILE* in) {
 //------------------------------------------------------------------------------
 
 void Binding_free(Binding *self) {
-  for(int i=0; i<self->size; i++) {
+  for(int i=0; i<self->num_commands; i++) {
     Command_free(self->commands[i]);
   }
   free(self->commands);
