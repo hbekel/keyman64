@@ -56,7 +56,7 @@ firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h 
 firmware-clean:
 	(cd firmware && make clean)
 	git status > /dev/null && [[ "$$OSTYPE" == "cygwin" ]] && \
-	git checkout firmware/usbdrv/usbdrvasm.S
+	git checkout firmware/usbdrv/usbdrvasm.S || true
 
 program: firmware
 	(cd firmware && make program)
