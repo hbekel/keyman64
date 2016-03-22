@@ -1662,7 +1662,7 @@
   (gr_text A (at 178.0286 124.4981) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
-  (gr_text "Keyman64 Rev.3 \nwww.henning-bekel.de" (at 118.8339 68.0847) (layer F.SilkS)
+  (gr_text "Keyman64 Rev.2\nwww.henning-bekel.de" (at 118.8339 68.0847) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15) italic))
   )
   (gr_line (start 184.6072 128.5875) (end 184.6072 68.8721) (angle 90) (layer Edge.Cuts) (width 0.1))
