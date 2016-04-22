@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 1879)
+    (start_pass_no 5256)
     (layer_rule F.Cu
       (active on)
       (preferred_direction horizontal)
@@ -41,38 +41,17 @@
     )
     (attach off)
   )
-  (padstack "Via[0-1]_1016:0_um"
-    (shape
-      (circle F.Cu 1016.0 0.0 0.0)
-    )
-    (shape
-      (circle B.Cu 1016.0 0.0 0.0)
-    )
-    (attach off)
-  )
   (via 
     "Via[0-1]_1016:381_um" "Via[0-1]_1016:381_um" default
-  )
-  (via 
-    "Via[0-1]_1016:0_um" "Via[0-1]_1016:0_um" default
   )
   (via 
     "Via[0-1]_1016:381_um-kicad_default" "Via[0-1]_1016:381_um" "kicad_default"
   )
   (via 
-    "Via[0-1]_1016:0_um-kicad_default" "Via[0-1]_1016:0_um" "kicad_default"
-  )
-  (via 
     "Via[0-1]_1016:381_um-Power" "Via[0-1]_1016:381_um" Power
   )
   (via 
-    "Via[0-1]_1016:0_um-Power" "Via[0-1]_1016:0_um" Power
-  )
-  (via 
     "Via[0-1]_1016:381_um-USB" "Via[0-1]_1016:381_um" USB
-  )
-  (via 
-    "Via[0-1]_1016:0_um-USB" "Via[0-1]_1016:0_um" USB
   )
   (via_rule
     default "Via[0-1]_1016:381_um"
@@ -106,7 +85,8 @@
     /RCK /RS0 /RS1 /RS2 /UA0 /UA1 /UA2 /UA3
     /UA4 /UA5 /UA6 /UA7 /UB0 /UB1 /UB2 /UB3
     /UB4 /UB5 /UB6 /UB7 /~CPMR /~CPS /~RESET /~RESTORE
-    "N-0000018" "N-0000019" "N-0000034" "N-0000036" "N-0000087" "N-0000088" "N-0000091" "N-0000095"
+    "Net-(P2-Pad2)" "Net-(P3-Pad4)" "Net-(U5-Pad14)" "Net-(P1-Pad2)" "Net-(P2-Pad4)" "Net-(C1-Pad1)" "Net-(C2-Pad2)" "Net-(U3-Pad3)"
+    "Net-(U3-Pad12)" "Net-(U3-Pad13)" "Net-(D1-Pad1)" "Net-(D2-Pad1)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
@@ -117,7 +97,7 @@
     )
   )
   (class Power
-    /KVCC /UVCC /VEE GND VCC
+    /KVCC /UVCC GND VCC
     (clearance_class Power)
     (via_rule Power)
     (rule
