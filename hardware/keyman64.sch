@@ -36,8 +36,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Keyman64 programmable keyboard and hardware controller"
-Date "27 oct 2015"
-Rev "2"
+Date "2016-05-09"
+Rev "3"
 Comp "Henning Bekel"
 Comment1 "http://www.henning-bekel.de/keyman64"
 Comment2 ""

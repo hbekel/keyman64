@@ -177,8 +177,6 @@ Text Label 4300 7200 0    60   ~ 0
 CS
 Text Label 4300 7100 0    60   ~ 0
 CD
-Text Label 2300 5100 2    60   ~ 0
-VCC
 Text Label 3100 3600 1    60   ~ 0
 VCC
 Text Label 3300 3600 1    60   ~ 0
@@ -1464,4 +1462,5 @@ F 3 "" H 9250 4550 60  0000 C CNN
 	1    9250 4550
 	0    -1   -1   0   
 $EndComp
+NoConn ~ 2300 5100
 $EndSCHEMATC
