@@ -11,5 +11,6 @@
 *.prg
 *.exe
 *.stackdump
+*.zip
 keyman64
 keyman64.rom
