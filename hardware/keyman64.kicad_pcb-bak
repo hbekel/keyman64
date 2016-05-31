@@ -3,7 +3,7 @@
   (general
     (links 171)
     (no_connects 0)
-    (area 104.572599 66.320199 184.657201 131.126701)
+    (area 103.263999 57.436901 199.058799 135.5215)
     (thickness 1.6)
     (drawings 23)
     (tracks 1245)
@@ -22,8 +22,8 @@
   )
 
   (layers
-    (0 F.Cu signal)
-    (31 B.Cu signal)
+    (0 F.Cu signal hide)
+    (31 B.Cu signal hide)
     (32 B.Adhes user)
     (33 F.Adhes user)
     (34 B.Paste user)
@@ -67,8 +67,8 @@
     (aux_axis_origin 0 0)
     (visible_elements 7FFFFFFF)
     (pcbplotparams
-      (layerselection 0x010e0_80000001)
-      (usegerberextensions true)
+      (layerselection 0x00020_00000000)
+      (usegerberextensions false)
       (excludeedgelayer false)
       (linewidth 0.150000)
       (plotframeref false)
@@ -83,10 +83,10 @@
       (psa4output false)
       (plotreference true)
       (plotvalue true)
-      (plotinvisibletext false)
+      (plotinvisibletext true)
       (padsonsilk false)
-      (subtractmaskfromsilk true)
-      (outputformat 1)
+      (subtractmaskfromsilk false)
+      (outputformat 5)
       (mirror false)
       (drillshape 0)
       (scaleselection 1)
@@ -682,7 +682,7 @@
       (net 72 /UVCC) (clearance 0.127))
   )
 
-  (module Discret:R1 (layer F.Cu) (tedit 5729E3FC) (tstamp 56420D60)
+  (module Discret:R1 (layer F.Cu) (tedit 574D90EB) (tstamp 56420D60)
     (at 130.81 111.506)
     (descr "Resistance verticale")
     (tags R)
@@ -690,7 +690,7 @@
     (fp_text reference R1 (at 0.508 -1.905 180) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value 1k5 (at 0.508 -4.191 90) (layer F.SilkS) hide
+    (fp_text value 1k5 (at 3.048 -1.905 180) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start -1.27 0) (end 1.27 0) (layer F.SilkS) (width 0.15))
@@ -1371,7 +1371,7 @@
     )
   )
 
-  (module Diode:Diode-2.5mm-Vertical (layer F.Cu) (tedit 57163EA9) (tstamp 56556FAD)
+  (module Diode:Diode-2.5mm-Vertical (layer F.Cu) (tedit 574D90B5) (tstamp 56556FAD)
     (at 130.81 115.062 180)
     (descr "Diode Vertical")
     (tags D)
@@ -1379,7 +1379,7 @@
     (fp_text reference D1 (at 0 1.5748 180) (layer F.SilkS)
       (effects (font (size 0.75 0.75) (thickness 0.15)))
     )
-    (fp_text value 3.6V (at -3.2385 -0.0508 180) (layer F.SilkS) hide
+    (fp_text value 3.6V (at -2.794 -0.127 180) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start -0.254 0) (end 0.254 -0.508) (layer F.SilkS) (width 0.15))
@@ -1400,7 +1400,7 @@
     )
   )
 
-  (module Diode:Diode-2.5mm-Vertical (layer F.Cu) (tedit 57163EDB) (tstamp 56556FBA)
+  (module Diode:Diode-2.5mm-Vertical (layer F.Cu) (tedit 574D90BA) (tstamp 56556FBA)
     (at 136.652 115.062)
     (descr "Diode Vertical")
     (tags D)
@@ -1408,7 +1408,7 @@
     (fp_text reference D2 (at 0 -1.5748) (layer F.SilkS)
       (effects (font (size 0.75 0.75) (thickness 0.15)))
     )
-    (fp_text value 3.6V (at -3.1242 0.0381) (layer F.SilkS) hide
+    (fp_text value 3.6V (at -3.048 0.127) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start -0.254 0) (end 0.254 -0.508) (layer F.SilkS) (width 0.15))
