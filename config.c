@@ -138,7 +138,18 @@ bool Config_install_fallback(volatile Config *self) {
   Binding *binding;
   Command *command;  
 
-  // b: boot
+  Config_add_string(self, "       keyman64 version 1.2 ready             using fallback configuration            press ``b to enter bootloader      ");
+
+  command = Command_new();
+  command->action = ACTION_TYPE;
+  command->mask = 0;
+  command->data = 0;
+  
+  binding = Binding_new();
+  binding->key = 0x32;
+  Binding_add(binding, command);
+  
+  Config_add_binding(self, binding);
   
   command = Command_new();
   command->action = ACTION_BOOT;
