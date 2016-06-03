@@ -131,6 +131,29 @@ bool Config_read(volatile Config *self, FILE* in) {
   return true;
 }
 
+//------------------------------------------------------------------------------
+
+bool Config_install_fallback(volatile Config *self) {
+
+  Binding *binding;
+  Command *command;  
+
+  // b: boot
+  
+  command = Command_new();
+  command->action = ACTION_BOOT;
+
+  binding = Binding_new();
+  binding->key = 0x23;
+  Binding_add(binding, command);
+  
+  Config_add_binding(self, binding);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+
 void Config_free(Config *self) {
   for(int i=0; i<self->num_bindings; i++) {
     Binding_free(self->bindings[i]);
@@ -243,3 +266,4 @@ void State_free(State* self) {
 }
 
 //------------------------------------------------------------------------------
+

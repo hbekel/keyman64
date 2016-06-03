@@ -723,7 +723,8 @@ int main(void) {
   StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
   
   config = Config_new();
-  Config_read(config, &eeprom);
+
+  Config_read(config, &eeprom) || Config_install_fallback(config);
 
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 

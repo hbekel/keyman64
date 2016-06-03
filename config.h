@@ -86,7 +86,9 @@ uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index);
 uint16_t Config_add_long(volatile Config *self, uint32_t value);
 bool Config_read(volatile Config *self, FILE* in);
+bool Config_install_fallback(volatile Config *self);
 void Config_free(Config *self);
+
 
 Binding* Binding_new(void);
 void Binding_set_key(Binding* self, uint8_t key);
