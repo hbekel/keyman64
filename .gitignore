@@ -12,5 +12,7 @@
 *.exe
 *.stackdump
 *.zip
+fuses
+progmem
 keyman64
 keyman64.rom
