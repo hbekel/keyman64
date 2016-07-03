@@ -160,6 +160,26 @@ bool Config_install_fallback(volatile Config *self) {
   
   Config_add_binding(self, binding);
 
+  binding = Binding_new();
+  binding->key = 0x2a;
+
+  for(int i=0; i<5; i++) {
+    command = Command_new();
+    command->action = ACTION_KEY_PRESS;
+    command->data = 0x25;
+
+    Binding_add(binding, command);
+
+    command = Command_new();
+    command->action = ACTION_SLEEP_SHORT;
+    command->mask = 0xe8;
+    command->data = 0x03;
+
+    Binding_add(binding, command);
+  }
+
+  Config_add_binding(self, binding);
+  
   return true;
 }
 
