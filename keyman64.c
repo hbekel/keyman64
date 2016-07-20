@@ -247,9 +247,13 @@ bool Config_parse(Config* self, FILE* in) {
   char* buffer = (char*) calloc(4096, sizeof(char));
   char* line;
   char* colon;
+  char* equals;
+  char* name;
+  char* value;
   char *keyspec;
   char *comment;
   int pos = 0;
+  int trailing = 0;
   
   Binding* binding;
   Command* command;
@@ -260,7 +264,7 @@ bool Config_parse(Config* self, FILE* in) {
   while(fgets(buffer, 4096, in) != NULL) {
     line = buffer;
     pos++;
-    
+
     // skip leading whitespace
     line += strspn(line, ws);
 
@@ -281,6 +285,27 @@ bool Config_parse(Config* self, FILE* in) {
       line[strlen(line)-1] = '\0';
     }
 
+    // check if this command is a definition
+    if((equals = strstr(line, "=")) != NULL) {
+      name = line;
+      equals[0] = '\0';      
+
+      if((trailing = strcspn(name, ws)) > 0) {
+        name[trailing] = '\0';
+      }
+
+      value = equals+1;
+      value += strspn(value, ws);
+      
+      if(StringList_has_definition(name)) {
+        fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
+        return false;
+      }
+      
+      StringList_add_definition(name, value);
+      continue;
+    }
+    
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
       keyspec = line;
@@ -358,6 +383,10 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
     }
   }
 
+  if(StringList_has_definition(spec)) {
+    return Key_parse(key, StringList_get_definition(spec)->value, reportUnknownSymbol);
+  }  
+  
   if(!result && reportUnknownSymbol) {
     fprintf(stderr, "error: '%s': unknown key name\n", spec);
   }
