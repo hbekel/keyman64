@@ -36,8 +36,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Keyman64 programmable keyboard and hardware controller"
-Date "2016-05-09"
-Rev "3"
+Date "2016-07-25"
+Rev "4"
 Comp "Henning Bekel"
 Comment1 "http://www.henning-bekel.de/keyman64"
 Comment2 ""
@@ -702,7 +702,7 @@ L CD74HC22106 U1
 U 1 1 55B3756A
 P 3200 1900
 F 0 "U1" H 2850 2800 60  0000 C CNN
-F 1 "CD74HC22106/MT8808" H 3200 950 60  0000 C CNN
+F 1 "MT8808" H 3200 950 60  0000 C CNN
 F 2 "Sockets_DIP:DIP-28__600" H 3150 2600 60  0001 C CNN
 F 3 "" H 3150 2600 60  0000 C CNN
 	1    3200 1900
@@ -788,9 +788,9 @@ Text Label 10200 1650 2    60   ~ 0
 ~RESET
 Text Label 2300 3900 2    60   ~ 0
 ~RESET
-Text Label 5650 6700 0    60   ~ 0
+Text Label 6100 6700 0    60   ~ 0
 D-
-Text Label 5650 6800 0    60   ~ 0
+Text Label 6100 6800 0    60   ~ 0
 D+
 Text Label 4300 4800 0    60   ~ 0
 UA0
@@ -859,24 +859,24 @@ UB7
 $Comp
 L R R2
 U 1 1 55B38786
-P 5500 6700
-F 0 "R2" V 5600 6700 40  0000 C CNN
-F 1 "68" V 5507 6701 40  0000 C CNN
-F 2 "Discret:R1" V 5430 6700 30  0001 C CNN
-F 3 "" H 5500 6700 30  0000 C CNN
-	1    5500 6700
-	0    -1   -1   0   
+P 4900 6700
+F 0 "R2" V 5000 6700 40  0000 C CNN
+F 1 "68" V 4907 6701 40  0000 C CNN
+F 2 "Discret:R1" V 4830 6700 30  0001 C CNN
+F 3 "" H 4900 6700 30  0000 C CNN
+	1    4900 6700
+	0    1    -1   0   
 $EndComp
 $Comp
 L R R3
 U 1 1 55B38798
-P 5500 6800
-F 0 "R3" V 5400 6800 40  0000 C CNN
-F 1 "68" V 5507 6801 40  0000 C CNN
-F 2 "Discret:R1" V 5430 6800 30  0001 C CNN
-F 3 "" H 5500 6800 30  0000 C CNN
-	1    5500 6800
-	0    -1   -1   0   
+P 4900 6800
+F 0 "R3" V 4800 6800 40  0000 C CNN
+F 1 "68" V 4907 6801 40  0000 C CNN
+F 2 "Discret:R1" V 4830 6800 30  0001 C CNN
+F 3 "" H 4900 6800 30  0000 C CNN
+	1    4900 6800
+	0    1    -1   0   
 $EndComp
 $Comp
 L R R1
@@ -887,7 +887,7 @@ F 1 "1k5" V 5207 6451 40  0000 C CNN
 F 2 "Discret:R1" V 5130 6450 30  0001 C CNN
 F 3 "" H 5200 6450 30  0000 C CNN
 	1    5200 6450
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L ZENER D2
@@ -898,18 +898,18 @@ F 1 "3.6V" H 5200 6900 40  0000 C CNN
 F 2 "Diode:Diode-2.5mm-Vertical" H 5200 7000 60  0001 C CNN
 F 3 "" H 5200 7000 60  0000 C CNN
 	1    5200 7000
-	0    1    1    0   
+	0    -1   1    0   
 $EndComp
 $Comp
 L ZENER D1
 U 1 1 55B387E1
-P 4900 6900
-F 0 "D1" H 4900 7000 50  0000 C CNN
-F 1 "3.6V" H 4900 6800 40  0000 C CNN
-F 2 "Diode:Diode-2.5mm-Vertical" H 4900 6900 60  0001 C CNN
-F 3 "" H 4900 6900 60  0000 C CNN
-	1    4900 6900
-	0    1    1    0   
+P 5500 6900
+F 0 "D1" H 5500 7000 50  0000 C CNN
+F 1 "3.6V" H 5500 6800 40  0000 C CNN
+F 2 "Diode:Diode-2.5mm-Vertical" H 5500 6900 60  0001 C CNN
+F 3 "" H 5500 6900 60  0000 C CNN
+	1    5500 6900
+	0    -1   1    0   
 $EndComp
 $Comp
 L VCC #PWR030
@@ -920,7 +920,7 @@ F 1 "VCC" H 5200 6400 30  0000 C CNN
 F 2 "" H 5200 6300 60  0000 C CNN
 F 3 "" H 5200 6300 60  0000 C CNN
 	1    5200 6300
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L GND #PWR031
@@ -931,18 +931,18 @@ F 1 "GND" H 5200 7130 30  0001 C CNN
 F 2 "" H 5200 7200 60  0000 C CNN
 F 3 "" H 5200 7200 60  0000 C CNN
 	1    5200 7200
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L GND #PWR032
 U 1 1 55B38825
-P 4900 7100
-F 0 "#PWR032" H 4900 7100 30  0001 C CNN
-F 1 "GND" H 4900 7030 30  0001 C CNN
-F 2 "" H 4900 7100 60  0000 C CNN
-F 3 "" H 4900 7100 60  0000 C CNN
-	1    4900 7100
-	1    0    0    -1  
+P 5500 7100
+F 0 "#PWR032" H 5500 7100 30  0001 C CNN
+F 1 "GND" H 5500 7030 30  0001 C CNN
+F 2 "" H 5500 7100 60  0000 C CNN
+F 3 "" H 5500 7100 60  0000 C CNN
+	1    5500 7100
+	-1   0    0    -1  
 $EndComp
 Text Notes 4750 7400 0    60   ~ 0
 USB Level Conversion\n
@@ -1349,10 +1349,10 @@ Wire Wire Line
 Connection ~ 2050 4200
 Connection ~ 2050 4800
 Wire Wire Line
-	4300 6700 5350 6700
-Connection ~ 4900 6700
+	6100 6700 5050 6700
+Connection ~ 5500 6700
 Wire Wire Line
-	4300 6800 5350 6800
+	6100 6800 5050 6800
 Wire Wire Line
 	5200 6700 5200 6600
 Connection ~ 5200 6700
@@ -1394,7 +1394,7 @@ L CD74HC22106 U7
 U 1 1 571A0FC4
 P 5300 1900
 F 0 "U7" H 4950 2800 60  0000 C CNN
-F 1 "CD74HC22106/MT8808" H 5300 950 60  0000 C CNN
+F 1 "MT8808" H 5300 950 60  0000 C CNN
 F 2 "Sockets:PLCC28" H 5250 2600 60  0001 C CNN
 F 3 "" H 5250 2600 60  0000 C CNN
 	1    5300 1900
@@ -1463,4 +1463,8 @@ F 3 "" H 9250 4550 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 NoConn ~ 2300 5100
+Wire Wire Line
+	4750 6700 4300 6700
+Wire Wire Line
+	4750 6800 4300 6800
 $EndSCHEMATC
