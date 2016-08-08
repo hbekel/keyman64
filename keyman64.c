@@ -314,7 +314,7 @@ bool Config_parse(Config* self, FILE* in) {
 
       // try to parse the keyspec...
       if(!Key_parse(&key, keyspec, false)) {
-        fprintf(stderr, "error: line %d: '%s': invalid key specification\n", pos, keyspec);
+        fprintf(stderr, "error: line %d: '%s': invalid key or slot specification\n", pos, keyspec);
         return false;
       }
     }
@@ -370,6 +370,12 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
   byte = strtol(spec, &invalid, base);
 
   if(spec != invalid) {
+
+    if(byte >= 0xfc) {
+      fprintf(stderr, "error: '$%02X': reserved slot (use $40-$FB only)\n", byte);
+      goto done;
+    }
+    
     *key = byte;
     result = true;
     goto done;

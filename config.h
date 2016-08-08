@@ -89,7 +89,6 @@ bool Config_read(volatile Config *self, FILE* in);
 bool Config_install_fallback(volatile Config *self);
 void Config_free(Config *self);
 
-
 Binding* Binding_new(void);
 void Binding_set_key(Binding* self, uint8_t key);
 Command* Binding_add(Binding* self, Command* command);
