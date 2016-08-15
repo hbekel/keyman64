@@ -1425,7 +1425,7 @@
       (net 84 "Net-(H4-Pad1)"))
   )
 
-  (module Sockets:PLCC28 (layer F.Cu) (tedit 0) (tstamp 5719EE91)
+  (module Sockets:PLCC28 (layer F.Cu) (tedit 5795D970) (tstamp 5719EE91)
     (at 118.618 117.094)
     (descr "Support Plcc 28 pins, pads ronds")
     (tags PLCC)
@@ -1433,7 +1433,7 @@
     (fp_text reference U7 (at 1.27 10.16) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value MT8808 (at 0 0) (layer F.Fab)
+    (fp_text value MT8808 (at 0 0) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start -6.35 -8.89) (end -8.89 -6.35) (layer F.SilkS) (width 0.15))
