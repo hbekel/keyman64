@@ -36,8 +36,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Keyman64 programmable keyboard and hardware controller"
-Date "2016-05-09"
-Rev "3"
+Date "2016-07-25"
+Rev "4"
 Comp "Henning Bekel"
 Comment1 "http://www.henning-bekel.de/keyman64"
 Comment2 ""
@@ -862,7 +862,7 @@ U 1 1 55B38786
 P 4900 6700
 F 0 "R2" V 5000 6700 40  0000 C CNN
 F 1 "68" V 4907 6701 40  0000 C CNN
-F 2 "Discret:R1" V 4830 6700 30  0001 C CNN
+F 2 "Discret:R3" V 4830 6700 30  0001 C CNN
 F 3 "" H 4900 6700 30  0000 C CNN
 	1    4900 6700
 	0    1    -1   0   
@@ -873,7 +873,7 @@ U 1 1 55B38798
 P 4900 6800
 F 0 "R3" V 4800 6800 40  0000 C CNN
 F 1 "68" V 4907 6801 40  0000 C CNN
-F 2 "Discret:R1" V 4830 6800 30  0001 C CNN
+F 2 "Discret:R3" V 4830 6800 30  0001 C CNN
 F 3 "" H 4900 6800 30  0000 C CNN
 	1    4900 6800
 	0    1    -1   0   
@@ -884,7 +884,7 @@ U 1 1 55B387AA
 P 5200 6450
 F 0 "R1" V 5280 6450 40  0000 C CNN
 F 1 "1k5" V 5207 6451 40  0000 C CNN
-F 2 "Discret:R1" V 5130 6450 30  0001 C CNN
+F 2 "Discret:R3" V 5130 6450 30  0001 C CNN
 F 3 "" H 5200 6450 30  0000 C CNN
 	1    5200 6450
 	1    0    0    1   
@@ -895,7 +895,7 @@ U 1 1 55B387CD
 P 5200 7000
 F 0 "D2" H 5200 7100 50  0000 C CNN
 F 1 "3.6V" H 5200 6900 40  0000 C CNN
-F 2 "Diode:Diode-2.5mm-Vertical" H 5200 7000 60  0001 C CNN
+F 2 "Discret:R3" H 5200 7000 60  0001 C CNN
 F 3 "" H 5200 7000 60  0000 C CNN
 	1    5200 7000
 	0    -1   1    0   
@@ -906,7 +906,7 @@ U 1 1 55B387E1
 P 5500 6900
 F 0 "D1" H 5500 7000 50  0000 C CNN
 F 1 "3.6V" H 5500 6800 40  0000 C CNN
-F 2 "Diode:Diode-2.5mm-Vertical" H 5500 6900 60  0001 C CNN
+F 2 "Discret:R3" H 5500 6900 60  0001 C CNN
 F 3 "" H 5500 6900 60  0000 C CNN
 	1    5500 6900
 	0    -1   1    0   
@@ -1316,47 +1316,6 @@ F 3 "" H 1400 1000 60  0000 C CNN
 	1    1400 1000
 	-1   0    0    1   
 $EndComp
-Wire Wire Line
-	10350 3050 10350 3150
-Wire Wire Line
-	10650 3050 10650 3200
-Wire Wire Line
-	8250 1750 8100 1750
-Wire Wire Line
-	8100 1750 8100 1500
-Wire Wire Line
-	8100 2150 8100 1950
-Wire Wire Line
-	8100 1950 8250 1950
-Wire Wire Line
-	6900 1400 6900 1600
-Wire Wire Line
-	6900 2050 6900 2250
-Wire Wire Line
-	6900 1500 6800 1500
-Connection ~ 6900 1500
-Wire Wire Line
-	6750 2150 6900 2150
-Connection ~ 6900 2150
-Wire Wire Line
-	2300 4800 2300 4700
-Wire Wire Line
-	1900 4800 2300 4800
-Wire Wire Line
-	2300 4200 2300 4300
-Wire Wire Line
-	1900 4200 2300 4200
-Connection ~ 2050 4200
-Connection ~ 2050 4800
-Wire Wire Line
-	6100 6700 5050 6700
-Connection ~ 5500 6700
-Wire Wire Line
-	6100 6800 5050 6800
-Wire Wire Line
-	5200 6700 5200 6600
-Connection ~ 5200 6700
-Connection ~ 5200 6800
 Text Label 6000 1100 0    60   ~ 0
 A0
 Text Label 6000 1200 0    60   ~ 0
@@ -1464,7 +1423,48 @@ F 3 "" H 9250 4550 60  0000 C CNN
 $EndComp
 NoConn ~ 2300 5100
 Wire Wire Line
+	10350 3050 10350 3150
+Wire Wire Line
+	10650 3050 10650 3200
+Wire Wire Line
+	8250 1750 8100 1750
+Wire Wire Line
+	8100 1750 8100 1500
+Wire Wire Line
+	8100 2150 8100 1950
+Wire Wire Line
+	8100 1950 8250 1950
+Wire Wire Line
+	6900 1400 6900 1600
+Wire Wire Line
+	6900 2050 6900 2250
+Wire Wire Line
+	6900 1500 6800 1500
+Connection ~ 6900 1500
+Wire Wire Line
+	6750 2150 6900 2150
+Connection ~ 6900 2150
+Wire Wire Line
+	2300 4800 2300 4700
+Wire Wire Line
+	1900 4800 2300 4800
+Wire Wire Line
+	2300 4200 2300 4300
+Wire Wire Line
+	1900 4200 2300 4200
+Connection ~ 2050 4200
+Connection ~ 2050 4800
+Wire Wire Line
+	6100 6700 5050 6700
+Connection ~ 5500 6700
+Wire Wire Line
+	6100 6800 5050 6800
+Connection ~ 5200 6700
+Connection ~ 5200 6800
+Wire Wire Line
 	4750 6700 4300 6700
 Wire Wire Line
 	4750 6800 4300 6800
+Wire Wire Line
+	5200 6700 5200 6600
 $EndSCHEMATC
