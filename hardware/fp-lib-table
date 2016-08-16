@@ -1,5 +1,5 @@
 (fp_lib_table
-  (lib (name pinHeaders)(type Legacy)(uri "$(KIPRJMOD)\\mod\\pinHeaders.mod")(options "")(descr ""))
-  (lib (name usb-mini-b-through-hole)(type Legacy)(uri "$(KIPRJMOD)\\mod\\usb-mini-b-through-hole.mod")(options "")(descr ""))
-  (lib (name Diode)(type KiCad)(uri "$(KIPRJMOD)\\mod\\Diode.pretty")(options "")(descr ""))
+  (lib (name pinHeaders)(type Legacy)(uri "$(KIPRJMOD)/mod/pinHeaders.mod")(options "")(descr ""))
+  (lib (name usb-mini-b-through-hole)(type Legacy)(uri "$(KIPRJMOD)/mod/usb-mini-b-through-hole.mod")(options "")(descr ""))
+  (lib (name Diode)(type KiCad)(uri "$(KIPRJMOD)/mod/Diode.pretty")(options "")(descr ""))
 )
