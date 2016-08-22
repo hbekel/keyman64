@@ -239,6 +239,17 @@ static bool equal(const char *a, const char *b) {
 }
 
 //------------------------------------------------------------------------------
+
+static bool isSymbol(char *name) {
+    for(int i=0; i<sizeof(symbols)/sizeof(Symbol); i++) {
+      if(strcasecmp(symbols[i].name, name) == 0) {
+        return true;
+      }
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------------
 // Functions for parsing config files
 //------------------------------------------------------------------------------
 
@@ -301,6 +312,11 @@ bool Config_parse(Config* self, FILE* in) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
         return false;
       }
+
+      if(isSymbol(name)) {
+        fprintf(stderr, "error: line %d: '%s': symbol is a reserved key name\n", pos, name);
+        return false;
+      }                     
       
       StringList_add_definition(name, value);
       continue;
