@@ -118,8 +118,8 @@ Sequence encoding[128] = {
   DEFINE(PRESS(6),  1), // \ (POUND)
   DEFINE(SHIFT(22), 3), // ]
   DEFINE(PRESS(54), 1), // ^ (ARROWUP)
-  UNDEFINED,            // _
-  DEFINE(PRESS(15), 1), // ` (ARROWLEFT)
+  DEFINE(PRESS(15), 1), // _ (ARROWLEFT)
+  UNDEFINED,            // `
   DEFINE(PRESS(17), 1), // a
   DEFINE(PRESS(35), 1), // b
   DEFINE(PRESS(34), 1), // c
