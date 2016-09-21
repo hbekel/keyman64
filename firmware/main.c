@@ -468,7 +468,7 @@ void ExecuteKey(uint8_t key) {
 void ExecuteBindingInteractively(Binding *binding) {
 
   if(binding->count > 0) {
-    if(--(binding->count) > 0) {
+    if(--(binding->count) == 0) {
       ExecuteBinding(binding);
       Binding_reset(binding);
     }
