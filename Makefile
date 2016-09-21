@@ -1,4 +1,5 @@
 VERSION=1.3
+SHELL=/bin/dash
 
 CC?=gcc
 CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)
@@ -55,8 +56,8 @@ firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h 
 
 firmware-clean:
 	(cd firmware && make clean)
-	git status > /dev/null && [[ "$$OSTYPE" == "cygwin" ]] && \
-	git checkout firmware/usbdrv/usbdrvasm.S || true
+	if [ "$$OSTYPEx" = "cygwinx" ]; then \
+	git checkout firmware/usbdrv/usbdrvasm.S; else true; fi
 
 program: firmware
 	(cd firmware && make program)
@@ -89,7 +90,7 @@ clean: firmware-clean
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 keyman64 $(DESTDIR)$(PREFIX)/bin
-	([[ "$(UDEV)" = "1" ]] && make udev-install) || true
+	([ "$(UDEV)x" = "1x" ] && make udev-install) || true
 
 udev-install:
 	install -d $(DESTDIR)/etc/udev/rules.d
@@ -97,7 +98,7 @@ udev-install:
 
 uninstall:
 	rm -f $(PREFIX)/bin/keyman64
-	([[ "$(UDEV)" = "1" ]] && make udev-uninstall) || true
+	([ "$(UDEV)x" = "1x" ] && make udev-uninstall) || true
 
 udev-uninstall:
 	rm -f /etc/udev/rules.d/10-keyman64.rules
