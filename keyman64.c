@@ -59,7 +59,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "press",    5) == 0) return ACTION_KEY_PRESS;
   if(strncasecmp(str, "using",    5) == 0) return ACTION_DEFINE_SWITCH;
   if(strncasecmp(str, "save",     4) == 0) return ACTION_SAVE_STATE;
-  if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;        
+  if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;
+  if(strncasecmp(str, "requires", 8) == 0) return ACTION_REQUIRES;
   return ACTION_NONE;
 }
 
@@ -154,6 +155,8 @@ static bool parseData(char *str, uint8_t *data) {
  done:
   return result;    
 }
+
+//------------------------------------------------------------------------------
 
 static bool parsePolicy(Command* command, char *str) {
   bool result = true;
@@ -265,7 +268,8 @@ bool Config_parse(Config* self, FILE* in) {
   char *comment;
   int pos = 0;
   int trailing = 0;
-  
+  uint8_t times = 0;
+
   Binding* binding;
   Command* command;
   uint8_t key;
@@ -341,30 +345,24 @@ bool Config_parse(Config* self, FILE* in) {
 
     // skip leading whitespace of command spec
     line += strspn(line, ws);
-
+    
     // try to parse command...        
     command = Command_new();
-
+    
     if(!Command_parse(command, line)) {
       fprintf(stderr, "error: line %d: '%s': invalid command specification\n", pos, line);
       free(command);
       return false;
-    }
+    }    
 
-    // get existing binding or add new binding...
-    if(!Config_has_binding(self, key)) {
-      binding = Config_get_binding(self, key);
+    if(command->action == ACTION_REQUIRES) {
+      Config_get_or_create_binding(self, key)->times = command->data;
     }
-    else {
-      binding = Binding_new();
-      Binding_set_key(binding, key);
-      Config_add_binding(self, binding);
+    else {    
+      Binding_add(Config_get_or_create_binding(self, key), command);
     }
-
-    // append command to binding
-    Binding_add(binding, command);
   }
-
+  
   free(buffer);
   return true;
 }
@@ -425,11 +423,12 @@ bool Command_parse(Command* self, char* spec) {
   bool error = false;
   StringList* words = StringList_new();
   char* str;
+  char* failed;
   uint8_t data;
   uint16_t index;
   uint32_t value;
   bool has_policy = false;
-  int i = 0;
+  int i = 0;  
   
   StringList_append_tokenized(words, spec, ws);
 
@@ -443,6 +442,16 @@ bool Command_parse(Command* self, char* spec) {
     goto error;
   }
 
+  if(self->action == ACTION_REQUIRES) {
+    str = StringList_get(words, i++);
+    self->data = strtol(str, &failed, 0);
+    if(str == failed) {
+      fprintf(stderr, "error: missing times for requires\n");
+      goto error;
+    }
+    goto done;
+  }
+  
   if(self->action == ACTION_TYPE) {
     str = spec + strcspn(spec, ws) + 1;
 
@@ -613,6 +622,7 @@ void Config_write(Config *self, FILE *out) {
 
 void Binding_write(Binding *self, FILE* out) {
   Key_write(self->key, out);
+  fputc(self->times, out);
   fputc(self->num_commands, out);
   
   for(int i=0; i<self->num_commands; i++) {
@@ -652,7 +662,7 @@ bool State_fetch(State *self) {
   int result;
   
   if((result = usb_receive(device, KEYMAN64_STATE, 0, (uint8_t*) self, sizeof(State))) < 0) {
-    fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
+    fprintf(stderr, "error: could not send usb control message: %s\n", libusb_strerror(result));
   }
   return result;
 }
@@ -670,6 +680,13 @@ void Config_print(Config *self, FILE* out) {
 //------------------------------------------------------------------------------
 
 void Binding_print(Binding *self, FILE* out) {
+
+  if(self->times) {
+    if(self->key != KEY_IMMEDIATE) {
+      Key_print(self->key, out);
+    }
+    fprintf(out, "requires %dx\n", self->times);
+  }
   
   for(int i=0; i<self->num_commands; i++) {
     if(self->key != KEY_IMMEDIATE) {

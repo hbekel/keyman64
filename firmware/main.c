@@ -465,6 +465,18 @@ void ExecuteKey(uint8_t key) {
 
 //------------------------------------------------------------------------------
 
+void ExecuteBindingInteractively(Binding *binding) {
+
+  if(binding->count > 0) {
+    if(--(binding->count) > 0) {
+      ExecuteBinding(binding);
+      Binding_reset(binding);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
 void ExecuteBinding(Binding* binding) {
   Command *command;
   
@@ -746,8 +758,9 @@ int main(void) {
     case STATE_RELAY:
 
       if(QueryKeyDown(meta)) {
+        Config_reset(config);
         relayMetaKey = true;
-        STATE = STATE_COMMAND;	
+        STATE = STATE_COMMAND;
       }
       else {
         RelayMatrix();
@@ -770,7 +783,7 @@ int main(void) {
           
           if(QueryKeyDown(binding->key)) {  
             
-            ExecuteBinding(binding);
+            ExecuteBindingInteractively(binding);
 
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;

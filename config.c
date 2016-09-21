@@ -83,6 +83,22 @@ bool Config_has_binding(volatile Config* self, uint8_t key) {
 
 //------------------------------------------------------------------------------
 
+Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key) {
+  Binding* binding = NULL;
+ 
+  if(!Config_has_binding(self, key)) {
+    binding = Config_get_binding(self, key);
+  }
+  else {
+    binding = Binding_new();
+    Binding_set_key(binding, key);
+    Config_add_binding(self, binding);
+  }
+  return binding;
+}
+
+//------------------------------------------------------------------------------
+
 bool Config_read(volatile Config *self, FILE* in) {
   uint8_t byte;
   Binding* binding;
@@ -203,6 +219,14 @@ bool Config_install_fallback(volatile Config *self) {
 
 //------------------------------------------------------------------------------
 
+void Config_reset(volatile Config *self) {
+  for(int i=0; i<self->num_bindings; i++) {
+    Binding_reset(self->bindings[i]);
+  }
+}
+
+//------------------------------------------------------------------------------
+
 void Config_free(Config *self) {
   for(int i=0; i<self->num_bindings; i++) {
     Binding_free(self->bindings[i]);
@@ -224,6 +248,8 @@ Binding* Binding_new(void) {
   self->commands = (Command**) calloc(1, sizeof(Command**));
   self->key = KEY_IMMEDIATE;
   self->state = STATE_EVEN;
+  self->times = 1;
+  self->count = 1;
   return self;
 }
 
@@ -245,6 +271,9 @@ Command* Binding_add(Binding* self, Command* command) {
 //------------------------------------------------------------------------------
 
 void Binding_read(Binding *self, FILE* in) {
+
+  self->times = fgetc(in);
+
   Command *command;
   uint8_t size = fgetc(in);
   
@@ -252,6 +281,12 @@ void Binding_read(Binding *self, FILE* in) {
     command = Binding_add(self, Command_new());
     Command_read(command, in);
   }
+}
+
+//------------------------------------------------------------------------------
+
+void Binding_reset(Binding *self) {
+  self->count = self->times;
 }
 
 //------------------------------------------------------------------------------

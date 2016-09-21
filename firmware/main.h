@@ -48,6 +48,7 @@ bool IsKey(volatile uint8_t key);
 bool QueryKeyDown(volatile uint8_t key);
 bool QueryKeyUp(volatile uint8_t key);
 void ExecuteKey(uint8_t key);
+void ExecuteBindingInteractively(Binding *binding);
 void ExecuteBinding(Binding *binding);
 void ExecuteCommand(volatile Config *config, Command* command);
 void ResetCrosspointSwitch22106(void);

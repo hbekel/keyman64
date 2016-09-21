@@ -24,6 +24,7 @@
 #define ACTION_DEFINE_SWITCH 17
 #define ACTION_SAVE_STATE    18
 #define ACTION_RESTORE_STATE 19
+#define ACTION_REQUIRES      20
 
 #define PORT_A    0
 #define PORT_B    1
@@ -51,6 +52,8 @@ typedef struct {
   uint8_t num_commands;
   uint8_t key;
   uint8_t state;
+  uint8_t times;
+  uint8_t count;  
   Command** commands;
 } Binding;
 
@@ -81,18 +84,21 @@ Config* Config_new(void);
 Binding* Config_add_binding(volatile Config *self, Binding* binding);
 bool Config_has_binding(volatile Config* self, uint8_t key);
 Binding* Config_get_binding(volatile Config* self, uint8_t key);
+Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key);
 bool Config_has_string(volatile Config *self, char* string, uint16_t *index);
 uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index);
 uint16_t Config_add_long(volatile Config *self, uint32_t value);
 bool Config_read(volatile Config *self, FILE* in);
 bool Config_install_fallback(volatile Config *self);
+void Config_reset(volatile Config *self);
 void Config_free(Config *self);
 
 Binding* Binding_new(void);
 void Binding_set_key(Binding* self, uint8_t key);
 Command* Binding_add(Binding* self, Command* command);
 void Binding_read(Binding *self, FILE* in);
+void Binding_reset(Binding *self);
 void Binding_free(Binding *self);
 
 Command* Command_new(void);
