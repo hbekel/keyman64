@@ -40,6 +40,7 @@ volatile uint8_t layout[64];
 volatile Serial serial;
 volatile Config* config;
 volatile uint8_t meta;
+volatile bool boot;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
@@ -606,7 +607,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_BOOT:
-    EnterBootloader();
+    boot = true;
     break;
     
   case ACTION_SWAP:
@@ -730,7 +731,8 @@ int main(void) {
   SetupKeyboardLayout();
 
   meta = KEY_ARROWLEFT;
-
+  boot = false;
+  
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
   StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
   
@@ -750,6 +752,11 @@ int main(void) {
   while(true) {
 
     usbPoll();
+
+    if(boot) {
+      _delay_ms(250);
+      EnterBootloader();
+    }
     
     switch(STATE) {
 
