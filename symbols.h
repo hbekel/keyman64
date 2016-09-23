@@ -8,7 +8,7 @@ typedef struct {
   uint8_t key;
 } Symbol;
 
-Symbol symbols[64+25] = {
+Symbol symbols[64+26] = {
   
 { .name = "DEL",         0 },
 { .name = "THREE",       1 },
@@ -94,6 +94,7 @@ Symbol symbols[64+25] = {
 { .name = "C=",          47 },
 { .name = "UPARROW",     54 },
 { .name = "DOWNCURSOR",  56 },
+{ .name = "SHIFT",       57 },
 { .name = "SHIFTLEFT",   57 },
 { .name = "RUN",         63 },
 { .name = "STOP",        63 },
