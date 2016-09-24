@@ -309,12 +309,16 @@ void ResetCrosspointSwitch22106(void) {
   PORTD &= ~CPR;
   _delay_ms(1);
   PORTD |= CPR;
+
+  for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
 }
 
 void ResetCrosspointSwitch8808(void) {
   PORTD |= CPR;  
   _delay_ms(1);
   PORTD &= ~CPR;
+
+  for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
 }
 
 //------------------------------------------------------------------------------
@@ -740,9 +744,9 @@ int main(void) {
 
   Config_read(config, &eeprom) || Config_install_fallback(config);
 
-  ExecuteImmediateCommands(config, WITHOUT_DELAY);
-
   ResetCrosspointSwitch();
+  
+  ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
   SetupUSB();
   
