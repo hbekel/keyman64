@@ -6,7 +6,7 @@
 #include "target.h"
 
 #if windows
-static char *strtok_r(char *str, const char *delim, char **save)
+char *strtok_r(char *str, const char *delim, char **save)
 {
   char *res, *last;
 
