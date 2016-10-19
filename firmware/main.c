@@ -21,8 +21,8 @@ uint8_t CPS = 1<<PA6; // Crosspoint Strobe
 uint8_t CPD = 1<<PA7; // Crosspoint Data
 uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
-uint8_t CS  = 1<<PD6; // Serial Clock (active low)
-uint8_t CD  = 1<<PD5; // Serial Data
+uint8_t CLK   = 1<<PD6; // Serial Clock (active low)
+uint8_t DATA  = 1<<PD5; // Serial Data
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
@@ -38,6 +38,7 @@ volatile bool locked[64];
 volatile uint8_t layout[64];
 
 volatile Serial serial;
+volatile Mapping mappings[16];
 volatile Config* config;
 volatile uint8_t meta;
 volatile bool boot;
@@ -104,7 +105,8 @@ void SetupHardware(void) {
 
 void SetupSerial(void) {
   ResetSerial();
-  PCMSK3 = CS;
+  
+  PCMSK3 = CLK;
   PCICR |= (1<<PCIE3);
   sei();
 }
@@ -112,75 +114,132 @@ void SetupSerial(void) {
 //------------------------------------------------------------------------------
 
 void ResetSerial(void) {
-  serial.bit      = 1;
-  serial.data     = 0;
-  serial.command  = 0;
-  serial.argument = 0;
-  serial.expected = SERIAL_COMMAND;
+  ExpectNextSerialByte();
+  serial.command      = 0;
+  serial.arguments[0] = 0;
+  serial.arguments[1] = 0;
+  serial.index        = 0;
 }
 
 //------------------------------------------------------------------------------
 
-void ExpectSerialCommand(void) {
-  ResetSerial();
-}
-
-//------------------------------------------------------------------------------
-
-void ExpectSerialArgument(void) {
+void ExpectNextSerialByte() {
   serial.bit  = 1;
-  serial.data = 0;
-  serial.expected = SERIAL_ARGUMENT;
+  serial.byte = 0;
 }
 
-void ExecuteSerialCommand(uint8_t command, uint8_t argument) {
+//------------------------------------------------------------------------------
 
-  switch(command) {
+void ExecuteSerialCommand() {
+
+  uint8_t port;
+  uint8_t mask;
+  uint8_t key;
+  
+  switch(serial.command) {
 
   case SERIAL_COMMAND_EXECUTE:
-    ExecuteKey(argument);
+    ExecuteKey(serial.arguments[0]);
     break;
 
   case SERIAL_COMMAND_KEY_DOWN:
-    SetCrosspointSwitchLocked(argument, true);
+    SetCrosspointSwitchLocked(serial.arguments[0], true);
     PROPAGATE;
     break;
 
   case SERIAL_COMMAND_KEY_UP:
-    SetCrosspointSwitchLocked(argument, false);
+    SetCrosspointSwitchLocked(serial.arguments[0], false);
     PROPAGATE;
     break;
 
   case SERIAL_COMMAND_KEY_PRESS:
-    RelayKeyPress(argument);
+    RelayKeyPress(serial.arguments[0]);
     break;
-  }
+
+  case SERIAL_COMMAND_MAP:    
+
+    port = ((serial.arguments[0] & 0x4) == 0) ? 0 : 1;
+    mask = (serial.arguments[0] & 0x7);
+    key = serial.arguments[1];
+
+    Map(port, mask, key);
+
+    break;
+  }  
 }
 
 //------------------------------------------------------------------------------
 
 ISR(PCINT3_vect) {
 
-  if((PIND & CS) == 0) {
-    if((PIND & CD) != 0) {
-      serial.data |= serial.bit;
+  if((PIND & CLK) != 0) return;
+
+  if((PIND & DATA) != 0) {
+    serial.byte |= serial.bit;
+  }    
+  serial.bit = serial.bit << 1;
+
+  if(serial.bit == 0) { // byte complete
+    
+    if(serial.index == 0) { // received command 
+      serial.command = serial.byte;
+      serial.index = SERIAL_COMMAND_ARITY_FOR[serial.command];
+    }
+    else { // received argument
+      serial.arguments[--serial.index] = serial.byte;
     }    
-    serial.bit = serial.bit << 1;
 
-    if(serial.bit == serial.expected) {
+    if(serial.index == 0) { // all arguments received
+      ExecuteSerialCommand();
+      ResetSerial();
+    }
+    else {
+      ExpectNextSerialByte();
+    }
+  }
+}
 
-      if(serial.expected == SERIAL_COMMAND) {
-        serial.command = serial.data;
-        ExpectSerialArgument();
-        return;
+//------------------------------------------------------------------------------
+
+void SetupMappings(void) {
+  for(uint8_t i=0; i<16; i++) {
+    mappings[i].pins = NULL;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Map(uint8_t p, uint8_t mask, uint8_t key) {
+
+  uint8_t volatile *port = (p == PORT_A) ? &PORTB : &PORTC;   
+  uint8_t volatile *pins = (p == PORT_A) ? &PINB : &PINC; 
+  uint8_t volatile *ddr  = (p == PORT_A) ? &DDRB : &DDRC;
+
+  uint8_t i = mask | (p<<3);    
+  mappings[i].pins = pins;
+  mappings[i].mask = mask;
+  mappings[i].key = key;
+  
+  (*ddr) &= ~mask;
+  (*port) |= mask;
+}
+
+//------------------------------------------------------------------------------
+
+void ApplyMappings(void) {
+  bool closed = false;
+  
+  for(uint8_t i=0; i<16; i++) {
+    if(mappings[i].pins != NULL) {
+      closed = ((*mappings[i].pins) & mappings[i].mask) == 0;      
+      if(closed) {
+        SetCrosspointSwitchLocked(mappings[i].key, true);
       }
-
-      if(serial.expected == SERIAL_ARGUMENT) {
-        serial.argument = serial.data;
-        ExecuteSerialCommand(serial.command, serial.argument);
-        ExpectSerialCommand();
-        return;
-      }      
+      else {
+        if(locked[mappings[i].key]) {
+          SetCrosspointSwitchLocked(mappings[i].key, false);
+        }
+      }
     }
   }
 }
@@ -201,6 +260,8 @@ void SetupUSB(void) {
 
   usbData = NULL;
 }
+
+//------------------------------------------------------------------------------
 
 void SetupKeyboardLayout(void) {
   for(uint8_t i=0; i<64; i++) {
@@ -349,7 +410,7 @@ void SetCrosspointSwitch(uint8_t index, bool closed) {
 
 void SetCrosspointSwitchLocked(uint8_t index, bool closed) {
   if(!locked[index]) SetCrosspointSwitch(index, closed);
-  locked[index] = closed ? true : false;
+  locked[index] = closed;
   if(!locked[index]) SetCrosspointSwitch(index, closed);
 }
 
@@ -641,7 +702,11 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
   case ACTION_RESTORE_STATE:
     RestoreState();
-    break;    
+    break;
+
+  case ACTION_MAP:
+    Map(cmd->port, cmd->mask, cmd->data);
+    break;
   }
 }
 
@@ -733,6 +798,7 @@ int main(void) {
 
   SetupHardware();
   SetupKeyboardLayout();
+  SetupMappings();
 
   meta = KEY_ARROWLEFT;
   boot = false;
@@ -761,6 +827,8 @@ int main(void) {
       _delay_ms(250);
       EnterBootloader();
     }
+
+    ApplyMappings();
     
     switch(STATE) {
 
@@ -803,8 +871,7 @@ int main(void) {
       }
       break;
       
-    //========================================
-      
+    //========================================      
     }
   }
   return 0;

@@ -55,7 +55,7 @@ firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h 
 
 firmware-clean:
 	(cd firmware && make clean)
-	if [ "$$OSTYPEx" = "cygwinx" ]; then \
+	if [ "x$$OSTYPE" = "xcygwin" ]; then \
 	git checkout firmware/usbdrv/usbdrvasm.S; else true; fi
 
 program: firmware

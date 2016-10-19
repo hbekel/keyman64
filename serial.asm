@@ -29,10 +29,12 @@ close: {
 //------------------------------------------------------------------------------
         
 write: {
-        // A: value, Y: number of bits to send, X: modifed
+        // A: value, X and Y are modifed
 
         php
         sei
+
+        ldy #$08
         
         ldx tmp sta tmp
         lda $01

@@ -61,6 +61,8 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "save",     4) == 0) return ACTION_SAVE_STATE;
   if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;
   if(strncasecmp(str, "requires", 8) == 0) return ACTION_REQUIRES;
+  if(strncasecmp(str, "map",      3) == 0) return ACTION_MAP;  
+  
   return ACTION_NONE;
 }
 
@@ -728,6 +730,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_DEFINE_SWITCH: action = "using";    break;
   case ACTION_SAVE_STATE:    action = "save";     break;
   case ACTION_RESTORE_STATE: action = "restore";  break;                                
+  case ACTION_REQUIRES:      action = "requires"; break;
+  case ACTION_MAP:           action = "map";      break;
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -814,7 +818,7 @@ void Command_print(Command *self, FILE* out) {
               end);
     }
   }
-  if(self->action == ACTION_SET) {
+  if(self->action == ACTION_SET || self->action == ACTION_MAP) {
     fprintf(out, "$%02X", self->data);
   }
   fprintf(out, "\n");

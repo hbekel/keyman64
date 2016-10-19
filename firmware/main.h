@@ -12,28 +12,37 @@
 
 uint8_t KEY_ARROWLEFT = 15;
 
-uint8_t SERIAL_COMMAND  = 0x10;
-uint8_t SERIAL_ARGUMENT = 0x00;
-
+#define SERIAL_COMMAND_NONE      0x00
 #define SERIAL_COMMAND_EXECUTE   0x01
 #define SERIAL_COMMAND_KEY_DOWN  0x02
 #define SERIAL_COMMAND_KEY_UP    0x03
 #define SERIAL_COMMAND_KEY_PRESS 0x04
+#define SERIAL_COMMAND_MAP       0x05
+
+uint8_t SERIAL_COMMAND_ARITY_FOR[6] = { 0, 1, 1, 1, 1, 2 };
 
 typedef struct {
   uint8_t bit;
-  uint8_t data;
+  uint8_t byte;
   uint8_t command;
-  uint8_t argument;
-  uint8_t expected;
+  uint8_t arguments[2];
+  uint8_t index;
 } Serial;
+
+typedef struct {
+  uint8_t volatile *pins;
+  uint8_t mask;
+  uint8_t key;
+} Mapping;
 
 void SetupHardware(void);
 void SetupSerial(void);
 void ResetSerial(void);
-void ExpectSerialCommand(void);
-void ExpectSerialArgument(void);
-void ExecuteSerialCommand(uint8_t command, uint8_t argument);
+void ExpectNextSerialByte(void);
+void ExecuteSerialCommand(void);
+void SetupMappings(void);
+void Map(uint8_t port, uint8_t mask, uint8_t key);
+void ApplyMappings(void);
 void SetupKeyboardLayout(void);
 void ExecuteImmediateCommands(volatile Config *cfg, uint16_t delay);
 void DisableJTAG(void);
