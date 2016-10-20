@@ -1,0 +1,48 @@
+These files demonstrate how to put a simple loader program before an
+actual game in order to configure the mappings between additional
+buttons connected to the keyman's control lines and the keys that
+should be pressed when these button lines go low.
+
+To build this example, make sure that the utilities petcat and c1541
+that came with vice are on the path, then type make. This will create
+disk.d64 containing a loader program and a game program.
+
+The loader program first configures the keyman by sending the map
+commands via the serial interface connected to the processors IO port,
+as described on the "serial interface" section on the website.  In
+this example, four additional buttons are connected to port b bits 1-4
+and mapped to press the a, b, c or d keys.
+
+The file main.asm contains the ml code necessary to send the map
+commands over the serial interface. The code is contained in data
+lines in loader.bas.
+
+After configuring the keyman, the loader loads the file "game" and
+runs it. The "game" is just a simple basic program scanning for and
+reporting keypresses for the mapped keys.
+
+How is this useful?
+
+I'm currently testing a small internal board that will allow the
+rerouting of the analog lines from the control ports. These lines are
+usually connected to the SID and used to read mice or paddles. You can
+control the board to either route these lines to the SID as usual, or
+you can route them "somewhere else" instead. And this will allow using
+joysticks with two additional buttons connected to the paddle lines
+and routed to the keyman, where the button presses can be mapped to
+key presses.
+
+For example, you could play games like Turrican and configure the
+additional button tp press space in order to detonate your bombs, or
+ready and fire missiles in Elite using the joystick, where the buttons
+can be mapped to the t and m keys.
+
+Since the keymans mappings can be reconfigured by a program running on
+the C64 via the serial interface, it becomes trivial to add the proper
+configuration to existing games, either by using a simple loader like
+the one in this example, or by linking some additional code in front
+of it.
+
+
+
+

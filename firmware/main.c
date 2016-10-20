@@ -158,9 +158,9 @@ void ExecuteSerialCommand() {
 
   case SERIAL_COMMAND_MAP:    
 
-    port = ((serial.arguments[0] & 0x4) == 0) ? 0 : 1;
-    mask = (serial.arguments[0] & 0x7);
-    key = serial.arguments[1];
+    port = ((serial.arguments[1] & 0x8) == 0) ? 0 : 1;
+    mask = 1<<(serial.arguments[1] & 0x7);
+    key = serial.arguments[0];
 
     Map(port, mask, key);
 
