@@ -34,7 +34,7 @@ volatile uint8_t STATE = STATE_RELAY;
 #define WITHOUT_DELAY 0
 
 volatile bool matrix[64];
-volatile bool locked[64];
+volatile uint8_t locked[64];
 volatile uint8_t layout[64];
 
 volatile Serial serial;
@@ -143,12 +143,12 @@ void ExecuteSerialCommand() {
     break;
 
   case SERIAL_COMMAND_KEY_DOWN:
-    SetCrosspointSwitchLocked(serial.arguments[0], true);
+    SetCrosspointSwitchLocked(serial.arguments[0], true, LOCK_SERIAL);
     PROPAGATE;
     break;
 
   case SERIAL_COMMAND_KEY_UP:
-    SetCrosspointSwitchLocked(serial.arguments[0], false);
+    SetCrosspointSwitchLocked(serial.arguments[0], false, LOCK_SERIAL);
     PROPAGATE;
     break;
 
@@ -215,10 +215,11 @@ void Map(uint8_t p, uint8_t mask, uint8_t key) {
   uint8_t volatile *pins = (p == PORT_A) ? &PINB : &PINC; 
   uint8_t volatile *ddr  = (p == PORT_A) ? &DDRB : &DDRC;
 
-  uint8_t i = mask | (p<<3);    
-  mappings[i].pins = pins;
-  mappings[i].mask = mask;
-  mappings[i].key = key;
+  Mapping volatile *mapping = &mappings[mask | (p<<3)];
+
+  mapping->pins = pins;
+  mapping->mask = mask;
+  mapping->key = key;
   
   (*ddr) &= ~mask;
   (*port) |= mask;
@@ -228,17 +229,20 @@ void Map(uint8_t p, uint8_t mask, uint8_t key) {
 
 void ApplyMappings(void) {
   bool closed = false;
+  Mapping volatile *mapping;
   
   for(uint8_t i=0; i<16; i++) {
-    if(mappings[i].pins != NULL) {
-      closed = ((*mappings[i].pins) & mappings[i].mask) == 0;      
-      if(closed) {
-        SetCrosspointSwitchLocked(mappings[i].key, true);
-      }
-      else {
-        if(locked[mappings[i].key]) {
-          SetCrosspointSwitchLocked(mappings[i].key, false);
-        }
+    mapping = &mappings[i];
+    
+    if(mapping->pins == NULL) continue;
+    
+    closed = ((*mapping->pins) & mapping->mask) == 0;      
+    if(closed) {
+      SetCrosspointSwitchLocked(mapping->key, true, LOCK_MAP);
+    }
+    else {
+      if(locked[mappings[i].key] == LOCK_MAP) {
+        SetCrosspointSwitchLocked(mapping->key, false, LOCK_MAP);
       }
     }
   }
@@ -408,9 +412,11 @@ void SetCrosspointSwitch(uint8_t index, bool closed) {
 
 //------------------------------------------------------------------------------
 
-void SetCrosspointSwitchLocked(uint8_t index, bool closed) {
+void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock) {
+  if(locked[index] && locked[index] != lock) return;
+  
   if(!locked[index]) SetCrosspointSwitch(index, closed);
-  locked[index] = closed;
+  locked[index] = closed ? lock : LOCK_NONE;
   if(!locked[index]) SetCrosspointSwitch(index, closed);
 }
 

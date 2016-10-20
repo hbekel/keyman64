@@ -12,6 +12,10 @@
 
 uint8_t KEY_ARROWLEFT = 15;
 
+#define LOCK_NONE   0x00
+#define LOCK_SERIAL 0x01
+#define LOCK_MAP    0x02
+
 #define SERIAL_COMMAND_NONE      0x00
 #define SERIAL_COMMAND_EXECUTE   0x01
 #define SERIAL_COMMAND_KEY_DOWN  0x02
@@ -65,7 +69,7 @@ void StrobeCrosspointSwitch22106(void);
 void ResetCrosspointSwitch8808(void);
 void StrobeCrosspointSwitch8808(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
-void SetCrosspointSwitchLocked(uint8_t index, bool closed);
+void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock);
 void Type(char *string);
 void SaveState(void);
 void RestoreState(void);
