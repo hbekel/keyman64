@@ -1139,7 +1139,7 @@ void keys(void) {
   int total = sizeof(symbols)/sizeof(Symbol);
 
   for(int i=0; i<64; i++) {
-    printf("%02X: ", i);
+    printf("$%02X %2d   ", i, i);
     symbol = symbols[i];
     printf("%s", symbol.name);
     for(int k=64; k<total; k++) {
