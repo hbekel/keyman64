@@ -1587,6 +1587,8 @@
       (net 75 /~RESET))
   )
 
+  (gr_line (start 104.6226 68.8721) (end 104.6226 128.5875) (angle 90) (layer Edge.Cuts) (width 0.1))
+  (gr_line (start 104.6226 68.8721) (end 104.6226 66.3702) (angle 90) (layer Edge.Cuts) (width 0.1))
   (gr_text VCC (at 118.618 130.1115) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15)))
   )
@@ -1644,7 +1646,6 @@
   (gr_line (start 104.6226 128.5875) (end 104.6226 131.0767) (angle 90) (layer Edge.Cuts) (width 0.1))
   (gr_line (start 184.6072 66.3702) (end 184.6072 68.8721) (angle 90) (layer Edge.Cuts) (width 0.1))
   (gr_line (start 104.6226 66.3702) (end 184.6072 66.3702) (angle 90) (layer Edge.Cuts) (width 0.1))
-  (gr_line (start 104.6226 68.8721) (end 104.6226 66.3702) (angle 90) (layer Edge.Cuts) (width 0.1))
   (gr_text DATA (at 152.273 128.143) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15)))
   )
@@ -1667,7 +1668,6 @@
     (effects (font (size 0.75 0.75) (thickness 0.15)))
   )
   (gr_line (start 184.6072 128.5875) (end 184.6072 68.8721) (angle 90) (layer Edge.Cuts) (width 0.1))
-  (gr_line (start 104.6226 68.8721) (end 104.6226 128.5875) (angle 90) (layer Edge.Cuts) (width 0.1))
 
   (segment (start 114.5065 96.77908) (end 114.5065 95.28886) (width 0.254) (layer B.Cu) (net 1))
   (segment (start 112.41532 93.19768) (end 112.41532 92.11762) (width 0.254) (layer B.Cu) (net 1) (tstamp 571A12CF))
