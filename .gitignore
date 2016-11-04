@@ -12,6 +12,7 @@
 *.exe
 *.stackdump
 *.zip
+*.d64
 fuses
 progmem
 keyman64

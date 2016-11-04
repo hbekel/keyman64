@@ -119,7 +119,7 @@ Sequence encoding[128] = {
   DEFINE(SHIFT(22), 3), // ]
   DEFINE(PRESS(54), 1), // ^ (ARROWUP)
   DEFINE(PRESS(15), 1), // _ (ARROWLEFT)
-  UNDEFINED,            // `
+  DEFINE(SHIFT(8),  3), // ` (SHIFT-RETURN)
   DEFINE(PRESS(17), 1), // a
   DEFINE(PRESS(35), 1), // b
   DEFINE(PRESS(34), 1), // c

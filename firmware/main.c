@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/power.h>
@@ -96,13 +97,6 @@ void SetupHardware(void) {
 
 //------------------------------------------------------------------------------
 
-/* External Serial control interface 
- *
- * External Hardware may send a 4-bit command nibble followed by an
- * 8-bit argument
- *
- */
-
 void SetupSerial(void) {
   ResetSerial();
   
@@ -130,11 +124,29 @@ void ExpectNextSerialByte() {
 
 //------------------------------------------------------------------------------
 
+#define VA_START va_list ap; va_start(ap, fmt)
+#define VA_END va_end(ap)
+
+void debug(const char* fmt, ...) {
+  VA_START;
+
+  char msg[512];
+  snprintf(msg, 512, fmt, ap);
+  Type(msg);
+
+  VA_END;
+}
+
+//------------------------------------------------------------------------------
+
 void ExecuteSerialCommand() {
 
   uint8_t port;
   uint8_t mask;
   uint8_t key;
+
+  debug("serial $%02X $%02X $%02X`",
+        serial.command, serial.arguments[0], serial.arguments[1]);
   
   switch(serial.command) {
 

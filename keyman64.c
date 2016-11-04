@@ -1088,8 +1088,8 @@ int convert(int argc, char **argv) {
 
 void version(void) {
   printf("keyman64 version %.1f\n", VERSION);
-  printf("Copyright (C) 2015 Henning Bekel.\n");
-  printf("License GPLv2: GNU GPL version 2 <http://gnu.org/licenses/gpl.html>.\n");
+  printf("Copyright (C) 2016 Henning Bekel.\n");
+  printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
   printf("There is NO WARRANTY, to the extent permitted by law.\n");
 }

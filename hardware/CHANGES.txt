@@ -1,0 +1,2 @@
+Add detailed descriptions of modifications made to the original
+documentation in this file.
