@@ -124,17 +124,15 @@ void ExpectNextSerialByte() {
 
 //------------------------------------------------------------------------------
 
-#define VA_START va_list ap; va_start(ap, fmt)
-#define VA_END va_end(ap)
-
-void debug(const char* fmt, ...) {
-  VA_START;
+void debug(char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
 
   char msg[512];
-  snprintf(msg, 512, fmt, ap);
+  vsnprintf(msg, 512, fmt, ap);
   Type(msg);
 
-  VA_END;
+  va_end(ap);
 }
 
 //------------------------------------------------------------------------------
@@ -144,9 +142,6 @@ void ExecuteSerialCommand() {
   uint8_t port;
   uint8_t mask;
   uint8_t key;
-
-  debug("serial $%02X $%02X $%02X`",
-        serial.command, serial.arguments[0], serial.arguments[1]);
   
   switch(serial.command) {
 
