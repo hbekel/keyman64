@@ -154,28 +154,10 @@ bool Config_install_fallback(volatile Config *self) {
   Binding *binding;
   Command *command;  
 
-  Config_add_string(self, "       keyman64 version 1.3 ready             using fallback configuration            press _b to enter bootloader             press ``_f to test frequency       ");
+  Config_add_string(self, "|`       keyman64 version 1.3 ready``      using fallback configuration``      press _b to enter bootloader`       press _f to test frequency``ready.`");
 
   binding = Binding_new();
   binding->key = 0x32;
-
-  command = Command_new();
-  command->action = ACTION_KEY_DOWN;
-  command->mask = 0;
-  command->data = 0x39;
-  Binding_add(binding, command);
-
-  command = Command_new();
-  command->action = ACTION_KEY_PRESS;
-  command->mask = 0;
-  command->data = 0x1e;
-  Binding_add(binding, command);
-  
-  command = Command_new();
-  command->action = ACTION_KEY_UP;
-  command->mask = 0;
-  command->data = 0x39;
-  Binding_add(binding, command);
   
   command = Command_new();
   command->action = ACTION_TYPE;
