@@ -147,7 +147,7 @@ Sequence encoding[128] = {
   DEFINE(PRESS(11), 1), // y
   DEFINE(PRESS(33), 1), // z
   UNDEFINED,            // {
-  UNDEFINED,            // |
+  DEFINE(SHIFT(30), 2), // | (SHIFT-CLRHOME)
   UNDEFINED,            // }
   DEFINE(PRESS(8),  1), // ~ (RETURN)
   DEFINE(PRESS(0),  1), // DEL
