@@ -164,6 +164,7 @@ static int usb_message(char* device, int direction, uint8_t message, uint16_t va
   handle = usb_open(NULL, &info);
   
   if(handle == NULL) {
+    result = -1;
     fprintf(stderr, "error: could not open usb device \"%s\"\n", device);
     goto done;
   }
