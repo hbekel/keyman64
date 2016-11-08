@@ -39,6 +39,8 @@
 # To rebuild project do "make clean" then "make all".
 #----------------------------------------------------------------------------
 
+# Firmware version
+VERSION?=
 
 # MCU name
 MCU = atmega1284p
@@ -164,6 +166,7 @@ CFLAGS += -Wno-unused
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
+CFLAGS += -DVERSION=$(VERSION)
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/power.h>
@@ -13,6 +14,8 @@
 #include "main.h"
 #include "encoding.h"
 #include "../protocol.h"
+
+char *version = xstr(VERSION);
 
 uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
@@ -720,7 +723,60 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_MAP:
     Map(cmd->port, cmd->mask, cmd->data);
     break;
+
+  case ACTION_SHOW_VERSION:
+    ShowVersion();
+    break;
+
+  case ACTION_SHOW_STATE:
+    ShowState();
+    break;
   }
+}
+
+//------------------------------------------------------------------------------
+
+void ShowVersion(void) { // FIXME: tolower
+  char *version = "firmware " xstr(VERSION) " (" __DATE__ " " __TIME__ ")\n\n";
+  int len = strlen(version);
+
+  for(uint8_t i=0; i<len; i++) {
+    version[i] = tolower(version[i]);    
+  }
+  Type(version);
+}
+
+//------------------------------------------------------------------------------
+
+static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
+
+  uint8_t i=0;
+  
+  for(uint8_t bit=0x80; bit; bit>>=1, i++) {
+
+    if((*ddr) & bit) {
+      (*dst)[i] = ((*port) & bit) ? '1' : '0';
+    }
+    else {
+      (*dst)[i] = ((*port) & bit) ? '1' : 'x';
+    }
+  }
+  (*dst)[8] = '\0';
+  return (*dst);
+}
+
+//------------------------------------------------------------------------------
+
+void ShowState(void) {
+  char *state = "00000000";
+
+  Type("a ");
+  Type(p2s(&state, &PORTB, &DDRB));
+  Type("\n");
+
+  Type("b ");
+  Type(p2s(&state, &PORTC, &DDRC)); 
+  Type("\n\n");
 }
 
 //------------------------------------------------------------------------------

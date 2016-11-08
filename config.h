@@ -26,6 +26,8 @@
 #define ACTION_RESTORE_STATE 19
 #define ACTION_REQUIRES      20
 #define ACTION_MAP           21
+#define ACTION_SHOW_VERSION  22
+#define ACTION_SHOW_STATE    23
 
 #define PORT_A    0
 #define PORT_B    1

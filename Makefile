@@ -20,6 +20,8 @@ ifeq ($(UNAME), Linux)
   UDEV=1
 endif
 
+.PHONY: all clean
+
 HEADERS=config.h \
 	strings.h \
 	range.h \
@@ -39,8 +41,8 @@ LIBS=-lusb-1.0
 print-%: ; @echo $*=$($*)
 
 all: linux
-linux: firmware keyman64
-win32: firmware keyman64.exe
+linux: hex keyman64
+win32: hex keyman64.exe
 
 keyman64: $(HEADERS) $(SOURCES) config.c
 	$(CC) $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
@@ -48,18 +50,44 @@ keyman64: $(HEADERS) $(SOURCES) config.c
 keyman64.exe: $(HEADERS) $(SOURCES) config.c
 	$(MINGW32)-gcc $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
 
+hex: keyman64-$(VERSION)-application.hex \
+	keyman64-$(VERSION)-bootloader.hex\
+	keyman64-$(VERSION)-application-and-bootloader.hex
+
+keyman64-$(VERSION)-application.hex: firmware
+	cp firmware/main.hex $@
+	chmod -x $@
+
+keyman64-$(VERSION)-bootloader.hex: bootloader
+	cp bootloader/firmware/main.hex $@
+	chmod -x $@
+
+keyman64-$(VERSION)-application-and-bootloader.hex: firmware bootloader
+	(head -n-1 firmware/main.hex; cat bootloader/firmware/main.hex) > $@
+	chmod -x $@
+
+bootloader: bootloader/firmware/main.hex
+
+bootloader/firmware/main.hex:
+	make -C bootloader
+
+bootloader-clean:
+	make -C bootloader clean
+
 firmware: firmware/main.hex
 
 firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h keyboard.h config.h config.c 
-	(cd firmware && make)
+	VERSION=$(VERSION) make -C firmware
 
 firmware-clean:
-	(cd firmware && make clean)
+	make -C firmware clean
 	if [ "x$$OSTYPE" = "xcygwin" ]; then \
 	git checkout firmware/usbdrv/usbdrvasm.S; else true; fi
 
-program: firmware
-	(cd firmware && make program)
+program: firmware 
+	./keyman64 boot
+	sleep 3
+	make -C firmware program
 
 config: keyman64
 	./keyman64 example.conf example.bin && \
@@ -81,10 +109,10 @@ test-reverse: reverse.prg
 	echo "Press a key on the c64. The cursor should start to blink again."
 	xlink reverse.prg
 
-clean: firmware-clean	
+clean: firmware-clean bootloader-clean
 	rm -rf keyman64
 	rm -rf keyman64.exe
-	rm -rf *.{prg,bin,stackdump}
+	rm -rf *.{prg,bin,hex,stackdump}
 
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin

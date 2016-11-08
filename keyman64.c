@@ -61,7 +61,10 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "save",     4) == 0) return ACTION_SAVE_STATE;
   if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;
   if(strncasecmp(str, "requires", 8) == 0) return ACTION_REQUIRES;
-  if(strncasecmp(str, "map",      3) == 0) return ACTION_MAP;  
+  if(strncasecmp(str, "map",      3) == 0) return ACTION_MAP;
+  if(strncasecmp(str, "version",  7) == 0) return ACTION_SHOW_VERSION;
+  if(strncasecmp(str, "state",    5) == 0) return ACTION_SHOW_STATE;
+  if(strncasecmp(str, "status",   6) == 0) return ACTION_SHOW_STATE;      
   
   return ACTION_NONE;
 }
@@ -827,6 +830,8 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_RESTORE_STATE: action = "restore";  break;                                
   case ACTION_REQUIRES:      action = "requires"; break;
   case ACTION_MAP:           action = "map";      break;
+  case ACTION_SHOW_VERSION:  action = "version";  break;
+  case ACTION_SHOW_STATE:    action = "state";    break;        
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -1183,7 +1188,7 @@ int convert(int argc, char **argv) {
 //------------------------------------------------------------------------------
 
 void version(void) {
-  printf("keyman64 version %.1f\n", VERSION);
+  printf("keyman64 %.1f\n", VERSION);
   printf("Copyright (C) 2016 Henning Bekel.\n");
   printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
