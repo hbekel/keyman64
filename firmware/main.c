@@ -813,7 +813,7 @@ int main(void) {
   SetupKeyboardLayout();
   SetupMappings();
 
-  meta = KEY_ARROWLEFT;
+  meta = KEY_BACKARROW;
   boot = false;
   
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;

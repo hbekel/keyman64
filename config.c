@@ -154,14 +154,37 @@ bool Config_install_fallback(volatile Config *self) {
   Binding *binding;
   Command *command;  
 
-  Config_add_string(self, "|`       keyman64 version 1.3 ready``      using fallback configuration``      press _b to enter bootloader`       press _f to test frequency``ready.`");
+  const uint8_t TEST_MESSAGE = 0;
+  Config_add_string(self,
+                    "\f\n"
+                    " ***** keyman64 version 1.3 ready *****\n\n" 
+                    "    no configuration found in eeprom\n"
+                    "      using fallback configuration\n"
+                    "\n"
+                    "      press _b to enter bootloader\n"
+                    "       press _f to test frequency\n"
+                    "     press _t to repeat this message\n"
+                    "\n"
+                    "ready.\n");
 
+  const uint8_t FREQUENCY_MESSAGE = 1;
+  Config_add_string(self,
+                    "\f\n"
+                    "        keyman64 frequency test\n"
+                    "\n"
+                    "if the following ten dots are not typed\n"
+                    "with about one second delay in between,\n"
+                    "check atmel fuses and/or crystal circuit\n");
+
+  const uint8_t READY_MESSAGE = 2;
+  Config_add_string(self, "\n\nready.\n");
+  
   binding = Binding_new();
-  binding->key = 0x32;
+  binding->key = KEY_T;
   
   command = Command_new();
   command->action = ACTION_TYPE;
-  command->mask = 0;
+  command->mask = TEST_MESSAGE;
   command->data = 0;  
   Binding_add(binding, command);
   
@@ -171,15 +194,21 @@ bool Config_install_fallback(volatile Config *self) {
   command->action = ACTION_BOOT;
 
   binding = Binding_new();
-  binding->key = 0x23;
+  binding->key = KEY_B;
   Binding_add(binding, command);
   
   Config_add_binding(self, binding);
-
+  
   binding = Binding_new();
-  binding->key = 0x2a;
+  binding->key = KEY_F;
 
-  for(int i=0; i<5; i++) {
+  command = Command_new();
+  command->action = ACTION_TYPE;
+  command->mask = FREQUENCY_MESSAGE;
+  command->data = 0;
+  Binding_add(binding, command);
+  
+  for(int i=0; i<10; i++) {
     command = Command_new();
     command->action = ACTION_KEY_PRESS;
     command->data = 0x25;
@@ -194,6 +223,12 @@ bool Config_install_fallback(volatile Config *self) {
     Binding_add(binding, command);
   }
 
+  command = Command_new();
+  command->action = ACTION_TYPE;
+  command->mask = READY_MESSAGE;
+  command->data = 0;  
+  Binding_add(binding, command);
+  
   Config_add_binding(self, binding);
   
   return true;

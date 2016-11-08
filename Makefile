@@ -50,7 +50,7 @@ keyman64.exe: $(HEADERS) $(SOURCES) config.c
 
 firmware: firmware/main.hex
 
-firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h config.h config.c 
+firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h keyboard.h config.h config.c 
 	(cd firmware && make)
 
 firmware-clean:

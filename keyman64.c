@@ -255,6 +255,99 @@ static bool isSymbol(char *name) {
 }
 
 //------------------------------------------------------------------------------
+
+static void unescape(char *str) {
+  char *saved_str = str;
+  char *input = strdup(str);
+  char *saved_input = input;
+  int closing;
+  char in, out;
+  
+  for(input; input[0] != '\0'; input++) {
+    char hex[] = { 0, 0, 0 };
+
+    in = input[0];
+    if(in == '\\') {
+      switch(input[1]) {
+      case '\\':
+        out = '\\';
+        break;        
+      case 'r':
+        out = '\r';
+        break;
+      case 'n':
+        out = '\n';
+        break;
+      case 'f':
+        out = '\f';
+        break;
+      case 'x':        
+        hex[0] = input[2];
+        hex[1] = input[3];
+        out = strtol(hex, NULL, 16) & 0xff; 
+        input+=2;
+        break;
+      case '{':
+        closing = strcspn(input+2, "}");
+        input[2+closing] = '\0';
+        out = strtol(input+2, NULL, 10);
+        input += closing + 1;
+        break;
+      default:
+        out = in;
+        fprintf(stderr, "Warning: \\%c: undefined escape sequence in string literal (skipped)\n", input[1]);        
+        input++;
+        continue;
+      }              
+      str[0] = out;
+      input++;
+    }
+    else {
+      out = in;
+      str[0] = out;
+    }
+    str++;
+  }
+  free(saved_input);
+
+  str[0] = '\0';
+  str = saved_str;
+}
+
+//------------------------------------------------------------------------------
+
+static char* escape(char* str) {
+  char* output = (char*) calloc(strlen(str)*6, sizeof(char));
+  char seq[7];
+  
+  for(int i=0; i<strlen(str); i++) {    
+    switch(str[i]) {
+    case '\\':
+      strcat(output, "\\\\");
+      break;
+    case '\n':
+      strcat(output, "\\n");
+      break;
+    case '\r':
+      strcat(output, "\\r");
+      break;
+    case '\f':
+      strcat(output, "\\f");
+      break;
+    default:
+      if((str[i] >= 32  && str[i] <= 127) || (str[i] >= 192 && str[i] <= 223)) {
+        output[strlen(output)] = str[i];
+      }
+      else {
+        sprintf(seq, "\\{%d}", (unsigned char)str[i]);
+        strcat(output, seq);
+      }
+    }
+  }
+  return output;
+}
+
+//------------------------------------------------------------------------------
 // Functions for parsing config files
 //------------------------------------------------------------------------------
 
@@ -461,6 +554,8 @@ bool Command_parse(Command* self, char* spec) {
       str = str + strcspn(str, ws) + 1;
     }
 
+    unescape(str);
+    
     if(!Config_has_string(config, str, &index)) {
       index = Config_add_string(config, str);
     }
@@ -744,8 +839,9 @@ void Command_print(Command *self, FILE* out) {
   
   if(self->action == ACTION_TYPE) {
     uint16_t index = self->mask | (self->data << 8);
-    fprintf(out, "%s ", action);
-    fprintf(out, "%s\n", config->strings[index]);
+    char *escaped = escape(config->strings[index]);
+    fprintf(out, "%s %s\n", action, escaped);
+    free(escaped);
     return;
   }
   uint8_t mask  = 0;

@@ -2,6 +2,7 @@
 #define ENCODING_H
 
 #include <stdint.h>
+#include "../keyboard.h"
 
 #define CODE_KEY_DOWN  0x80U
 #define CODE_KEY_UP    0x40U
@@ -11,8 +12,9 @@
 #define DOWN(n)  ((uint8_t)n | CODE_KEY_DOWN)
 #define UP(n)    ((uint8_t)n | CODE_KEY_UP)
 #define PRESS(n) ((uint8_t)n | CODE_KEY_PRESS)
-#define SHIFT(n) DOWN(57), PRESS((uint8_t)n), UP(57)
-
+#define SHIFT(n) DOWN(KEY_SHIFTLEFT), PRESS((uint8_t)n), UP(KEY_SHIFTLEFT)
+#define CTRL(n)  DOWN(KEY_CONTROL), PRESS((uint8_t)n), UP(KEY_CONTROL)
+#define CBM(n)   DOWN(KEY_CBM), PRESS((uint8_t)n), UP(KEY_CBM)
 #define DEFINE(c, s) { .codes = (uint8_t[]) { c }, .size = s }
 #define UNDEFINED { .codes = (uint8_t[]) {}, .size = 0 }
 
@@ -21,142 +23,281 @@ typedef struct {
   uint8_t size;
 } Sequence;
 
-Sequence encoding[128] = {
+Sequence encoding[256] = {
+  UNDEFINED, 
+  UNDEFINED, 
+  UNDEFINED,
+  DEFINE(PRESS(KEY_RUNSTOP),   1),  // RUNSTOP  
+  UNDEFINED, 
+  DEFINE(CTRL(KEY_2),          3),  // WHITE
+  UNDEFINED, 
+  UNDEFINED, 
+  UNDEFINED,                        // LOCK UPPER/LOWERCASE (not typeable)
+  UNDEFINED,                        // UNLOCK UPPER/LOWERCASE (not typeable)
+  DEFINE(SHIFT(KEY_RETURN),    3),  // LINE FEED (ASCII only) \n
+  UNDEFINED,
+  DEFINE(SHIFT(KEY_CLRHOME),   3),  // FORM FEED (ASCII only) \f
+  DEFINE(PRESS(KEY_RETURN),    1),  // CARRIAGE RETURN \n
+  UNDEFINED,                        // SWITCH TO UPPERCASE (not typeable)
+  UNDEFINED,
+  UNDEFINED,
+  DEFINE(PRESS(KEY_DOWNCURSOR), 1), // CURSOR DOWN
+  DEFINE(CTRL(KEY_9),           3), // RVS ON
+  DEFINE(PRESS(KEY_CLRHOME),    1), // HOME
+  DEFINE(PRESS(KEY_INSTDEL),    1), // DEL
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  DEFINE(CTRL(KEY_3),           3), // RED 
+  DEFINE(PRESS(KEY_CURSORLEFT), 1), // CURSOR LEFT
+  DEFINE(CTRL(KEY_6),           3), // GREEN
+  DEFINE(CTRL(KEY_7),           3), // BLUE
+  DEFINE(PRESS(KEY_SPACE),      1), // SPACE 
+  DEFINE(SHIFT(KEY_1),          3), // !
+  DEFINE(SHIFT(KEY_2),          3), // "
+  DEFINE(SHIFT(KEY_3),          3), // #
+  DEFINE(SHIFT(KEY_4),          3), // $  
+  DEFINE(SHIFT(KEY_5),          3), // %
+  DEFINE(SHIFT(KEY_6),          3), // &
+  DEFINE(SHIFT(KEY_7),          3), // '
+  DEFINE(SHIFT(KEY_8),          3), // (
+  DEFINE(SHIFT(KEY_9),          3), // )
+  DEFINE(PRESS(KEY_ASTERISK),   1), // *
+  DEFINE(PRESS(KEY_PLUS),       1), // +
+  DEFINE(PRESS(KEY_COMMA),      1), // ,
+  DEFINE(PRESS(KEY_MINUS),      1), // -
+  DEFINE(PRESS(KEY_PERIOD),     1), // .
+  DEFINE(PRESS(KEY_SLASH),      1), // /
+  DEFINE(PRESS(KEY_0),          1), // 0
+  DEFINE(PRESS(KEY_1),          1), // 1
+  DEFINE(PRESS(KEY_2),          1), // 2
+  DEFINE(PRESS(KEY_3),          1), // 3
+  DEFINE(PRESS(KEY_4),          1), // 4
+  DEFINE(PRESS(KEY_5),          1), // 5
+  DEFINE(PRESS(KEY_6),          1), // 6
+  DEFINE(PRESS(KEY_7),          1), // 7
+  DEFINE(PRESS(KEY_8),          1), // 8
+  DEFINE(PRESS(KEY_9),          1), // 9
+  DEFINE(PRESS(KEY_COLON),      1), // :
+  DEFINE(PRESS(KEY_SEMICOLON),  1), // ;
+  DEFINE(SHIFT(KEY_COMMA),      3), // <
+  DEFINE(PRESS(KEY_EQUAL),      1), // =
+  DEFINE(SHIFT(KEY_PERIOD),     3), // <
+  DEFINE(SHIFT(KEY_SLASH),      3), // ?
+  DEFINE(PRESS(KEY_AT),         1), // @
+  DEFINE(SHIFT(KEY_A),          3), // A
+  DEFINE(SHIFT(KEY_B),          3), // B
+  DEFINE(SHIFT(KEY_C),          3), // C
+  DEFINE(SHIFT(KEY_D),          3), // D
+  DEFINE(SHIFT(KEY_E),          3), // E
+  DEFINE(SHIFT(KEY_F),          3), // F
+  DEFINE(SHIFT(KEY_G),          3), // G
+  DEFINE(SHIFT(KEY_H),          3), // H
+  DEFINE(SHIFT(KEY_I),          3), // I
+  DEFINE(SHIFT(KEY_J),          3), // J
+  DEFINE(SHIFT(KEY_K),          3), // K
+  DEFINE(SHIFT(KEY_L),          3), // L
+  DEFINE(SHIFT(KEY_M),          3), // M
+  DEFINE(SHIFT(KEY_N),          3), // N
+  DEFINE(SHIFT(KEY_O),          3), // O
+  DEFINE(SHIFT(KEY_P),          3), // P
+  DEFINE(SHIFT(KEY_Q),          3), // Q
+  DEFINE(SHIFT(KEY_R),          3), // R
+  DEFINE(SHIFT(KEY_S),          3), // S
+  DEFINE(SHIFT(KEY_T),          3), // T
+  DEFINE(SHIFT(KEY_U),          3), // U
+  DEFINE(SHIFT(KEY_V),          3), // V
+  DEFINE(SHIFT(KEY_W),          3), // W
+  DEFINE(SHIFT(KEY_X),          3), // X
+  DEFINE(SHIFT(KEY_Y),          3), // Y
+  DEFINE(SHIFT(KEY_Z),          3), // Z 
+  DEFINE(SHIFT(KEY_COLON),      3), // [
+  DEFINE(PRESS(KEY_POUND),      1), // \ (POUND)
+  DEFINE(SHIFT(KEY_SEMICOLON),  3), // ]
+  DEFINE(PRESS(KEY_UPARROW),    1), // ^ (UPARROW)
+  DEFINE(PRESS(KEY_BACKARROW),  1), // _ (BACKARROW)
+  DEFINE(SHIFT(KEY_ASTERISK),   3), // ` (CENTERED THICK BAR)                @ 96
+  DEFINE(PRESS(KEY_A),          1), // a
+  DEFINE(PRESS(KEY_B),          1), // b
+  DEFINE(PRESS(KEY_C),          1), // c
+  DEFINE(PRESS(KEY_D),          1), // d
+  DEFINE(PRESS(KEY_E),          1), // e
+  DEFINE(PRESS(KEY_F),          1), // f
+  DEFINE(PRESS(KEY_G),          1), // g
+  DEFINE(PRESS(KEY_H),          1), // h
+  DEFINE(PRESS(KEY_I),          1), // i
+  DEFINE(PRESS(KEY_J),          1), // j
+  DEFINE(PRESS(KEY_K),          1), // k
+  DEFINE(PRESS(KEY_L),          1), // l
+  DEFINE(PRESS(KEY_M),          1), // m
+  DEFINE(PRESS(KEY_N),          1), // n
+  DEFINE(PRESS(KEY_O),          1), // o
+  DEFINE(PRESS(KEY_P),          1), // p
+  DEFINE(PRESS(KEY_Q),          1), // q
+  DEFINE(PRESS(KEY_R),          1), // r
+  DEFINE(PRESS(KEY_S),          1), // s
+  DEFINE(PRESS(KEY_T),          1), // t
+  DEFINE(PRESS(KEY_U),          1), // u
+  DEFINE(PRESS(KEY_V),          1), // v
+  DEFINE(PRESS(KEY_W),          1), // w
+  DEFINE(PRESS(KEY_X),          1), // x
+  DEFINE(PRESS(KEY_Y),          1), // y
+  DEFINE(PRESS(KEY_Z),          1), // z
+  DEFINE(SHIFT(KEY_PLUS),       3), // { (CENTERED ORTHOGONAL THICK CROSS)
+  DEFINE(CBM(KEY_MINUS),        3), // | (LEFT HALF CHECKERBOARD)
+  DEFINE(SHIFT(KEY_B),          3), // } (MIDDLE VERTICAL THICK LINE)          
+  DEFINE(CBM(KEY_UPARROW),      3), // ~ (PI)
+  DEFINE(CBM(KEY_ASTERISK),     3), // DEL (TRIANGLE TOP RIGHT)              @ 127
+  UNDEFINED,
+  DEFINE(CBM(KEY_1),            3), // ORANGE
+  UNDEFINED,
+  UNDEFINED,
+  UNDEFINED,
+  DEFINE(PRESS(KEY_F1),         1), // F1
+  DEFINE(PRESS(KEY_F3),         1), // F3
+  DEFINE(PRESS(KEY_F5),         1), // F5
+  DEFINE(PRESS(KEY_F7),         1), // F7
+  DEFINE(SHIFT(KEY_F1),         3), // F2
+  DEFINE(SHIFT(KEY_F3),         3), // F4
+  DEFINE(SHIFT(KEY_F5),         3), // F6
+  DEFINE(SHIFT(KEY_F7),         3), // F8
+  DEFINE(SHIFT(KEY_RETURN),     3), // MOVE TO BEGINNING OF NEXT LINE
+  UNDEFINED,                        // SWITCH TO UPPERCASE (not typeable)
+  UNDEFINED,
+  DEFINE(CTRL(KEY_1),           3), // BLACK
+  DEFINE(SHIFT(KEY_DOWNCURSOR), 3), // CURSOR DOWN 
+  DEFINE(CTRL(KEY_0),           3), // RVS OFF
+  DEFINE(SHIFT(KEY_CLRHOME),    3), // CLEAR SCREEN & HOME CURSOR
+  DEFINE(PRESS(KEY_INSTDEL),    1), // DEL
+  DEFINE(CBM(KEY_2),            3), // BROWN
+  DEFINE(CBM(KEY_3),            3), // LIGHTRED
+  DEFINE(CBM(KEY_4),            3), // DARKGREY
+  DEFINE(CBM(KEY_5),            3), // GREY
+  DEFINE(CBM(KEY_6),            3), // LIGHTGREEN
+  DEFINE(CBM(KEY_7),            3), // LIGHTBLUE
+  DEFINE(CBM(KEY_8),            3), // LIGHTGREY
+  DEFINE(CTRL(KEY_5),           3), // PURPLE
+  DEFINE(SHIFT(KEY_CURSORLEFT), 3), // CURSOR RIGHT
+  DEFINE(CTRL(KEY_8),           3), // YELLOW
+  DEFINE(CTRL(KEY_4),           3), // CYAN
+  DEFINE(PRESS(KEY_SPACE),      1), // SPACE                                @ 160
+  DEFINE(CBM(KEY_K),            3),
+  DEFINE(CBM(KEY_I),            3),
+  DEFINE(CBM(KEY_T),            3),
+  DEFINE(CBM(KEY_AT),           3),
+  DEFINE(CBM(KEY_G),            3),
+  DEFINE(CBM(KEY_PLUS),         3),
+  DEFINE(CBM(KEY_M),            3),
+  DEFINE(CBM(KEY_POUND),        3),
+  DEFINE(SHIFT(KEY_POUND),      3),
+  DEFINE(CBM(KEY_L),            3),
+  DEFINE(CBM(KEY_Q),            3),
+  DEFINE(CBM(KEY_D),            3),
+  DEFINE(CBM(KEY_Z),            3),
+  DEFINE(CBM(KEY_S),            3),
+  DEFINE(CBM(KEY_P),            3),
+  DEFINE(CBM(KEY_A),            3),
+  DEFINE(CBM(KEY_E),            3),
+  DEFINE(CBM(KEY_R),            3),
+  DEFINE(CBM(KEY_W),            3),
+  DEFINE(CBM(KEY_H),            3),
+  DEFINE(CBM(KEY_J),            3),
+  DEFINE(CBM(KEY_L),            3),
+  DEFINE(CBM(KEY_Y),            3),
+  DEFINE(CBM(KEY_U),            3),
+  DEFINE(CBM(KEY_O),            3),
+  DEFINE(SHIFT(KEY_AT),         3),
+  DEFINE(CBM(KEY_F),            3),
+  DEFINE(CBM(KEY_C),            3),
+  DEFINE(CBM(KEY_X),            3),
+  DEFINE(CBM(KEY_C),            3), //                                      @ 190
+  DEFINE(CBM(KEY_B),            3),
 
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  DEFINE(PRESS(8), 1), // CR
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  UNDEFINED,
-  DEFINE(PRESS(39), 1), // SPACE 
-  DEFINE(SHIFT(7),  3), // !
-  DEFINE(SHIFT(31), 3), // "
-  DEFINE(SHIFT(1),  3), // #
-  DEFINE(SHIFT(25), 3), // $  
-  DEFINE(SHIFT(2),  3), // %
-  DEFINE(SHIFT(26), 3), // &
-  DEFINE(SHIFT(3),  3), // '
-  DEFINE(SHIFT(27), 3), // (
-  DEFINE(SHIFT(4),  3), // )
-  DEFINE(PRESS(14), 1), // *
-  DEFINE(PRESS(5),  1), // +
-  DEFINE(PRESS(61), 1), // ,
-  DEFINE(PRESS(29), 1), // -
-  DEFINE(PRESS(37), 1), // .
-  DEFINE(PRESS(62), 1), // /
-  DEFINE(PRESS(28), 1), // 0
-  DEFINE(PRESS(7),  1), // 1
-  DEFINE(PRESS(31), 1), // 2
-  DEFINE(PRESS(1),  1), // 3
-  DEFINE(PRESS(25), 1), // 4
-  DEFINE(PRESS(2),  1), // 5
-  DEFINE(PRESS(26), 1), // 6
-  DEFINE(PRESS(3),  1), // 7
-  DEFINE(PRESS(27), 1), // 8
-  DEFINE(PRESS(4),  1), // 9
-  DEFINE(PRESS(45), 1), // :
-  DEFINE(PRESS(22), 1), // ;
-  DEFINE(SHIFT(61), 3), // <
-  DEFINE(PRESS(46), 1), // =
-  DEFINE(SHIFT(37), 3), // <
-  DEFINE(SHIFT(62), 3), // ?
-  DEFINE(PRESS(53), 1), // @
-  DEFINE(SHIFT(17), 3), // A
-  DEFINE(SHIFT(35), 3), // B
-  DEFINE(SHIFT(34), 3), // C
-  DEFINE(SHIFT(18), 3), // D
-  DEFINE(SHIFT(49), 3), // E
-  DEFINE(SHIFT(42), 3), // F
-  DEFINE(SHIFT(19), 3), // G
-  DEFINE(SHIFT(43), 3), // H
-  DEFINE(SHIFT(12), 3), // I
-  DEFINE(SHIFT(20), 3), // J
-  DEFINE(SHIFT(44), 3), // K
-  DEFINE(SHIFT(21), 3), // L
-  DEFINE(SHIFT(36), 3), // M
-  DEFINE(SHIFT(60), 3), // N
-  DEFINE(SHIFT(52), 3), // O
-  DEFINE(SHIFT(13), 3), // P
-  DEFINE(SHIFT(55), 3), // Q
-  DEFINE(SHIFT(10), 3), // R
-  DEFINE(SHIFT(41), 3), // S
-  DEFINE(SHIFT(50), 3), // T
-  DEFINE(SHIFT(51), 3), // U
-  DEFINE(SHIFT(59), 3), // V
-  DEFINE(SHIFT(9),  3), // W
-  DEFINE(SHIFT(58), 3), // X
-  DEFINE(SHIFT(11), 3), // Y
-  DEFINE(SHIFT(33), 3), // Z 
-  DEFINE(SHIFT(45), 3), // [
-  DEFINE(PRESS(6),  1), // \ (POUND)
-  DEFINE(SHIFT(22), 3), // ]
-  DEFINE(PRESS(54), 1), // ^ (ARROWUP)
-  DEFINE(PRESS(15), 1), // _ (ARROWLEFT)
-  DEFINE(SHIFT(8),  3), // ` (SHIFT-RETURN)
-  DEFINE(PRESS(17), 1), // a
-  DEFINE(PRESS(35), 1), // b
-  DEFINE(PRESS(34), 1), // c
-  DEFINE(PRESS(18), 1), // d
-  DEFINE(PRESS(49), 1), // e
-  DEFINE(PRESS(42), 1), // f
-  DEFINE(PRESS(19), 1), // g
-  DEFINE(PRESS(43), 1), // h
-  DEFINE(PRESS(12), 1), // i
-  DEFINE(PRESS(20), 1), // j
-  DEFINE(PRESS(44), 1), // k
-  DEFINE(PRESS(21), 1), // l
-  DEFINE(PRESS(36), 1), // m
-  DEFINE(PRESS(60), 1), // n
-  DEFINE(PRESS(52), 1), // o
-  DEFINE(PRESS(13), 1), // p
-  DEFINE(PRESS(55), 1), // q
-  DEFINE(PRESS(10), 1), // r
-  DEFINE(PRESS(41), 1), // s
-  DEFINE(PRESS(50), 1), // t
-  DEFINE(PRESS(51), 1), // u
-  DEFINE(PRESS(59), 1), // v
-  DEFINE(PRESS(9),  1), // w
-  DEFINE(PRESS(58), 1), // x
-  DEFINE(PRESS(11), 1), // y
-  DEFINE(PRESS(33), 1), // z
-  UNDEFINED,            // {
-  DEFINE(SHIFT(30), 2), // | (SHIFT-CLRHOME)
-  UNDEFINED,            // }
-  DEFINE(PRESS(8),  1), // ~ (RETURN)
-  DEFINE(PRESS(0),  1), // DEL
+  // codes 192-223 equal 96-127
+
+  DEFINE(SHIFT(KEY_ASTERISK),   3), // ` (CENTERED THICK BAR)               @ 129
+  DEFINE(PRESS(KEY_A),          1), // a
+  DEFINE(PRESS(KEY_B),          1), // b
+  DEFINE(PRESS(KEY_C),          1), // c
+  DEFINE(PRESS(KEY_D),          1), // d
+  DEFINE(PRESS(KEY_E),          1), // e
+  DEFINE(PRESS(KEY_F),          1), // f
+  DEFINE(PRESS(KEY_G),          1), // g
+  DEFINE(PRESS(KEY_H),          1), // h
+  DEFINE(PRESS(KEY_I),          1), // i
+  DEFINE(PRESS(KEY_J),          1), // j
+  DEFINE(PRESS(KEY_K),          1), // k
+  DEFINE(PRESS(KEY_L),          1), // l
+  DEFINE(PRESS(KEY_M),          1), // m
+  DEFINE(PRESS(KEY_N),          1), // n
+  DEFINE(PRESS(KEY_O),          1), // o
+  DEFINE(PRESS(KEY_P),          1), // p
+  DEFINE(PRESS(KEY_Q),          1), // q
+  DEFINE(PRESS(KEY_R),          1), // r
+  DEFINE(PRESS(KEY_S),          1), // s
+  DEFINE(PRESS(KEY_T),          1), // t
+  DEFINE(PRESS(KEY_U),          1), // u
+  DEFINE(PRESS(KEY_V),          1), // v
+  DEFINE(PRESS(KEY_W),          1), // w
+  DEFINE(PRESS(KEY_X),          1), // x
+  DEFINE(PRESS(KEY_Y),          1), // y
+  DEFINE(PRESS(KEY_Z),          1), // z
+  DEFINE(SHIFT(KEY_PLUS),       3), // { (CENTERED ORTHOGONAL THICK CROSS)
+  DEFINE(CBM(KEY_MINUS),        3), // | (LEFT HALF CHECKERBOARD)
+  DEFINE(SHIFT(KEY_B),          3), // } (MIDDLE VERTICAL THICK LINE)          
+  DEFINE(CBM(KEY_UPARROW),      3), // ~ (PI, CBM-ARROWUP)
+  DEFINE(CBM(KEY_ASTERISK),     3), // DEL (TRIANGLE TOP RIGHT)             @ 223
+
+  // codes 224-254 equal 160-190
+
+  DEFINE(PRESS(KEY_SPACE),      1), // SPACE                                @ 224
+  DEFINE(CBM(KEY_K),            3),
+  DEFINE(CBM(KEY_I),            3),
+  DEFINE(CBM(KEY_T),            3),
+  DEFINE(CBM(KEY_AT),           3),
+  DEFINE(CBM(KEY_G),            3),
+  DEFINE(CBM(KEY_PLUS),         3),
+  DEFINE(CBM(KEY_M),            3),
+  DEFINE(CBM(KEY_POUND),        3),
+  DEFINE(SHIFT(KEY_POUND),      3),
+  DEFINE(CBM(KEY_L),            3),
+  DEFINE(CBM(KEY_Q),            3),
+  DEFINE(CBM(KEY_D),            3),
+  DEFINE(CBM(KEY_Z),            3),
+  DEFINE(CBM(KEY_S),            3),
+  DEFINE(CBM(KEY_P),            3),
+  DEFINE(CBM(KEY_A),            3),
+  DEFINE(CBM(KEY_E),            3),
+  DEFINE(CBM(KEY_R),            3),
+  DEFINE(CBM(KEY_W),            3),
+  DEFINE(CBM(KEY_H),            3),
+  DEFINE(CBM(KEY_J),            3),
+  DEFINE(CBM(KEY_L),            3),
+  DEFINE(CBM(KEY_Y),            3),
+  DEFINE(CBM(KEY_U),            3),
+  DEFINE(CBM(KEY_O),            3),
+  DEFINE(SHIFT(KEY_AT),         3),
+  DEFINE(CBM(KEY_F),            3),
+  DEFINE(CBM(KEY_C),            3),
+  DEFINE(CBM(KEY_X),            3),
+  DEFINE(CBM(KEY_C),            3),  //                                      @ 254
+
+  // code 255 equals 126
+
+  DEFINE(CBM(KEY_UPARROW),      3), // ~ (PI, CBM-ARROWUP)
+  
 };
 
 #undef DOWN
 #undef UP
 #undef PRESS
 #undef SHIFT
+#undef CTRL
+#undef CBM
 #undef DEFINE
 #undef UNDEFINED
 

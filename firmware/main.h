@@ -10,8 +10,6 @@
 #define MAGIC 0xDEADBEEF
 #define BOOTLOADER (0x20000 - 0x2000)
 
-uint8_t KEY_ARROWLEFT = 15;
-
 #define LOCK_NONE   0x00
 #define LOCK_SERIAL 0x01
 #define LOCK_MAP    0x02
