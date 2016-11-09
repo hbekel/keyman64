@@ -84,13 +84,13 @@ firmware-clean:
 	if [ "x$$OSTYPE" = "xcygwin" ]; then \
 	git checkout firmware/usbdrv/usbdrvasm.S; else true; fi
 
-program: firmware 
-	./keyman64 boot
-	sleep 3
+program: keyman64 firmware 
+	(./keyman64 boot && sleep 3) || true
 	make -C firmware program
 
 config: keyman64
-	./keyman64 example.conf example.bin && \
+	./keyman64 convert example.conf example.bin && \
+	(./keyman64 boot && sleep 3) || true
 	avrdude -p m1284p -c usbasp -U eeprom:w:example.bin:r
 
 test: test.conf keyman64
