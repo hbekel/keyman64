@@ -974,13 +974,14 @@ int main(int argc, char **argv) {
     { "keys",     no_argument,       0, 'k' },
     { "delay",    required_argument, 0, 'D' },
     { "preserve", no_argument,       0, 'p' },
+    { "identify", no_argument,       0, 'i' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
 
 
   while(1) {
-    option = getopt_long(argc, argv, "hvd:kD:p", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
 
     if(option == -1)
       break;
@@ -1014,6 +1015,11 @@ int main(int argc, char **argv) {
     case 'p':
       preserve_state = true;
       break;      
+
+    case 'i':
+      identify();
+      goto done;
+      break;
       
     case '?':
     case ':':
@@ -1187,8 +1193,17 @@ int convert(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
+void identify(void) {
+  char id[64];
+  if(usb_receive(device, KEYMAN64_IDENTIFY, 0, (uint8_t*) id, 64) > 0) {
+    printf("%s\n", id);
+  }
+}
+
+//------------------------------------------------------------------------------
+
 void version(void) {
-  printf("keyman64 %.1f\n", VERSION);
+  printf("Keyman64 v%.1f\n", VERSION);    
   printf("Copyright (C) 2016 Henning Bekel.\n");
   printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
@@ -1216,7 +1231,8 @@ void usage(void) {
 #endif
   printf("           -D, --delay    : delay in ms between commands\n");  
   printf("           -k, --keys     : list key names and synonyms\n");
-  printf("           -p, --preserve : preserve saved state during convert\n");  
+  printf("           -p, --preserve : preserve saved state during convert\n");
+  printf("           -i, --identify : request firmware identification via USB\n");
   printf("\n");
   printf("  Conversion arguments:\n");
   printf("           <infile>  : input file, format is autodetected\n");
@@ -1254,3 +1270,4 @@ void keys(void) {
 }
 
 //------------------------------------------------------------------------------
+

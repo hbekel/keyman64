@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 void version(void);
+void identify(void);
 void usage(void);
 void keys(void);
 

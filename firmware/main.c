@@ -15,8 +15,6 @@
 #include "encoding.h"
 #include "../protocol.h"
 
-char *version = xstr(VERSION);
-
 uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
 uint8_t MR = 1<<PD0; // Matrix Counter Reset
@@ -55,6 +53,8 @@ static volatile uint16_t usbDataLength;
 static volatile uint8_t *usbData;
 static volatile uint16_t usbDataPos;
 static volatile uint16_t usbDelay;
+
+static volatile char version[64];
 
 uint32_t BootKey ATTR_NO_INIT;
 
@@ -725,7 +725,8 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    ShowVersion();
+    Type((char*)version);
+    Type("\n\n");
     break;
 
   case ACTION_SHOW_STATE:
@@ -736,14 +737,20 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
 //------------------------------------------------------------------------------
 
-void ShowVersion(void) { // FIXME: tolower
-  char *version = "firmware " xstr(VERSION) " (" __DATE__ " " __TIME__ ")\n\n";
-  int len = strlen(version);
+void SetupVersionString(void) {
 
-  for(uint8_t i=0; i<len; i++) {
-    version[i] = tolower(version[i]);    
+  char *v = "firmware " xstr(VERSION) " " __DATE__ " " __TIME__;
+  int len = strlen(v);
+
+  for(uint8_t i=0; i<64; i++) {
+    version[i] = '\0';
   }
-  Type(version);
+  uint8_t o=0;
+  
+  for(uint8_t i=0; i<strlen(v); i++) {
+    if(i>1 && v[i-1] == ' ' && v[i] == ' ') continue;
+    version[o++] = tolower(v[i]);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -807,7 +814,7 @@ void RestoreState(void) {
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *request = (void*) data;
-
+  
   switch(request->bRequest) {
     
   case KEYMAN64_CTRL:
@@ -824,6 +831,12 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
   case KEYMAN64_STATE:
     usbMsgPtr = (uchar *) config->state;
     return 4;
+    break;
+
+  case KEYMAN64_IDENTIFY:
+    usbMsgPtr = (uchar *) version;
+    return strlen((const char*)version)+1;
+    break;
   }
   return 0;
 }
@@ -868,7 +881,8 @@ int main(void) {
   SetupHardware();
   SetupKeyboardLayout();
   SetupMappings();
-
+  SetupVersionString();
+  
   meta = KEY_BACKARROW;
   boot = false;
   

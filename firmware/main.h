@@ -72,7 +72,7 @@ void StrobeCrosspointSwitch8808(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock);
 void Type(char *string);
-void ShowVersion(void);
+void SetupVersionString(void);
 void ShowState(void);
 void SaveState(void);
 void RestoreState(void);
