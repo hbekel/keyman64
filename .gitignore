@@ -13,8 +13,9 @@
 *.stackdump
 *.zip
 *.d64
-fuses
 progmem
 keyman64
 keyman64.rom
 bootloader/firmware/main.asm
+bootloader/updater/updater.asm
+bootloader/updater/usbasploader.raw

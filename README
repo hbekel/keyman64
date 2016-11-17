@@ -37,7 +37,7 @@ Copyright 2016 Henning Bekel <h.bekel@googlemail.com>
 LICENSING
 
 Hardware licenced under CERN OHL v.1.2, see ./hardware/LICENSE.txt
-Software and firmware licenced under GNU GPLv3, see ./LICENSE.txt
+Software and firmware licenced under GNU GPLv3, see ./LICENSE
 
 The firmware contains the V-USB Driver (https://www.obdev.at/vusb),
 (C)2008 Objective Development GmbH.

@@ -149,6 +149,9 @@ bool Config_read(volatile Config *self, FILE* in) {
 
 //------------------------------------------------------------------------------
 
+#define xstr(s) mstr(s)
+#define mstr(s) #s
+
 bool Config_install_fallback(volatile Config *self) {
 
   Binding *binding;
@@ -157,20 +160,22 @@ bool Config_install_fallback(volatile Config *self) {
   const uint8_t TEST_MESSAGE = 0;
   Config_add_string(self,
                     "\f\n"
-                    " ***** keyman64 version 1.3 ready *****\n\n" 
+                    " ***** keyman64 version " xstr(VERSION) " ready *****\n"
+                    "\n" 
                     "    no configuration found in eeprom\n"
                     "      using fallback configuration\n"
                     "\n"
-                    "      press _b to enter bootloader\n"
-                    "       press _f to test frequency\n"
-                    "     press _t to repeat this message\n"
+                    "       _v: type firmware version\n"
+                    "       _b: enter bootloader\n"
+                    "       _f: test crystal frequency\n"
+                    "       _t: type this message\n"
                     "\n"
                     "ready.\n");
 
   const uint8_t FREQUENCY_MESSAGE = 1;
   Config_add_string(self,
                     "\f\n"
-                    "        keyman64 frequency test\n"
+                    " *****  keyman64 frequency test  *****\n"
                     "\n"
                     "if the following ten dots are not typed\n"
                     "with about one second delay in between,\n"
@@ -229,6 +234,17 @@ bool Config_install_fallback(volatile Config *self) {
   command->data = 0;  
   Binding_add(binding, command);
   
+  Config_add_binding(self, binding);
+
+  binding = Binding_new();
+  binding->key = KEY_V;
+
+  command = Command_new();
+  command->action = ACTION_SHOW_VERSION;
+  command->mask = 0;
+  command->data = 0;  
+  Binding_add(binding, command);
+
   Config_add_binding(self, binding);
   
   return true;

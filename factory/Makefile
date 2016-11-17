@@ -1,14 +1,12 @@
-PROGRAMMER=minipro -p ATMEGA1284
+VERSION=1.4
+PROGRAMMER=minipro -p ATMEGA1284P
 FUSES=-c config
 PROGRAM=-c code
 READ=-r
 WRITE=-w
 
 all:
-	@echo "use 'clone' target to read data from preprogrammed atmega"
 	@echo "use 'write' target to write to empty atmega"
-
-clone: clean fuses progmem
 
 write: progmem fuses
 	@echo -ne "\ninsert target..."
@@ -16,14 +14,10 @@ write: progmem fuses
 	$(PROGRAMMER) $(FUSES) $(WRITE) fuses
 	$(PROGRAMMER) $(PROGRAM) $(WRITE) progmem
 
-progmem:
-	$(PROGRAMMER) $(PROGRAM) $(READ) progmem
-
-fuses:
-	@echo -ne "\ninsert master..."
-	@read -n1
-	$(PROGRAMMER) $(FUSES) $(READ) fuses
+progmem: 
+	make -C .. bin
+	cp ../keyman64-application-and-bootloader-$(VERSION).bin progmem
 
 clean:
-	rm -rf progmem fuses
+	rm -rf progmem
 

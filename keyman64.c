@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
@@ -34,6 +35,9 @@ const char *ws = " \t";
 char *device;
 uint16_t delay = 0;
 bool preserve_state = false;
+
+DeviceInfo keyman64;
+DeviceInfo usbasp;
 
 //------------------------------------------------------------------------------
 // Utility functions for parsing
@@ -761,7 +765,7 @@ void State_write(State *self, FILE* out) {
 bool State_fetch(State *self) {
   int result;
   
-  if((result = usb_receive(device, KEYMAN64_STATE, 0, (uint8_t*) self, sizeof(State))) < 0) {
+  if((result = usb_receive(&keyman64, KEYMAN64_STATE, 0, 0, (uint8_t*) self, sizeof(State))) < 0) {
     fprintf(stderr, "error: could not send usb control message: %s\n", libusb_strerror(result));
   }
   return result;
@@ -954,6 +958,22 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 
 //------------------------------------------------------------------------------
 
+static void prepare_devices(void) {
+  strncpy(keyman64.path, device, 4096);
+  keyman64.vid = KEYMAN64_VID;
+  keyman64.pid = KEYMAN64_PID;
+
+#if linux
+  strncpy(usbasp.path, "/dev/usbasp", 4096);
+#else
+  strncpy(usbasp.path, "usbasp", 4096);
+#endif
+  usbasp.vid = USBASP_VID;
+  usbasp.pid = USBASP_PID;
+}
+
+//------------------------------------------------------------------------------
+
 int main(int argc, char **argv) {
 
 #if linux
@@ -963,6 +983,7 @@ int main(int argc, char **argv) {
 #endif
 
   int result = EXIT_SUCCESS;
+  usb_quiet = false;
   
   device = (char*) calloc(strlen(default_device)+1, sizeof(char));
   strcpy(device, default_device);
@@ -1027,11 +1048,19 @@ int main(int argc, char **argv) {
     }    
   }
 
+  prepare_devices();
+  
   argc -= optind;
   argv += optind;
 
   if(argc && (strcmp(argv[0], "convert") == 0)) {
     result = convert(--argc, ++argv);
+  }
+  else if(argc && (strcmp(argv[0], "configure") == 0)) {
+    result = configure(--argc, ++argv);
+  }
+  else if(argc && (strcmp(argv[0], "update") == 0)) {
+    result = update(--argc, ++argv);
   }
   else {
     result = command(argc, argv);
@@ -1111,7 +1140,7 @@ int command(int argc, char **argv) {
   fmemupdate(out, data, size);  
   fclose(out);
 
-  if((result = usb_send(device, KEYMAN64_CTRL, delay, data, size)) < 0) {
+  if((result = usb_send(&keyman64, KEYMAN64_CTRL, delay, 0, data, size)) < 0) {
     fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
     goto done;
   }
@@ -1193,9 +1222,151 @@ int convert(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
+int configure(int argc, char **argv) {
+
+  int result = EXIT_FAILURE;
+
+  FILE *in  = stdin;
+  FILE *out = NULL;
+  uint8_t *data = NULL;
+  uint16_t size = 0;
+
+  config = Config_new();
+  
+  if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
+
+    if((in = fopen(argv[0], "rb")) == NULL) {
+      fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
+      goto done;
+    }
+  }
+
+  if(in == stdin) {
+    fprintf(stderr, "reading from stdin...\n");
+  }
+
+  if(Config_read(config, in) || Config_parse(config, in)) {
+
+    if(preserve_state) {
+      if(!State_fetch(config->state)) {
+        fprintf(stderr, "warning: could not fetch saved state from device\n");
+      }        
+    }
+
+    data = (uint8_t*) calloc(4096, sizeof(char));
+  
+    if((out = fmemopen(data, 4096, "wb")) == NULL) {
+      fprintf(stderr, "error: %s\n", strerror(errno));
+      goto done;
+    }
+  
+    Config_write(config, out);
+    size = ftell(out);
+    fmemupdate(out, data, size);  
+    fclose(out);
+
+    if(!usb_ping(&keyman64)) {
+      fprintf(stderr, "error: could not connect to keyman64\n");
+      goto done;
+    }
+
+    fprintf(stderr, "Flashing configuration: %d bytes...", size);
+    fflush(stderr);
+
+    result = usb_send(&keyman64, KEYMAN64_FLASH, 0, 0, data, size);
+
+    fprintf(stderr, (result == size) ? "ok\n" : "failed!\n");
+  }
+
+ done:
+  Config_free(config);
+  fclose(in);
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+
+int update(int argc, char **argv) {
+  int result = EXIT_FAILURE;
+  FILE *in;
+  uint8_t *data = NULL;
+  uint16_t size = 0;
+  
+  struct stat st;
+  
+  if(!argc) {
+    usage();
+    goto done;
+  }
+  
+  if((in = fopen(argv[0], "rb")) == NULL) {
+    goto error;
+  }
+
+  if(fstat(fileno(in), &st) == -1) {
+    goto error;
+  }
+
+  size = st.st_size;
+  data = (uint8_t *) calloc(size, sizeof(uint8_t));
+
+  if(fread(data, sizeof(uint8_t), size, in) != size) {
+    goto error;
+  }
+  fclose(in);
+
+  if(usb_ping(&keyman64)) {
+    fprintf(stderr, "Entering bootloader"); fflush(stderr);
+    usb_control(&keyman64, KEYMAN64_BOOT);
+
+    uint8_t tries = 10;
+    while(!usb_ping(&usbasp)) {
+      fprintf(stderr, "."); fflush(stderr);
+
+#if windows 
+      Sleep(1000);
+#else
+      sleep(1);
+#endif
+      
+      if(!--tries) break;
+    }
+  }
+
+  if(usb_ping(&usbasp)) {
+    usb_control(&usbasp, USBASP_CONNECT);
+  
+    for(uint32_t i=0; i<size+64; i+=64) {
+      usb_send(&usbasp, USBASP_WRITEFLASH,
+               (uint16_t) (i & 0xffff), (uint16_t) (i>>16),
+               data+i, 64);
+      fprintf(stderr, "\rUpdating application: %d of %d bytes transferred...",
+              (i<size) ? i : size , size);
+    }
+    fprintf(stderr, "ok\n");
+
+    usb_quiet = true;  
+    usb_control(&usbasp, USBASP_DISCONNECT);
+  }
+  else {
+    fprintf(stderr, "error: could not connect to usbasp bootloader\n");
+  }
+  
+ done:
+  if(data != NULL) free(data);
+  return result;
+
+ error:
+  fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
+  goto done;
+}
+
+//------------------------------------------------------------------------------
+
 void identify(void) {
   char id[64];
-  if(usb_receive(device, KEYMAN64_IDENTIFY, 0, (uint8_t*) id, 64) > 0) {
+  if(usb_receive(&keyman64, KEYMAN64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
     printf("%s\n", id);
   }
 }
@@ -1218,8 +1389,10 @@ void usage(void) {
   printf("Usage:\n");
   printf("      keyman64 <options>\n");
   printf("      keyman64 <options> convert [<infile>|-] [<outfile>|-]\n");
+  printf("      keyman64 <options> configure [<infile>|-]\n");
+  printf("      keyman64 <options> update <firmware>\n");    
   printf("      keyman64 [<options>] <command>\n");
-  printf("      keyman64 [<options>] [<file>]\n");    
+  printf("      keyman64 [<options>] [<script>]\n");    
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");
@@ -1234,14 +1407,16 @@ void usage(void) {
   printf("           -p, --preserve : preserve saved state during convert\n");
   printf("           -i, --identify : request firmware identification via USB\n");
   printf("\n");
-  printf("  Conversion arguments:\n");
-  printf("           <infile>  : input file, format is autodetected\n");
-  printf("           <outfile> : output file, format determined by extension:\n");
+  printf("  Files:\n");
+  printf("           <infile>   : input file, format is autodetected\n");
+  printf("           <outfile>  : output file, format determined by extension\n");
+  printf("           <script>   : script file containing keyman64 commands\n");
+  printf("           <firmware> : binary firmware image\n");    
   printf("\n");
   printf("           *.conf : plain text config file format\n");
   printf("           *.bin  : binary file format (default)\n");  
   printf("\n");
-  printf("           Missing arguments default to stdin or stdout\n");
+  printf("           Optional arguments default to stdin or stdout\n");
   printf("\n");
   printf("  Command:\n");
   printf("            (any valid keyman64 command)\n");

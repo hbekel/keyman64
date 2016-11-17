@@ -1,4 +1,4 @@
-VERSION=1.3
+VERSION=1.4
 
 CC?=gcc
 CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)
@@ -50,20 +50,33 @@ keyman64: $(HEADERS) $(SOURCES) config.c
 keyman64.exe: $(HEADERS) $(SOURCES) config.c
 	$(MINGW32)-gcc $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
 
-hex: keyman64-$(VERSION)-application.hex \
-	keyman64-$(VERSION)-bootloader.hex\
-	keyman64-$(VERSION)-application-and-bootloader.hex
+hex: keyman64-application-$(VERSION).hex \
+	keyman64-bootloader-$(VERSION).hex \
+	keyman64-application-and-bootloader-$(VERSION).hex \
+	keyman64-bootloader-updater-$(VERSION).hex
 
-keyman64-$(VERSION)-application.hex: firmware
+bin: keyman64-application-and-bootloader-$(VERSION).bin keyman64-application-$(VERSION).bin
+
+keyman64-application-$(VERSION).bin: keyman64-application-$(VERSION).hex
+	(which hex2bin 2> /dev/null && hex2bin keyman64-application-$(VERSION).hex) || true
+
+keyman64-application-and-bootloader-$(VERSION).bin: keyman64-application-and-bootloader-$(VERSION).hex
+	(which hex2bin 2> /dev/null && hex2bin -m 1 -l 20000 keyman64-application-and-bootloader-$(VERSION).hex) || true
+
+keyman64-application-$(VERSION).hex: firmware
 	cp firmware/main.hex $@
 	chmod -x $@
 
-keyman64-$(VERSION)-bootloader.hex: bootloader
+keyman64-bootloader-$(VERSION).hex: bootloader
 	cp bootloader/firmware/main.hex $@
 	chmod -x $@
 
-keyman64-$(VERSION)-application-and-bootloader.hex: firmware bootloader
+keyman64-application-and-bootloader-$(VERSION).hex: firmware bootloader
 	(head -n-1 firmware/main.hex; cat bootloader/firmware/main.hex) > $@
+	chmod -x $@
+
+keyman64-bootloader-updater-$(VERSION).hex: bootloader
+	cp bootloader/updater/updater.hex $@
 	chmod -x $@
 
 bootloader: bootloader/firmware/main.hex

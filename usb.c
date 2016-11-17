@@ -11,7 +11,7 @@
 // USB device discovery & handling
 //------------------------------------------------------------------------------
 
-static bool usb_lookup(char *path, DeviceInfo *info) {
+static bool usb_lookup(DeviceInfo *info) {
 
   info->bus     = -1;
   info->address = -1;
@@ -19,7 +19,7 @@ static bool usb_lookup(char *path, DeviceInfo *info) {
   
 #if linux
 
-  char* real = realpath(path, NULL);
+  char* real = realpath(info->path, NULL);
   char* tmp = real;
   char* bus;
   char* address;
@@ -45,7 +45,7 @@ static bool usb_lookup(char *path, DeviceInfo *info) {
 #elif windows
 
   char *colon;
-  if((colon = strstr(path, ":")) != NULL) {
+  if((colon = strstr(info->path, ":")) != NULL) {
     info->serial = colon+1;
   }
 #endif
@@ -66,14 +66,20 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
   int i = 0;
 
   if((result = libusb_get_device_list(context, &devices)) < 0) {
-    fprintf(stderr, "error: could not get usb device list: %s\n", libusb_strerror(result));
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not get usb device list: %s\n",
+              libusb_strerror(result));
+    }
     return NULL;
   }
   
   while ((device = devices[i++]) != NULL) {
 
     if((result = libusb_get_device_descriptor(device, &descriptor)) < 0) {
-      fprintf(stderr, "warning: could not get usb device descriptor: %s\n", libusb_strerror(result));
+      if(!usb_quiet) {
+        fprintf(stderr, "warning: could not get usb device descriptor: %s\n",
+                libusb_strerror(result));
+      }
       continue;
     }
     
@@ -97,10 +103,12 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
         if(descriptor.iSerialNumber != 0) {
           
           if((result = libusb_open(device, &handle)) < 0) {
-            fprintf(stderr, "warning: could not open usb device %03d/%03d: %s\n",
-                    libusb_get_bus_number(device),
-                    libusb_get_device_address(device),
-                    libusb_strerror(result));
+            if(!usb_quiet) {
+              fprintf(stderr, "warning: could not open usb device %03d/%03d: %s\n",
+                      libusb_get_bus_number(device),
+                      libusb_get_device_address(device),
+                      libusb_strerror(result));
+            }
             continue;
           }
           
@@ -108,8 +116,10 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
                                                       (unsigned char *) &serial, sizeof(serial));
           
           if(result < 0) {
-            fprintf(stderr, "warning: could not get serial number from device: %s\n",
-                    libusb_strerror(result));
+            if(!usb_quiet) {
+              fprintf(stderr, "warning: could not get serial number from device: %s\n",
+                      libusb_strerror(result));
+            }
             goto skip;
           }
           
@@ -126,11 +136,12 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
       
       if(handle == NULL) {
         if((result = libusb_open(device, &handle)) < 0) {
-          fprintf(stderr, "error: could not open usb device %03d/%03d: %s\n",
-                  libusb_get_bus_number(device),
-                  libusb_get_device_address(device),
-                  libusb_strerror(result));
-          
+          if(!usb_quiet) {
+            fprintf(stderr, "error: could not open usb device %03d/%03d: %s\n",
+                    libusb_get_bus_number(device),
+                    libusb_get_device_address(device),
+                    libusb_strerror(result));
+          }
           handle = NULL;
         }
       }
@@ -146,26 +157,27 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
 
 //------------------------------------------------------------------------------
 
-static int usb_message(char* device, int direction, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
+static int usb_message(DeviceInfo *info, int direction, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
 
   libusb_device_handle *handle = NULL;
-  DeviceInfo info;
   int result;
   
   if((result = libusb_init(NULL)) < 0) {
-    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n", libusb_strerror(result));
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not initialize libusb-1.0: %s\n",
+              libusb_strerror(result));
+    }
     goto done;
   }
-  
-  info.vid = KEYMAN64_VID;
-  info.pid = KEYMAN64_PID;
 
-  usb_lookup(device, &info);
-  handle = usb_open(NULL, &info);
+  usb_lookup(info);
+  handle = usb_open(NULL, info);
   
   if(handle == NULL) {
     result = -1;
-    fprintf(stderr, "error: could not open usb device \"%s\"\n", device);
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not open usb device \"%s\"\n", info->path);
+    }
     goto done;
   }
 
@@ -173,11 +185,14 @@ static int usb_message(char* device, int direction, uint8_t message, uint16_t va
                                    LIBUSB_REQUEST_TYPE_VENDOR |
                                    LIBUSB_RECIPIENT_DEVICE |
                                    direction,
-                                   message, value, 0,
+                                   message, value, index,
                                    buf, size, 5000);
   
-  if(!result) {
-    fprintf(stderr, "error: could send usb control message: %s\n", libusb_strerror(result));
+  if(result < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not send usb control message: %s\n",
+              libusb_strerror(result));
+    }
     goto done;
   }
 
@@ -194,14 +209,48 @@ static int usb_message(char* device, int direction, uint8_t message, uint16_t va
 // USB utility functions
 //------------------------------------------------------------------------------
 
-int usb_send(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
-  return usb_message(device, LIBUSB_ENDPOINT_OUT, message, value, buf, size);  
+bool usb_ping(DeviceInfo *info) { 
+
+  libusb_device_handle *handle = NULL;
+  bool result = false;
+  
+  if(libusb_init(NULL) < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not initialize libusb-1.0: %s\n",
+              libusb_strerror(result));
+    }
+    goto done;
+  }
+
+  usb_lookup(info);
+  handle = usb_open(NULL, info);
+  result = handle != NULL;
+  
+ done:
+  if(handle != NULL) {
+    libusb_close(handle);
+  }
+  libusb_exit(NULL);
+  
+  return result;
 }
 
 //------------------------------------------------------------------------------
 
-int usb_receive(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size) {
-  return usb_message(device, LIBUSB_ENDPOINT_IN, message, value, buf, size); 
+int usb_control(DeviceInfo *info, uint8_t message) {
+  return usb_message(info, LIBUSB_ENDPOINT_OUT, message, 0, 0, NULL, 0);  
+}
+
+//------------------------------------------------------------------------------
+
+int usb_send(DeviceInfo *info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
+  return usb_message(info, LIBUSB_ENDPOINT_OUT, message, value, 0, buf, size);  
+}
+
+//------------------------------------------------------------------------------
+
+int usb_receive(DeviceInfo* info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
+  return usb_message(info, LIBUSB_ENDPOINT_IN, message, value, index, buf, size); 
 }
 
 //------------------------------------------------------------------------------

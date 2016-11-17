@@ -3,12 +3,19 @@
 
 #include <stdio.h>
 
+#define USBASP_CONNECT    1
+#define USBASP_WRITEFLASH 6
+#define USBASP_READFLASH  4
+#define USBASP_DISCONNECT 2
+
 void version(void);
 void identify(void);
 void usage(void);
 void keys(void);
 
 int convert(int argc, char **argv);
+int configure(int argc, char **argv);
+int update(int argc, char **argv);
 int command(int argc, char **argv);
 
 bool Config_parse(Config* self, FILE* in);

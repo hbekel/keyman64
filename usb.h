@@ -6,7 +6,13 @@
 #define KEYMAN64_VID 0x1d50
 #define KEYMAN64_PID 0x60e9
 
+#define USBASP_VID 0x16c0
+#define USBASP_PID 0x05dc
+
+bool usb_quiet;
+
 typedef struct {
+  char path[4096];
   unsigned int vid;
   unsigned int pid;
   int bus;
@@ -14,7 +20,9 @@ typedef struct {
   char *serial;
 } DeviceInfo;
 
-int usb_send(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size);
-int usb_receive(char* device, uint8_t message, uint16_t value, uint8_t* buf, uint16_t size);
+bool usb_ping(DeviceInfo *info);
+int usb_control(DeviceInfo *info, uint8_t message);
+int usb_send(DeviceInfo *info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
+int usb_receive(DeviceInfo* info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
 
 #endif // KEYMAN64_USB_H

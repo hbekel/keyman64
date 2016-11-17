@@ -608,10 +608,9 @@ static inline void  bootLoaderExit(void)
 #if (BOOTLOADER_IGNOREPROGBUTTON)
 #	define bootLoaderConditionSimple()	(false)
 #else
-#	define bootLoaderConditionSimple()	((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0)
+#	define bootLoaderConditionSimple()	(((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0))
 #endif
 
-#if (HAVE_BOOTLOADERENTRY_FROMSOFTWARE)
 /*
  * How it works: The idea
  * 
@@ -625,34 +624,28 @@ static inline void  bootLoaderExit(void)
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <avr/eeprom.h>
 
 #define __BOOTLOADERENTRY_FROMSOFTWARE__EXPECTEDADDRESS	(BOOTLOADER_ADDRESS>>1)
 static volatile uint8_t __BOOTLOADERENTRY_FROMSOFTWARE__bootup_RAMEND_doesmatch __attribute__ ((section(".noinit")));
 static volatile uint8_t __BOOTLOADERENTRY_FROMSOFTWARE__bootup_MCUCSR __attribute__ ((section(".noinit")));
 
-#	if (BOOTLOADER_ALWAYSENTERPROGRAMMODE)
-#		define bootLoaderCondition()	(true)
-#	else
 static inline bool bootLoaderCondition(void)
 {
-  if (__BOOTLOADERENTRY_FROMSOFTWARE__bootup_MCUCSR & (~(_BV(WDRF)))) {
-  } else {
-    if (__BOOTLOADERENTRY_FROMSOFTWARE__bootup_RAMEND_doesmatch == (__BOOTLOADERENTRY_FROMSOFTWARE__EXPECTEDADDRESS & 0xff)) {
-      // anything else: match - the firmware is calling the bootloader
-      return true;
-    }
+  bool result = false;
+  uint16_t magic;
+  
+  if((MCUSR & (1 << WDRF))) { // reset by watchdog
+    magic = eeprom_read_word((const uint16_t *)0x0ffe);
+    result =  magic == 0xb0b0;
+    eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xffff);
   }
-  return bootLoaderConditionSimple();
+  else if((MCUSR & (1 << EXTRF))) { // external reset
+    result = (((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0));
+  }
+  MCUSR = 0;
+  return result;
 }
-#	endif
-#else
-#	if (BOOTLOADER_ALWAYSENTERPROGRAMMODE)
-#		define bootLoaderCondition()	(true)
-#	else
-#		define bootLoaderCondition	bootLoaderConditionSimple
-#	endif
-#endif
-
 #endif /* __ASSEMBLER__ */
 
 /* ------------------------------------------------------------------------- */

@@ -7,12 +7,6 @@
 #include "config.h"
 #include "usbdrv/usbdrv.h"
 
-#define ATTR_NO_INIT __attribute__ ((section(".noinit")))
-#define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
-
-#define MAGIC 0xDEADBEEF
-#define BOOTLOADER (0x20000 - 0x2000)
-
 #define LOCK_NONE   0x00
 #define LOCK_SERIAL 0x01
 #define LOCK_MAP    0x02
@@ -77,11 +71,13 @@ void ShowState(void);
 void SaveState(void);
 void RestoreState(void);
 void EnterBootloader(void);
-void CheckBootloader(void) ATTR_INIT_SECTION_3;
+void Reset(void);
 int ReadEeprom(FILE* file);
 
 void SetupUSB(void);
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
 USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len);
+void FlashConfigurationFromUSBData(void);
 void ExecuteCommandsFromUSBData(void);
+
 #endif // MAIN_H

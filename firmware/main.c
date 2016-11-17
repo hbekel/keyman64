@@ -44,10 +44,12 @@ volatile Mapping mappings[16];
 volatile Config* config;
 volatile uint8_t meta;
 volatile bool boot;
+volatile bool reset;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
 
+static volatile uint8_t usbCommand;
 static volatile uint16_t usbDataReceived;
 static volatile uint16_t usbDataLength;
 static volatile uint8_t *usbData;
@@ -56,8 +58,6 @@ static volatile uint16_t usbDelay;
 
 static volatile char version[64];
 
-uint32_t BootKey ATTR_NO_INIT;
-
 //------------------------------------------------------------------------------
 
 #include "config.h"
@@ -65,18 +65,13 @@ uint32_t BootKey ATTR_NO_INIT;
 
 //------------------------------------------------------------------------------
 
-void CheckBootloader(void) {
-  if((MCUSR & (1 << WDRF)) && (BootKey == MAGIC)) {
-    BootKey = 0;
-    ((void (*)(void))BOOTLOADER)();
-  }
+void EnterBootloader(void) {
+  eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
+  Reset();
 }
 
-//------------------------------------------------------------------------------
-
-void EnterBootloader(void) {
+void Reset(void) {
   cli();
-  BootKey = MAGIC;
   wdt_enable(WDTO_250MS);
   for(;;);
 }
@@ -299,7 +294,23 @@ int ReadEeprom(FILE* file) {
 
 //------------------------------------------------------------------------------
 
-FILE eeprom = FDEV_SETUP_STREAM(NULL, ReadEeprom, _FDEV_SETUP_READ);
+int WriteEeprom(char data, FILE* file) {
+
+  static volatile uint16_t addr = 0;
+  
+  while(EECR & (1<<EEPE));
+  EEAR = addr;
+  EEDR = data;
+  EECR |= (1<<EEMPE);
+  EECR |= (1<<EEPE);
+  addr += 1;
+
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+
+FILE eeprom = FDEV_SETUP_STREAM(WriteEeprom, ReadEeprom, _FDEV_SETUP_RW);
 
 //------------------------------------------------------------------------------
 
@@ -312,7 +323,6 @@ int ReadUSBData(FILE* file) {
 FILE usbdata = FDEV_SETUP_STREAM(NULL, ReadUSBData, _FDEV_SETUP_READ);
 
 //------------------------------------------------------------------------------
-
 
 void ExecuteImmediateCommands(volatile Config* cfg, uint16_t delay) {
   uint16_t ms;
@@ -813,13 +823,15 @@ void RestoreState(void) {
 
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
-  usbRequest_t *request = (void*) data;
+  usbRequest_t *usbRequest = (void*) data;
   
-  switch(request->bRequest) {
+  switch(usbRequest->bRequest) {
     
   case KEYMAN64_CTRL:
-    usbDataLength = request->wLength.word;
-    usbDelay = request->wValue.word;
+  case KEYMAN64_FLASH:
+    usbCommand = usbRequest->bRequest;
+    usbDataLength = usbRequest->wLength.word;
+    usbDelay = usbRequest->wValue.word;
     usbDataReceived = 0;
     
     if(usbData == NULL) {
@@ -828,6 +840,10 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     return USB_NO_MSG;
     break;
 
+  case KEYMAN64_BOOT:
+    boot = true;    
+    break;
+    
   case KEYMAN64_STATE:
     usbMsgPtr = (uchar *) config->state;
     return 4;
@@ -843,6 +859,8 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+
 USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
 
   for(int i=0; usbDataReceived < usbDataLength && i < len; i++, usbDataReceived++) {
@@ -853,7 +871,12 @@ USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
     return 0;
   }
   else {
-    ExecuteCommandsFromUSBData();
+    if(usbCommand == KEYMAN64_CTRL) {
+      ExecuteCommandsFromUSBData();
+    }
+    else if(usbCommand == KEYMAN64_FLASH) {
+      FlashConfigurationFromUSBData();
+    }
   }
   
   free((void*)usbData);
@@ -876,6 +899,22 @@ void ExecuteCommandsFromUSBData(void) {
 
 //------------------------------------------------------------------------------
 
+void FlashConfigurationFromUSBData(void) {
+  
+  // Restore the saved state prior to overriding it in flash...
+  RestoreState();
+  
+  if(fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength) {
+
+    // Save the previously restored state back into eeprom
+    SaveState();
+
+    reset = true;
+  }
+}
+
+//------------------------------------------------------------------------------
+
 int main(void) {
 
   SetupHardware();
@@ -885,6 +924,7 @@ int main(void) {
   
   meta = KEY_BACKARROW;
   boot = false;
+  reset = false;
   
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
   StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
@@ -901,14 +941,15 @@ int main(void) {
   
   Binding *binding;
   bool relayMetaKey = true;
-  
+
   while(true) {
 
     usbPoll();
 
-    if(boot) {
+    if(boot || reset) {
       _delay_ms(250);
-      EnterBootloader();
+      if(boot) EnterBootloader();
+      if(reset) Reset();
     }
 
     ApplyMappings();
