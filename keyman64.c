@@ -981,7 +981,7 @@ int main(int argc, char **argv) {
 #else
   const char* default_device = "usb";
 #endif
-
+  
   int result = EXIT_SUCCESS;
   usb_quiet = false;
   
@@ -999,8 +999,7 @@ int main(int argc, char **argv) {
     { 0, 0, 0, 0 },
   };
   int option, option_index;
-
-
+  
   while(1) {
     option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
 
@@ -1047,12 +1046,20 @@ int main(int argc, char **argv) {
       goto done;
     }    
   }
-
-  prepare_devices();
   
   argc -= optind;
   argv += optind;
 
+  if(!argc) {
+    usage();
+#if windows
+    system("pause");
+#endif
+    goto done;
+  }
+
+  prepare_devices();
+  
   if(argc && (strcmp(argv[0], "convert") == 0)) {
     result = convert(--argc, ++argv);
   }
@@ -1096,27 +1103,31 @@ static void join(char** dst, char **src, int size) {
 int command(int argc, char **argv) {
   int result = EXIT_FAILURE;
   
-  FILE *in = stdin;
+  FILE *in = NULL;
   FILE *out = NULL;
   char *str = (char*) calloc(1, sizeof(char));
   uint8_t *data = NULL;
   uint16_t size = 0;
   
-  if(argc) {
-
-    if((in = fopen(argv[0], "rb")) == NULL) {
+  if(strlen(argv[0]) == 1 && argv[0][0] == '-') {
+    in = stdin;
+  }    
+  else if((in = fopen(argv[0], "rb")) == NULL) {
     
-      join(&str, argv, argc);
+    join(&str, argv, argc);
     
-      if(strlen(str)) {
-        if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
-          fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
-          goto done;
-        }
+    if(strlen(str)) {
+      if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
+        fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
+        goto done;
       }
     }
   }
 
+  if(in == NULL) {
+    goto done;
+  }
+  
   if(in == stdin) {
     fprintf(stderr, "reading commands from stdin...\n");
   }
@@ -1366,6 +1377,7 @@ int update(int argc, char **argv) {
 
 void identify(void) {
   char id[64];
+  prepare_devices();
   if(usb_receive(&keyman64, KEYMAN64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
     printf("%s\n", id);
   }
@@ -1389,10 +1401,10 @@ void usage(void) {
   printf("Usage:\n");
   printf("      keyman64 <options>\n");
   printf("      keyman64 <options> convert [<infile>|-] [<outfile>|-]\n");
-  printf("      keyman64 <options> configure [<infile>|-]\n");
+  printf("      keyman64 <options> configure [<infile>]\n");
   printf("      keyman64 <options> update <firmware>\n");    
   printf("      keyman64 [<options>] <command>\n");
-  printf("      keyman64 [<options>] [<script>]\n");    
+  printf("      keyman64 [<options>] [<script>|-]\n");    
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");
