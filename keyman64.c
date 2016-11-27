@@ -261,6 +261,23 @@ static bool isSymbol(char *name) {
     return false;
 }
 
+static char* trim(char* s)
+{
+  int len = strlen(s);
+  
+  while (len && isspace(s[0]))
+  {
+    s++; len--;
+  }
+
+  while (len && isspace(s[len - 1]))
+  {
+    s[len - 1] = 0; len--;
+  }
+
+  return s;
+}
+
 //------------------------------------------------------------------------------
 
 static void unescape(char *str) {
@@ -405,14 +422,14 @@ bool Config_parse(Config* self, FILE* in) {
     // check if this command is a definition
     if((equals = strstr(line, "=")) != NULL) {
       name = line;
-      equals[0] = '\0';      
+      equals[0] = '\0';
 
       if((trailing = strcspn(name, ws)) > 0) {
         name[trailing] = '\0';
       }
 
       value = equals+1;
-      value += strspn(value, ws);
+      value = trim(value);
       
       if(StringList_has_definition(name)) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
