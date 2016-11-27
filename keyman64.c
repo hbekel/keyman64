@@ -1076,6 +1076,7 @@ int main(int argc, char **argv) {
 #endif
     goto done;
   }
+  prepare_devices();
   
   if(argc && (strcmp(argv[0], "convert") == 0)) {
     result = convert(--argc, ++argv);
@@ -1394,6 +1395,7 @@ int update(int argc, char **argv) {
 
 void identify(void) {
   char id[64];
+  prepare_devices();
   if(usb_receive(&keyman64, KEYMAN64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
     printf("%s\n", id);
   }
