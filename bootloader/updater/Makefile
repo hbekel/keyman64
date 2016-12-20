@@ -76,10 +76,6 @@ updater.asm: updater.elf $(DEPENDS)
 
 updater.hex: updater.elf updater.asm $(DEPENDS)
 	$(OBC) -j .text -j .data -O ihex updater.elf updater.hex
-	$(ECHO) "."
-	$(ECHO) "."
-	$(SIZ) updater.elf
-	$(ECHO) "."
 
 deepclean: clean
 	$(RM) *~
