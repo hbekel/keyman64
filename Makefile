@@ -125,7 +125,7 @@ test-reverse: reverse.prg
 clean: firmware-clean bootloader-clean
 	rm -rf keyman64
 	rm -rf keyman64.exe
-	rm -rf *.{prg,bin,hex,stackdump}
+	rm -rf *prg *.bin *.hex *.exe.stackdump
 
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
