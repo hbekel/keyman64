@@ -3,7 +3,7 @@
   (general
     (links 171)
     (no_connects 0)
-    (area 103.263999 57.586901 198.908799 135.6215)
+    (area 104.572599 66.320199 184.657201 131.126701)
     (thickness 1.6)
     (drawings 27)
     (tracks 1288)
@@ -1560,6 +1560,11 @@
       (net 43 /MR))
     (pad 1 thru_hole circle (at 0 -4.5) (size 1.524 1.524) (drill 1) (layers *.Cu *.Mask F.SilkS)
       (net 43 /MR))
+    (model ${KIPRJMOD}/packages3d/Button.wrl
+      (at (xyz 0.127 0.09 0))
+      (scale (xyz 2 2 2))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (module Diode:Button (layer F.Cu) (tedit 57B38131) (tstamp 56420D6F)
@@ -1584,6 +1589,11 @@
       (net 75 /~RESET))
     (pad 1 thru_hole circle (at 0 -4.5) (size 1.524 1.524) (drill 1) (layers *.Cu *.Mask F.SilkS)
       (net 75 /~RESET))
+    (model ${KIPRJMOD}/packages3d/Button.wrl
+      (at (xyz 0.127 0.09 0))
+      (scale (xyz 2 2 2))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (gr_line (start 104.6226 68.8721) (end 104.6226 128.5875) (angle 90) (layer Edge.Cuts) (width 0.1))

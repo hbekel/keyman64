@@ -1,9 +1,9 @@
-(kicad_pcb (version 4) (host pcbnew 4.0.3-stable)
+(kicad_pcb (version 4) (host pcbnew 4.0.4-stable)
 
   (general
     (links 171)
     (no_connects 0)
-    (area 103.263999 57.586901 198.908799 135.6215)
+    (area 104.572599 66.320199 184.657201 131.126701)
     (thickness 1.6)
     (drawings 27)
     (tracks 1288)
@@ -15,10 +15,9 @@
   (page A4)
   (title_block
     (title "Keyman64 programmable keyboard and hardware controller")
-    (date 2016-08-24)
+    (date 2016-11-04)
     (rev 4)
-    (company "Henning Bekel")
-    (comment 1 http://www.henning-bekel.de/keyman64)
+    (comment 2 "Copyright Henning Bekel 2016.\\nThis documentation describes Open Hardware and is licensed under the CERN OHL v. 1.2.\\nYou may redistribute and modify this documentation under the terms of the CERN OHL v.1.2.\\n(http://ohwr.org/cernohl). This documentation is distributed WITHOUT ANY EXPRESS OR\\nIMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS\\nFOR A PARTICULAR PURPOSE. Please see the CERN OHL v.1.2 for applicable conditions.")
   )
 
   (layers
@@ -1585,6 +1584,11 @@
       (net 75 /~RESET))
     (pad 1 thru_hole circle (at 0 -4.5) (size 1.524 1.524) (drill 1) (layers *.Cu *.Mask F.SilkS)
       (net 75 /~RESET))
+    (model ${KIPRJMOD}/packages3d/Button.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (gr_line (start 104.6226 68.8721) (end 104.6226 128.5875) (angle 90) (layer Edge.Cuts) (width 0.1))
