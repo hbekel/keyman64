@@ -91,16 +91,6 @@ main.asm: main.elf $(DEPENDS)
 main.hex: main.elf main.asm $(DEPENDS)
 	$(RM) main.hex main.eep.hex
 	$(OBC) -j .text -j .data -O ihex main.elf main.hex
-	$(ECHO) "."
-	$(ECHO) "."
-	$(ECHO) "."
-	$(ECHO) "!!!ATTANTION!!!"
-	$(ECHO) "(data+text) MUST fit into your MCUs bootloader section"
-	$(ECHO) "."
-	$(SIZ) --mcu $(DEVICE) main.elf
-	$(ECHO) "."
-	$(ECHO) "."
-	$(ECHO) "."
 
 disasm:	main.elf $(DEPENDS)
 	$(OBD) -d main.elf
