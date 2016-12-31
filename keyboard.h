@@ -64,7 +64,7 @@
 #define KEY_UPARROW    54
 #define KEY_Q          55
 
-#define KEY_DOWNCURSOR 56
+#define KEY_CURSORDOWN 56
 #define KEY_SHIFTLEFT  57
 #define KEY_X          58
 #define KEY_V          59

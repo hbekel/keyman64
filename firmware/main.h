@@ -36,6 +36,7 @@ typedef struct {
 
 void SetupHardware(void);
 void SetupSerial(void);
+void SetupTranslation(void);
 void ResetSerial(void);
 void ExpectNextSerialByte(void);
 void ExecuteSerialCommand(void);
@@ -45,8 +46,6 @@ void ApplyMappings(void);
 void SetupKeyboardLayout(void);
 void ExecuteImmediateCommands(volatile Config *cfg, uint16_t delay);
 void DisableJTAG(void);
-void ResetCounter(void);
-void ClockMatrix(void);
 bool ScanMatrix(void);
 void RelayMatrix(void);
 void RelayKeyPress(volatile uint8_t key);
@@ -55,7 +54,9 @@ bool IsKeyUp(volatile uint8_t key);
 bool IsKey(volatile uint8_t key);
 bool QueryKeyDown(volatile uint8_t key);
 bool QueryKeyUp(volatile uint8_t key);
+Binding *GetBinding(uint8_t key);
 void ExecuteKey(uint8_t key);
+void ExecuteKeyInteractively(uint8_t key);
 void ExecuteBindingInteractively(Binding *binding);
 void ExecuteBinding(Binding *binding);
 void ExecuteCommand(volatile Config *config, Command* command);

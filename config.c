@@ -160,7 +160,7 @@ bool Config_install_fallback(volatile Config *self) {
   const uint8_t TEST_MESSAGE = 0;
   Config_add_string(self,
                     "\f\n"
-                    " ***** keyman64 version " xstr(VERSION) " ready *****\n"
+                    " ***** custom keyman64 " xstr(VERSION) " cbm610 *****\n"
                     "\n" 
                     "    no configuration found in eeprom\n"
                     "      using fallback configuration\n"
@@ -185,7 +185,7 @@ bool Config_install_fallback(volatile Config *self) {
   Config_add_string(self, "\n\nready.\n");
   
   binding = Binding_new();
-  binding->key = KEY_T;
+  binding->key = 0x1b; // KEY_T;
   
   command = Command_new();
   command->action = ACTION_TYPE;
@@ -199,13 +199,13 @@ bool Config_install_fallback(volatile Config *self) {
   command->action = ACTION_BOOT;
 
   binding = Binding_new();
-  binding->key = KEY_B;
+  binding->key = 0x1d; // KEY_B;
   Binding_add(binding, command);
   
   Config_add_binding(self, binding);
   
   binding = Binding_new();
-  binding->key = KEY_F;
+  binding->key = 0x24; // KEY_F;
 
   command = Command_new();
   command->action = ACTION_TYPE;
@@ -237,7 +237,7 @@ bool Config_install_fallback(volatile Config *self) {
   Config_add_binding(self, binding);
 
   binding = Binding_new();
-  binding->key = KEY_V;
+  binding->key = 0x25; // KEY_V;
 
   command = Command_new();
   command->action = ACTION_SHOW_VERSION;
@@ -283,6 +283,7 @@ Binding* Binding_new(void) {
   self->state = STATE_EVEN;
   self->times = 1;
   self->count = 1;
+  self->locked = false;
   return self;
 }
 

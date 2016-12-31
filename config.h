@@ -57,6 +57,7 @@ typedef struct {
   uint8_t state;
   uint8_t times;
   uint8_t count;  
+  bool locked;
   Command** commands;
 } Binding;
 

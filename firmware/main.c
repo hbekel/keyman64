@@ -14,12 +14,11 @@
 #include "main.h"
 #include "encoding.h"
 #include "../protocol.h"
+#include "../keyboard.h"
 
-uint8_t MC = 1<<PD3; // Matrix Clock
 uint8_t MD = 1<<PD4; // Matrix Data
-uint8_t MR = 1<<PD0; // Matrix Counter Reset
 
-uint8_t CPS = 1<<PA6; // Crosspoint Strobe
+uint8_t CPS = 1<<PD3; // Crosspoint Strobe
 uint8_t CPD = 1<<PA7; // Crosspoint Data
 uint8_t CPR = 1<<PD7; // Crosspoint Reset
 
@@ -34,10 +33,12 @@ volatile uint8_t STATE = STATE_RELAY;
 #define DELAY     _delay_ms(20)
 #define PROPAGATE _delay_ms(1)
 #define WITHOUT_DELAY 0
+#define SHIFTED 0x40
+#define BINDING 0x80
 
-volatile bool matrix[64];
-volatile uint8_t locked[64];
-volatile uint8_t layout[64];
+volatile bool matrix[128];
+volatile uint8_t locked[128];
+volatile uint8_t layout[128];
 
 volatile Serial serial;
 volatile Mapping mappings[16];
@@ -45,6 +46,7 @@ volatile Config* config;
 volatile uint8_t meta;
 volatile bool boot;
 volatile bool reset;
+volatile bool shifted;
 
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
@@ -57,6 +59,9 @@ static volatile uint16_t usbDataPos;
 static volatile uint16_t usbDelay;
 
 static volatile char version[64];
+
+static volatile uint8_t translated[128];
+static volatile uint8_t synonym[128];
 
 //------------------------------------------------------------------------------
 
@@ -84,13 +89,125 @@ void SetupHardware(void) {
   
   // Crosspoint Control
   DDRA  = 0b11111111;
-  PORTA = 0b11000000;
+  PORTA = 0b00000000;
 
   // USB, Bootloader, Matrix, Serial interface
   DDRD  = 0b10001001;
   PORTD = 0b11110000;
 
   SetupSerial();  
+}
+
+//------------------------------------------------------------------------------
+
+void SetupTranslation(void) {
+  
+  for(uint8_t i=0; i<128; i++) {
+    translated[i] = KEY_SHIFTRIGHT;
+    synonym[i] = 0xff;
+  }
+
+  translated[0x39] = KEY_BACKARROW;
+  translated[0x3a] = KEY_CONTROL;
+  translated[0x3c] = KEY_SHIFTLEFT;
+  translated[0x3d] = KEY_RUNSTOP;
+  translated[0x64] = KEY_CBM;
+  translated[0x58] = KEY_CLRHOME;
+  translated[0x6c] = KEY_RETURN;
+  translated[0x0d] = KEY_SPACE;
+  
+  translated[0x38] = KEY_F1;
+  translated[0x30] = KEY_F1 | SHIFTED; synonym[0x30] = 0x38;
+  translated[0x28] = KEY_F3;
+  translated[0x20] = KEY_F3 | SHIFTED; synonym[0x20] = 0x28;  
+  translated[0x18] = KEY_F5;
+  translated[0x10] = KEY_F5 | SHIFTED; synonym[0x10] = 0x18;    
+  translated[0x08] = KEY_F7;
+  translated[0x00] = KEY_F7 | SHIFTED; synonym[0x00] = 0x08;      
+  
+  translated[0x31] = KEY_1;
+  translated[0x29] = KEY_2;
+  translated[0x21] = KEY_3;
+  translated[0x19] = KEY_4;
+  translated[0x11] = KEY_5;
+  translated[0x12] = KEY_6;
+  translated[0x09] = KEY_7;
+  translated[0x01] = KEY_8;
+  translated[0x79] = KEY_9;
+  translated[0x71] = KEY_0;
+  translated[0x72] = KEY_PLUS;
+  translated[0x69] = KEY_MINUS;
+  translated[0x6a] = KEY_POUND;
+  translated[0x63] = KEY_INSTDEL;
+
+  translated[0x5c] = KEY_1; synonym[0x5c] = 0x31;
+  translated[0x54] = KEY_2; synonym[0x54] = 0x29;
+  translated[0x4c] = KEY_3; synonym[0x21] = 0x4c;
+  translated[0x5b] = KEY_4; synonym[0x5b] = 0x19;
+  translated[0x53] = KEY_5; synonym[0x53] = 0x11;
+  translated[0x4b] = KEY_6; synonym[0x4b] = 0x12;
+  translated[0x5a] = KEY_7; synonym[0x5a] = 0x09;
+  translated[0x52] = KEY_8; synonym[0x52] = 0x01;
+  translated[0x4a] = KEY_9; synonym[0x4a] = 0x79;    
+  translated[0x5d] = KEY_0; synonym[0x5d] = 0x71;
+  translated[0x44] = KEY_RETURN; synonym[0x44] = 0x6c;
+  translated[0x41] = KEY_SLASH; synonym[0x41] = 0x7d;
+  translated[0x49] = KEY_ASTERISK; synonym[0x49] = 0x6b;
+  translated[0x42] = KEY_MINUS; synonym[0x42] = 0x69;
+  translated[0x43] = KEY_PLUS; synonym[0x43] = 0x72;
+  translated[0x55] = KEY_PERIOD; synonym[0x55] = 0x05;
+  
+  translated[0x32] = KEY_Q;
+  translated[0x2a] = KEY_W;
+  translated[0x22] = KEY_E;
+  translated[0x1a] = KEY_R;
+  translated[0x1b] = KEY_T;
+  translated[0x13] = KEY_Y;
+  translated[0x0a] = KEY_U;
+  translated[0x02] = KEY_I;
+  translated[0x7a] = KEY_O;
+  translated[0x73] = KEY_P;
+  translated[0x74] = KEY_AT;
+  translated[0x6b] = KEY_ASTERISK;
+
+  translated[0x33] = KEY_A;
+  translated[0x2b] = KEY_S;
+  translated[0x23] = KEY_D;
+  translated[0x24] = KEY_F;
+  translated[0x1c] = KEY_G;
+  translated[0x14] = KEY_H;
+  translated[0x0b] = KEY_J;
+  translated[0x03] = KEY_K;
+  translated[0x7b] = KEY_L;
+  translated[0x7c] = KEY_COLON;
+  translated[0x75] = KEY_SEMICOLON;
+  translated[0x6d] = KEY_EQUAL;
+
+  translated[0x34] = KEY_Z;
+  translated[0x2c] = KEY_X;
+  translated[0x2d] = KEY_C;
+  translated[0x25] = KEY_V;
+  translated[0x1d] = KEY_B;
+  translated[0x15] = KEY_N;
+  translated[0x0c] = KEY_M;
+  translated[0x04] = KEY_COMMA;
+  translated[0x05] = KEY_PERIOD;
+  translated[0x7d] = KEY_SLASH;
+
+  translated[0x59] = KEY_UPARROW;
+  
+  translated[0x68] = KEY_CURSORDOWN;
+  translated[0x60] = KEY_CURSORDOWN | SHIFTED; synonym[0x60] = 0x68;
+  translated[0x62] = KEY_CURSORLEFT;
+  translated[0x61] = KEY_CURSORLEFT | SHIFTED; synonym[0x61] = 0x62;
+
+  translated[0x4d] = 0x80 | BINDING; // NUMPAD 00  
+  translated[0x40] = 0x81 | BINDING; // RUN-STOP
+  translated[0x78] = 0x82 | BINDING; // F9
+  translated[0x70] = 0x83 | BINDING; // F10
+  translated[0x50] = 0x84 | BINDING; // OFF/RVS
+  translated[0x48] = 0x85 | BINDING; // NORM/GRAPH
+  translated[0x51] = 0x86 | BINDING; // NUMPAD CE
 }
 
 //------------------------------------------------------------------------------
@@ -351,40 +468,35 @@ void DisableJTAG(void) {
 
 //------------------------------------------------------------------------------
 
-void ResetCounter(void) {
-  PORTD |= MR;
-  PORTD &= ~MR;
-}
-
-//------------------------------------------------------------------------------
-
-void ClockMatrix(void) {
-  PORTD |= MC;
-  _delay_us(5);
-  PORTD &= ~MC;
-}
-
-//------------------------------------------------------------------------------
-
-bool ScanMatrix(void) {
+bool ScanMatrix(void) {  
   bool keyDown = false;
   uint8_t row = 0;
-  uint8_t col = 0;  
-  
-  ResetCounter();
-  
-  for(row=0; row<8; row++) {
-    for(col=0; col<8; col++) {
-      if((PIND & MD) == 0) {
-        matrix[row*8+col] = true;
-        keyDown = true;
-      }
-      else {
-        matrix[row*8+col] = false;
-      }
-      ClockMatrix();
+  uint8_t col = 0;
+
+  for(uint8_t code=0; code<128; code++) {
+    PORTA = code;
+    _delay_us(10);
+    if((PIND & MD) == 0) {      
+      matrix[code] = true;
+      keyDown = true;
+    }
+    else {
+      matrix[code] = false;
     }
   }
+  for(uint8_t code=0; code<128; code++) {
+    if(matrix[code] && (translated[code] & SHIFTED)) {
+      matrix[0x3c] = true;
+    }
+  }
+  for(uint8_t code=0; code<128; code++) {
+    if(synonym[code] != 0xff) {
+      if(matrix[code] || matrix[synonym[code]]) {
+        matrix[code] = true;
+        matrix[synonym[code]] = true;
+      }
+    }
+  }  
   return keyDown;
 }
 
@@ -409,22 +521,21 @@ void ResetCrosspointSwitch8808(void) {
 //------------------------------------------------------------------------------
 
 void StrobeCrosspointSwitch22106(void) {
-  PORTA &= ~CPS;
-  PORTA |= CPS;
+  PORTD &= ~CPS;
+  PORTD |= CPS;
 }
 
 void StrobeCrosspointSwitch8808(void) {
-  PORTA |= CPS;
-  PORTA &= ~CPS;
+  PORTD |= CPS;
+  PORTD &= ~CPS;
 }
 
 //------------------------------------------------------------------------------
 
 void SetCrosspointSwitch(uint8_t index, bool closed) {
   if(locked[index]) return;
-
+  
   index = closed ? (index | CPD) : (index & ~CPD);
-  index |= CPS;
   PORTA = index;
   
   StrobeCrosspointSwitch();
@@ -442,9 +553,21 @@ void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock) {
 
 //------------------------------------------------------------------------------
 
-void RelayMatrix(void) {
-  for(uint8_t i=0; i<64; i++) {
-    SetCrosspointSwitch(layout[i], matrix[i]);
+void RelayMatrix(void) {  
+  for(uint8_t i=0; i<128; i++) {
+    if(translated[i] & BINDING) {
+      if(matrix[i]) {
+        ExecuteKeyInteractively(translated[i]);
+        GetBinding(translated[i])->locked = true;
+      }
+      else {
+        GetBinding(translated[i])->locked = false;
+      }
+      continue;
+    }
+    else {
+      SetCrosspointSwitch(layout[translated[i]], matrix[i]);
+    }
   }
 }
 
@@ -540,18 +663,37 @@ void Type(char *string) {
     }
   }
 }
-
+ 
 //------------------------------------------------------------------------------
-
-void ExecuteKey(uint8_t key) {
+ 
+Binding* GetBinding(uint8_t key) {
   Binding *binding;
   
   for(int i=0; i<config->num_bindings; i++) {
     binding = config->bindings[i];
     
     if(key == binding->key) {    
-      ExecuteBinding(binding);
+      return binding;
     }
+  }
+  return NULL;
+}
+
+//------------------------------------------------------------------------------
+ 
+void ExecuteKey(uint8_t key) {
+  Binding *binding = GetBinding(key);
+  if(binding) {
+    ExecuteBinding(binding);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void ExecuteKeyInteractively(uint8_t key) {
+  Binding *binding = GetBinding(key);
+  if(binding) {
+    ExecuteBindingInteractively(binding);
   }
 }
 
@@ -571,6 +713,8 @@ void ExecuteBindingInteractively(Binding *binding) {
 
 void ExecuteBinding(Binding* binding) {
   Command *command;
+
+  if(binding->locked) return;  
   
   for(int i=0; i<binding->num_commands; i++) {
     command = binding->commands[i];
@@ -859,8 +1003,6 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-
 USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
 
   for(int i=0; usbDataReceived < usbDataLength && i < len; i++, usbDataReceived++) {
@@ -922,7 +1064,7 @@ int main(void) {
   SetupMappings();
   SetupVersionString();
   
-  meta = KEY_BACKARROW;
+  meta = 0x39; // CBM_ESC
   boot = false;
   reset = false;
   
@@ -937,11 +1079,13 @@ int main(void) {
   
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
+  SetupTranslation();
+  
   SetupUSB();
   
   Binding *binding;
   bool relayMetaKey = true;
-
+  
   while(true) {
 
     usbPoll();
@@ -953,7 +1097,8 @@ int main(void) {
     }
 
     ApplyMappings();
-    
+
+
     switch(STATE) {
 
     //========================================
@@ -976,7 +1121,7 @@ int main(void) {
 
       if(QueryKeyUp(meta)) {
         if(relayMetaKey) {
-          RelayKeyPress(meta);
+          RelayKeyPress(translated[meta]);
         }
         STATE = STATE_RELAY;
       }

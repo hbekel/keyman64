@@ -74,7 +74,7 @@ Symbol symbols[64+31] = {
 { .name = "ARROWUP",     KEY_UPARROW    },
 { .name = "Q",           KEY_Q          },
 
-{ .name = "CURSORDOWN",  KEY_DOWNCURSOR },
+{ .name = "CURSORDOWN",  KEY_CURSORDOWN },
 { .name = "SHIFTLEFT",   KEY_SHIFTLEFT  }, // LEFTSHIFT
 { .name = "X",           KEY_X          },
 { .name = "V",           KEY_V          },
@@ -98,7 +98,7 @@ Symbol symbols[64+31] = {
 { .name = "CBM",         KEY_CBM        },
 { .name = "C=",          KEY_CBM        },
 { .name = "UPARROW",     KEY_UPARROW    },
-{ .name = "DOWNCURSOR",  KEY_DOWNCURSOR },
+{ .name = "DOWNCURSOR",  KEY_CURSORDOWN },
 { .name = "SHIFT",       KEY_SHIFTLEFT  },
 { .name = "SHIFTLEFT",   KEY_SHIFTLEFT  },
 { .name = "LEFTSHIFT",   KEY_SHIFTLEFT  },
