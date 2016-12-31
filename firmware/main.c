@@ -893,7 +893,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
 void SetupVersionString(void) {
 
-  char *v = "firmware " xstr(VERSION) " " __DATE__ " " __TIME__;
+  char *v = "custom cbm600 " xstr(VERSION) " " __DATE__ " " __TIME__;
   int len = strlen(v);
 
   for(uint8_t i=0; i<64; i++) {
