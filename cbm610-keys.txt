@@ -1,0 +1,107 @@
+# Internet Scancodes der cbm610-Tastatur, Bezeichnung nach
+# Tastenaufdruck. Diese Werte müssen anstelle von Tastennamen in der
+# Konfiguration verwendet werden, wenn eine Befehlssequenz mit
+# Meta-Taste gebunden werden soll.
+
+F1  = $38
+F2  = $30
+F3  = $28
+F4  = $20
+F5  = $18
+F6  = $10
+F7  = $08
+F8  = $78
+F9  = $78
+F10 = $70
+
+CURSOR_DOWN  = $68
+CURSOR_UP    = $60
+CURSOR_LEFT  = $61
+CURSOR_RIGHT = $62
+
+CLR/HOME   = $58
+OFF/RVS    = $50
+NORM/GRAPH = $48
+RUN/STOP   = $40
+
+ESC      = $39
+1        = $31
+2        = $29
+3        = $21
+4        = $19
+5        = $11
+6        = $12
+7        = $09
+8        = $01
+9        = $79
+0        = $71
+-        = $72
++        = $69
+POUND    = $6a
+INST/DEL = $63
+
+TAB    = $3a
+Q      = $32
+W      = $2a
+E      = $22
+R      = $1a
+T      = $1b
+Y      = $13
+U      = $0a
+I      = $02
+O      = $7a
+P      = $73
+[      = $74
+]      = $6b
+RETURN = $6c
+
+A  = $33
+S  = $2b
+D  = $23
+F  = $24
+G  = $1c
+H  = $14
+J  = $0b
+K  = $03
+L  = $7B
+;  = $7C
+'  = $75
+PI = $6d
+
+SHIFT = $3c
+Z     = $34
+X     = $2c
+C     = $2d
+V     = $25
+B     = $1d
+N     = $15
+M     = $0c
+,     = $04
+.     = $05
+/     = $7d
+C=    = $64
+
+CTRL  = $3d
+SPACE = $0d
+
+Nummernblock:
+
+?     = $59
+CE    = $51
+*     = $49
+/     = $41
+-     = $42
++     = $43
+ENTER = $44
+00    = $4d
+.     = $55
+0     = $5d
+1     = $5c
+2     = $54
+3     = $4c
+4     = $5b
+5     = $53
+6     = $4b
+7     = $5a
+8     = $52
+9     = $4a
