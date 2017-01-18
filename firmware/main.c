@@ -390,7 +390,7 @@ void SetupUSB(void) {
 //------------------------------------------------------------------------------
 
 void SetupKeyboardLayout(void) {
-  for(uint8_t i=0; i<64; i++) {
+  for(uint8_t i=0; i<128; i++) {
     layout[i] = i;
   }
 }
@@ -470,8 +470,6 @@ void DisableJTAG(void) {
 
 bool ScanMatrix(void) {  
   bool keyDown = false;
-  uint8_t row = 0;
-  uint8_t col = 0;
 
   for(uint8_t code=0; code<128; code++) {
     PORTA = code;
@@ -507,7 +505,7 @@ void ResetCrosspointSwitch22106(void) {
   _delay_ms(1);
   PORTD |= CPR;
 
-  for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
+  for(uint8_t i=0; i<128; i++) SetCrosspointSwitch(i, false);
 }
 
 void ResetCrosspointSwitch8808(void) {
@@ -515,7 +513,7 @@ void ResetCrosspointSwitch8808(void) {
   _delay_ms(1);
   PORTD &= ~CPR;
 
-  for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
+  for(uint8_t i=0; i<128; i++) SetCrosspointSwitch(i, false);
 }
 
 //------------------------------------------------------------------------------
@@ -566,7 +564,7 @@ void RelayMatrix(void) {
       continue;
     }
     else {
-      SetCrosspointSwitch(layout[translated[i]], matrix[i]);
+      SetCrosspointSwitch(layout[translated[i] & 0x3f], matrix[i]);
     }
   }
 }
@@ -594,7 +592,7 @@ bool IsKeyUp(volatile uint8_t key) {
 //------------------------------------------------------------------------------
 
 bool IsKey(volatile uint8_t key) {
-  return key < 64;
+  return key < 128;
 }
 
 //------------------------------------------------------------------------------
