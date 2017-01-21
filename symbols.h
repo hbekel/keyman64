@@ -9,7 +9,7 @@ typedef struct {
   uint8_t key;
 } Symbol;
 
-Symbol symbols[64+31] = {
+Symbol symbols[64+33] = {
   
 { .name = "INSTDEL",     KEY_INSTDEL   }, // DEL
 { .name = "THREE",       KEY_3         },
@@ -114,6 +114,9 @@ Symbol symbols[64+31] = {
 { .name = "EQUAL",       KEY_EQUAL      },
 { .name = "DOT",         KEY_PERIOD     },
 { .name = "AT",          KEY_AT         },
+
+{ .name = "LOCKED",      KEY_LOCKED     },
+{ .name = "UNLOCKED",    KEY_UNLOCKED   },
 };
 
 #endif // KEYS_H

@@ -28,6 +28,7 @@ uint8_t DATA  = 1<<PD5; // Serial Data
 
 #define STATE_RELAY   0x00
 #define STATE_COMMAND 0x01
+#define STATE_LOCKED  0x02
 volatile uint8_t STATE = STATE_RELAY;
 
 #define DEBOUNCE  _delay_ms(20)
@@ -38,6 +39,12 @@ volatile uint8_t STATE = STATE_RELAY;
 volatile bool matrix[64];
 volatile uint8_t locked[64];
 volatile uint8_t layout[64];
+
+char password[64] = "";
+char input[64] = "";
+
+char buffer1[64] = "";
+char buffer2[64] = "";
 
 volatile Serial serial;
 volatile Mapping mappings[16];
@@ -587,6 +594,16 @@ void ExecuteBinding(Binding* binding) {
 
 //------------------------------------------------------------------------------
 
+void Lock(void) {
+  ExecuteKey(KEY_LOCKED);
+  STATE = STATE_LOCKED;
+}
+
+void Unlock(void) {
+  ExecuteKey(KEY_UNLOCKED);
+  STATE = STATE_RELAY;
+}
+
 void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
@@ -742,6 +759,14 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_SHOW_STATE:
     ShowState();
     break;
+
+  case ACTION_LOCK:
+    Lock();
+    break;
+
+  case ACTION_SET_PASSWORD:
+    SetPassword();
+    break;
   }
 }
 
@@ -821,6 +846,43 @@ void RestoreState(void) {
 
 //------------------------------------------------------------------------------
 
+void LoadPassword(void) {
+  uint16_t addr = 4096 - 128;
+
+  for(uint8_t i=0; i<64; i++) {
+    password[i] = eeprom_read_byte((const uint8_t *)(addr++));
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void SavePassword(char *buffer) {
+  uint16_t addr = 4096 - 128;
+  uint8_t len = strlen(buffer)+1;
+  
+  for(uint8_t i=0; i<len; i++) {    
+    eeprom_update_byte((uint8_t *)(addr+i), buffer[i]);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void SetPassword(void) {
+  EnterPassword("enter new password: ", buffer1);
+  EnterPassword("repeat new password: ", buffer2);
+  
+  if(strlen(buffer1) == strlen(buffer2) && strcmp(buffer1, buffer2) == 0) {
+    Type("password has been changed\n\n");      
+    SavePassword(buffer1);
+    LoadPassword();
+  }
+  else {
+    Type("mismatch, password has not been changed\n\n");
+  }
+}
+
+//------------------------------------------------------------------------------
+
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *usbRequest = (void*) data;
@@ -856,8 +918,6 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
   }
   return 0;
 }
-
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 
@@ -915,12 +975,86 @@ void FlashConfigurationFromUSBData(void) {
 
 //------------------------------------------------------------------------------
 
+uint8_t ReadKey(void) {
+  ScanMatrix();
+  for(uint8_t i=0; i<64; i++) {
+    if(matrix[i]) {
+      while(!QueryKeyUp(i));
+      return i;
+    }
+  }
+  return 0xff;
+}
+
+//------------------------------------------------------------------------------
+
+void EnterPassword(const char* prompt, char* buffer) {
+  uint8_t key;
+  uint8_t len;
+  buffer[0] = 0;
+
+  Type((char*)prompt);
+  
+  while(1) {
+
+    if((key = ReadKey()) == 0xff) continue;
+
+    if(key == KEY_RETURN) {
+      Type("\n");
+      break;
+    }
+    
+    len = strlen(buffer);
+    if(len == 63) {
+      buffer[0] = 0;
+      len = 0;
+    }
+
+    buffer[len] = key;
+    buffer[len+1] = 0;
+    Type("*");
+  }
+}
+
+//------------------------------------------------------------------------------
+
+bool CheckPassword(void) {
+  uint8_t key;
+  uint8_t len;
+
+  if((key = ReadKey()) != 0xff) {
+    
+    len = strlen(input);
+    if(len == sizeof(input)-1) {
+      input[0] = 0;
+      len = 0;
+    }
+    
+    input[len] = key;
+    input[len+1] = 0;
+    len = strlen(input);
+    
+    for(uint8_t i=0; i<len; i++) {
+      if(input[i] != password[i]) {
+        input[0] = 0;
+      }
+      else if(len == strlen(password)) {      
+        return true;
+      }
+    }
+  }
+  return false;
+}
+ 
+//------------------------------------------------------------------------------
+
 int main(void) {
 
   SetupHardware();
   SetupKeyboardLayout();
   SetupMappings();
   SetupVersionString();
+  LoadPassword();
   
   meta = KEY_BACKARROW;
   boot = false;
@@ -953,7 +1087,7 @@ int main(void) {
     }
 
     ApplyMappings();
-    
+
     switch(STATE) {
 
     //========================================
@@ -996,6 +1130,12 @@ int main(void) {
       break;
       
     //========================================      
+
+    case STATE_LOCKED:
+      if(CheckPassword()) {
+        Unlock();
+      }
+      break;
     }
   }
   return 0;

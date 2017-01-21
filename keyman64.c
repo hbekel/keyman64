@@ -68,7 +68,9 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "map",      3) == 0) return ACTION_MAP;
   if(strncasecmp(str, "version",  7) == 0) return ACTION_SHOW_VERSION;
   if(strncasecmp(str, "state",    5) == 0) return ACTION_SHOW_STATE;
-  if(strncasecmp(str, "status",   6) == 0) return ACTION_SHOW_STATE;      
+  if(strncasecmp(str, "status",   6) == 0) return ACTION_SHOW_STATE;
+  if(strncasecmp(str, "lock",     4) == 0) return ACTION_LOCK;
+  if(strncasecmp(str, "password", 8) == 0) return ACTION_SET_PASSWORD;  
   
   return ACTION_NONE;
 }
@@ -852,7 +854,9 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_REQUIRES:      action = "requires"; break;
   case ACTION_MAP:           action = "map";      break;
   case ACTION_SHOW_VERSION:  action = "version";  break;
-  case ACTION_SHOW_STATE:    action = "state";    break;        
+  case ACTION_SHOW_STATE:    action = "state";    break;
+  case ACTION_LOCK:          action = "lock";     break;
+  case ACTION_SET_PASSWORD:  action = "password"; break;    
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -1371,7 +1375,7 @@ int update(int argc, char **argv) {
                (uint16_t) (i & 0xffff), (uint16_t) (i>>16),
                data+i, 64);
       fprintf(stderr, "\rUpdating application: %d of %d bytes transferred...",
-              (i<size) ? i : size , size);
+              (i<size) ? i : size, size);
     }
     fprintf(stderr, "ok\n");
 

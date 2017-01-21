@@ -55,6 +55,7 @@ bool IsKeyUp(volatile uint8_t key);
 bool IsKey(volatile uint8_t key);
 bool QueryKeyDown(volatile uint8_t key);
 bool QueryKeyUp(volatile uint8_t key);
+uint8_t ReadKey(void);
 void ExecuteKey(uint8_t key);
 void ExecuteBindingInteractively(Binding *binding);
 void ExecuteBinding(Binding *binding);
@@ -79,5 +80,12 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]);
 USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len);
 void FlashConfigurationFromUSBData(void);
 void ExecuteCommandsFromUSBData(void);
+
+void SetPassword(void);
+void EnterPassword(const char* prompt, char* buffer);
+void SavePassword(char* buffer);
+void LoadPassword(void);
+
+
 
 #endif // MAIN_H

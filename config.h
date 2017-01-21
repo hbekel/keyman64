@@ -28,6 +28,8 @@
 #define ACTION_MAP           21
 #define ACTION_SHOW_VERSION  22
 #define ACTION_SHOW_STATE    23
+#define ACTION_LOCK          24
+#define ACTION_SET_PASSWORD  25
 
 #define PORT_A    0
 #define PORT_B    1

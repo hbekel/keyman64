@@ -1,6 +1,8 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
+#define KEY_NONE      255
+
 #define KEY_INSTDEL   0
 #define KEY_3         1
 #define KEY_5         2
@@ -72,5 +74,10 @@
 #define KEY_COMMA      61
 #define KEY_SLASH      62
 #define KEY_RUNSTOP    63
+
+// SPECIAL SLOTS
+
+#define KEY_LOCKED        0xfb
+#define KEY_UNLOCKED      0xfa
 
 #endif // KEYBOARD_H
