@@ -1257,7 +1257,7 @@ int convert(int argc, char **argv) {
 
 int configure(int argc, char **argv) {
 
-  int result = EXIT_FAILURE;
+  int result = false;
 
   FILE *in  = stdin;
   FILE *out = NULL;
@@ -1306,16 +1306,15 @@ int configure(int argc, char **argv) {
     fprintf(stderr, "Flashing configuration: %d bytes...", size);
     fflush(stderr);
 
-    result = usb_send(&keyman64, KEYMAN64_FLASH, 0, 0, data, size);
-
-    fprintf(stderr, (result == size) ? "ok\n" : "failed!\n");
+    result = usb_send(&keyman64, KEYMAN64_FLASH, 0, 0, data, size) == size;
+    fprintf(stderr, result ? "ok\n" : "failed!\n");
   }
 
  done:
   Config_free(config);
   fclose(in);
 
-  return result;
+  return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 //------------------------------------------------------------------------------
