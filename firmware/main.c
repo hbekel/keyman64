@@ -73,7 +73,7 @@ static volatile char version[64];
 //------------------------------------------------------------------------------
 
 void EnterBootloader(void) {
-  eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
+  eeprom_update_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
   Reset();
 }
 
@@ -290,13 +290,7 @@ void SetupKeyboardLayout(void) {
 int ReadEeprom(FILE* file) {
 
   static volatile uint16_t addr = 0;
-  
-  while(EECR & (1<<EEPE));
-  EEAR = addr;
-  EECR |= (1<<EERE);
-  addr += 1;
-
-  return EEDR;
+  return eeprom_read_byte((uint8_t *) (addr++));
 }
 
 //------------------------------------------------------------------------------
@@ -304,14 +298,7 @@ int ReadEeprom(FILE* file) {
 int WriteEeprom(char data, FILE* file) {
 
   static volatile uint16_t addr = 0;
-  
-  while(EECR & (1<<EEPE));
-  EEAR = addr;
-  EEDR = data;
-  EECR |= (1<<EEMPE);
-  EECR |= (1<<EEPE);
-  addr += 1;
-
+  eeprom_update_byte((uint8_t*) (addr++), data);
   return 0;
 }
 
@@ -829,10 +816,10 @@ void SaveState(void) {
   config->state->ddrb  = DDRC;
   config->state->portb = PORTC;
 
-  eeprom_write_byte((uint8_t *)2, config->state->ddra);
-  eeprom_write_byte((uint8_t *)3, config->state->porta);
-  eeprom_write_byte((uint8_t *)4, config->state->ddrb);
-  eeprom_write_byte((uint8_t *)5, config->state->portb);
+  eeprom_update_byte((uint8_t *)2, config->state->ddra);
+  eeprom_update_byte((uint8_t *)3, config->state->porta);
+  eeprom_update_byte((uint8_t *)4, config->state->ddrb);
+  eeprom_update_byte((uint8_t *)5, config->state->portb);
 }
 
 //------------------------------------------------------------------------------
@@ -872,12 +859,12 @@ void SetPassword(void) {
   EnterPassword("repeat new password: ", buffer2);
   
   if(strlen(buffer1) == strlen(buffer2) && strcmp(buffer1, buffer2) == 0) {
-    Type("password has been changed\n\n");      
+    Type("ok, password changed\n\n");      
     SavePassword(buffer1);
     LoadPassword();
   }
   else {
-    Type("mismatch, password has not been changed\n\n");
+    Type("passwords differ, nothing changed\n\n");
   }
 }
 
