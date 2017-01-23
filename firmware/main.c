@@ -856,12 +856,23 @@ void SavePassword(char *buffer) {
 
 void SetPassword(void) {
   EnterPassword("enter new password: ", buffer1);
+
+  if(strlen(buffer1) == 1) {
+    Type("cancelled\n\n");
+    return;
+  }
+
   EnterPassword("repeat new password: ", buffer2);
-  
+
+  if(strlen(buffer2) == 1) {
+    Type("cancelled\n\n");
+    return;
+  }
+    
   if(strlen(buffer1) == strlen(buffer2) && strcmp(buffer1, buffer2) == 0) {
-    Type("ok, password changed\n\n");      
     SavePassword(buffer1);
     LoadPassword();
+    Type("ok, password changed\n\n");
   }
   else {
     Type("passwords differ, nothing changed\n\n");
@@ -985,11 +996,6 @@ void EnterPassword(const char* prompt, char* buffer) {
   while(1) {
 
     if((key = ReadKey()) == 0xff) continue;
-
-    if(key == KEY_RETURN) {
-      Type("\n");
-      break;
-    }
     
     len = strlen(buffer);
     if(len == 63) {
@@ -999,6 +1005,11 @@ void EnterPassword(const char* prompt, char* buffer) {
 
     buffer[len] = key;
     buffer[len+1] = 0;
+
+    if(key == KEY_RETURN) {
+      Type("\n");
+      break;
+    }
     Type("*");
   }
 }
