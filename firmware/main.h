@@ -34,6 +34,17 @@ typedef struct {
   uint8_t key;
 } Mapping;
 
+typedef struct {
+  uint32_t magic;
+  State* state;
+  char password[64];
+  uint16_t bootflag;
+} Storage;
+
+uint16_t BOOTLOADER_MAGIC = 0xb0b0;
+uint32_t STORAGE_MAGIC = 0xABCD1234;
+uint16_t STORAGE_ADDRESS = 0x1000 - sizeof(Storage);
+
 void SetupHardware(void);
 void SetupSerial(void);
 void ResetSerial(void);
@@ -69,6 +80,8 @@ void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock);
 void Type(char *string);
 void SetupVersionString(void);
 void ShowState(void);
+void GetState(State* state);
+void SetState(State* state);
 void SaveState(void);
 void RestoreState(void);
 void EnterBootloader(void);
@@ -86,6 +99,21 @@ void EnterPassword(const char* prompt, char* buffer);
 void SavePassword(char* buffer);
 void LoadPassword(void);
 
+Storage* Storage_new(void);
+bool Storage_valid(Storage* self);
+void Storage_bootstrap(Storage* self);
 
+void Storage_load(Storage* self);
+void Storage_load_magic(Storage* self);
+void Storage_load_state(Storage* self);
+void Storage_load_password(Storage* self);
+void Storage_load_bootflag(Storage* self);
+
+void Storage_save(Storage* self);
+void Storage_save_magic(Storage* self);
+void Storage_save_state(Storage* self);
+void Storage_save_password(Storage* self);
+void Storage_save_bootflag(Storage* self);
+void Storage_free(Storage* self);
 
 #endif // MAIN_H

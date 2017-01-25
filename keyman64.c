@@ -34,7 +34,6 @@ typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
 char *device;
 uint16_t delay = 0;
-bool preserve_state = false;
 
 DeviceInfo keyman64;
 DeviceInfo usbasp;
@@ -780,17 +779,6 @@ void State_write(State *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
-
-bool State_fetch(State *self) {
-  int result;
-  
-  if((result = usb_receive(&keyman64, KEYMAN64_STATE, 0, 0, (uint8_t*) self, sizeof(State))) < 0) {
-    fprintf(stderr, "error: could not send usb control message: %s\n", libusb_strerror(result));
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Functions for writing canonical config file format
 //------------------------------------------------------------------------------
 
@@ -1056,7 +1044,7 @@ int main(int argc, char **argv) {
       break;
 
     case 'p':
-      preserve_state = true;
+      fprintf(stderr, "hint: option --preserve is no longer needed and has been deprecated\n");
       break;      
 
     case 'i':
@@ -1232,12 +1220,6 @@ int convert(int argc, char **argv) {
   
   if(Config_read(config, in) || Config_parse(config, in)) {
 
-    if(preserve_state) {
-      if(!State_fetch(config->state)) {
-        fprintf(stderr, "warning: could not fetch saved state from device\n");
-      }        
-    }
-
     output_format == BINARY ?
       Config_write(config, out) :
       Config_print(config, out);
@@ -1279,12 +1261,6 @@ int configure(int argc, char **argv) {
   }
 
   if(Config_read(config, in) || Config_parse(config, in)) {
-
-    if(preserve_state) {
-      if(!State_fetch(config->state)) {
-        fprintf(stderr, "warning: could not fetch saved state from device\n");
-      }        
-    }
 
     data = (uint8_t*) calloc(4096, sizeof(char));
   
@@ -1437,7 +1413,7 @@ void usage(void) {
 #endif
   printf("           -D, --delay    : delay in ms between commands\n");  
   printf("           -k, --keys     : list key names and synonyms\n");
-  printf("           -p, --preserve : preserve saved state during convert\n");
+  printf("           -p, --preserve : deprecated as of version 1.5\n");
   printf("           -i, --identify : request firmware identification via USB\n");
   printf("\n");
   printf("  Files:\n");

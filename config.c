@@ -38,6 +38,8 @@ uint16_t Config_add_string(volatile Config *self, char* string) {
   return self->num_strings-1;
 }
 
+//------------------------------------------------------------------------------
+
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
   for(uint16_t i=0; i<self->num_longs; i++) {
     if(self->longs[i] == value) {
@@ -47,6 +49,8 @@ bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
   }
   return false;
 }
+
+//------------------------------------------------------------------------------
 
 uint16_t Config_add_long(volatile Config *self, uint32_t value) {
   self->longs = (uint32_t*) realloc(self->longs, (self->num_longs+1) * sizeof(uint32_t));

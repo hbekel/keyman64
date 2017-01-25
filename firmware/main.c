@@ -40,11 +40,7 @@ volatile bool matrix[64];
 volatile uint8_t locked[64];
 volatile uint8_t layout[64];
 
-char password[64] = "";
-char input[64] = "";
-
-char buffer1[64] = "";
-char buffer2[64] = "";
+Storage* storage;
 
 volatile Serial serial;
 volatile Mapping mappings[16];
@@ -73,7 +69,8 @@ static volatile char version[64];
 //------------------------------------------------------------------------------
 
 void EnterBootloader(void) {
-  eeprom_update_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
+  storage->bootflag = BOOTLOADER_MAGIC;
+  Storage_save_bootflag(storage);
   Reset();
 }
 
@@ -582,8 +579,14 @@ void ExecuteBinding(Binding* binding) {
 //------------------------------------------------------------------------------
 
 void Lock(void) {
-  ExecuteKey(KEY_LOCKED);
-  STATE = STATE_LOCKED;
+
+  if(strlen(storage->password)) {
+    ExecuteKey(KEY_LOCKED);
+    STATE = STATE_LOCKED;
+  }
+  else {
+    Type("no password defined\n\n");
+  }
 }
 
 void Unlock(void) {
@@ -809,52 +812,43 @@ void ShowState(void) {
 }
 
 //------------------------------------------------------------------------------
- 
-void SaveState(void) {
-  config->state->ddra  = DDRB;
-  config->state->porta = PORTB;
-  config->state->ddrb  = DDRC;
-  config->state->portb = PORTC;
 
-  eeprom_update_byte((uint8_t *)2, config->state->ddra);
-  eeprom_update_byte((uint8_t *)3, config->state->porta);
-  eeprom_update_byte((uint8_t *)4, config->state->ddrb);
-  eeprom_update_byte((uint8_t *)5, config->state->portb);
+void GetState(State* state) {
+  state->ddra  = DDRB;
+  state->porta = PORTB;
+  state->ddrb  = DDRC;
+  state->portb = PORTC;  
+}
+
+//------------------------------------------------------------------------------
+
+void SetState(State* state) {
+  DDRB  = state->ddra;
+  PORTB = state->porta;
+  DDRC  = state->ddrb;
+  PORTC = state->portb;   
+}
+
+//------------------------------------------------------------------------------
+
+void SaveState(void) {
+  GetState(storage->state);
+  Storage_save_state(storage);
 }
 
 //------------------------------------------------------------------------------
 
 void RestoreState(void) {
-  DDRB  = config->state->ddra;
-  PORTB = config->state->porta;
-  DDRC  = config->state->ddrb;
-  PORTC = config->state->portb;   
-}
-
-//------------------------------------------------------------------------------
-
-void LoadPassword(void) {
-  uint16_t addr = 4096 - 128;
-
-  for(uint8_t i=0; i<64; i++) {
-    password[i] = eeprom_read_byte((const uint8_t *)(addr++));
-  }
-}
-
-//------------------------------------------------------------------------------
-
-void SavePassword(char *buffer) {
-  uint16_t addr = 4096 - 128;
-  uint8_t len = strlen(buffer)+1;
-  
-  for(uint8_t i=0; i<len; i++) {    
-    eeprom_update_byte((uint8_t *)(addr+i), buffer[i]);
-  }
+  Storage_load_state(storage);
+  SetState(storage->state);
 }
 
 //------------------------------------------------------------------------------
 
 void SetPassword(void) {
+  char buffer1[64] = "";
+  char buffer2[64] = "";
+
   EnterPassword("enter new password: ", buffer1);
 
   if(strlen(buffer1) == 1) {
@@ -870,8 +864,8 @@ void SetPassword(void) {
   }
     
   if(strlen(buffer1) == strlen(buffer2) && strcmp(buffer1, buffer2) == 0) {
-    SavePassword(buffer1);
-    LoadPassword();
+    strncpy(storage->password, buffer1, sizeof(storage->password));
+    Storage_save_password(storage);
     Type("ok, password changed\n\n");
   }
   else {
@@ -904,11 +898,6 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     boot = true;    
     break;
     
-  case KEYMAN64_STATE:
-    usbMsgPtr = (uchar *) config->state;
-    return 4;
-    break;
-
   case KEYMAN64_IDENTIFY:
     usbMsgPtr = (uchar *) version;
     return strlen((const char*)version)+1;
@@ -957,18 +946,8 @@ void ExecuteCommandsFromUSBData(void) {
 
 //------------------------------------------------------------------------------
 
-void FlashConfigurationFromUSBData(void) {
-  
-  // Restore the saved state prior to overriding it in flash...
-  RestoreState();
-  
-  if(fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength) {
-
-    // Save the previously restored state back into eeprom
-    SaveState();
-
-    reset = true;
-  }
+void FlashConfigurationFromUSBData(void) {  
+  reset = fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength;
 }
 
 //------------------------------------------------------------------------------
@@ -1017,6 +996,9 @@ void EnterPassword(const char* prompt, char* buffer) {
 //------------------------------------------------------------------------------
 
 bool CheckPassword(void) {
+
+  static char input[64] = "";
+
   uint8_t key;
   uint8_t len;
 
@@ -1033,17 +1015,145 @@ bool CheckPassword(void) {
     len = strlen(input);
     
     for(uint8_t i=0; i<len; i++) {
-      if(input[i] != password[i]) {
+      if(input[i] != storage->password[i]) {
         input[0] = 0;
+        return false;
       }
-      else if(len == strlen(password)) {      
-        return true;
-      }
+    }
+    if(len == strlen(storage->password)) {
+      return true;
     }
   }
   return false;
 }
- 
+
+//------------------------------------------------------------------------------
+
+Storage* Storage_new(void) {
+  Storage* self = (Storage*) calloc(1, sizeof(Storage));
+  self->state = State_new();
+  return self;
+}                                   
+
+//------------------------------------------------------------------------------
+
+bool Storage_valid(Storage* self) {
+  return self->magic == STORAGE_MAGIC;
+}
+  
+//------------------------------------------------------------------------------
+  
+void Storage_bootstrap(Storage* self) {
+  self->magic = STORAGE_MAGIC;
+  self->password[0] = 0;
+  self->bootflag = 0;
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_load(Storage* self) {
+  Storage_load_magic(self);
+  
+  if(Storage_valid(self)) {
+    Storage_load_state(self);
+    Storage_load_password(self);
+    Storage_load_bootflag(self);
+  }
+  else {
+    Storage_bootstrap(self);
+    Storage_save(self);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_load_magic(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, magic);
+
+  self->magic = eeprom_read_dword((uint32_t*)address);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_load_state(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, state);
+
+  self->state->ddra  = eeprom_read_byte((uint8_t*)address++);
+  self->state->porta = eeprom_read_byte((uint8_t*)address++);
+  self->state->ddrb  = eeprom_read_byte((uint8_t*)address++);
+  self->state->portb = eeprom_read_byte((uint8_t*)address++);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_load_password(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, password);
+
+  eeprom_read_block((void *) self->password,
+                    (const void*)address,
+                    sizeof(self->password));
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_load_bootflag(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, bootflag);
+  eeprom_read_word((uint16_t*) self->bootflag);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_save(Storage* self) {
+  Storage_save_magic(self);
+  Storage_save_state(self);
+  Storage_save_password(self);
+  Storage_save_bootflag(self);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_save_magic(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, magic);
+
+  eeprom_update_dword((uint32_t*)address, STORAGE_MAGIC);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_save_state(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, state);
+  
+  eeprom_update_byte((uint8_t*)address++, self->state->ddra);
+  eeprom_update_byte((uint8_t*)address++, self->state->porta);
+  eeprom_update_byte((uint8_t*)address++, self->state->ddrb);
+  eeprom_update_byte((uint8_t*)address++, self->state->portb);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_save_password(Storage* self) {
+  uint16_t address = STORAGE_ADDRESS + offsetof(Storage, password);
+
+  eeprom_update_block((const void*)self->password,
+                      (void*)address,
+                      sizeof(self->password));  
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_save_bootflag(Storage* self) {
+ uint16_t address = STORAGE_ADDRESS + offsetof(Storage, bootflag);
+
+ eeprom_update_word((uint16_t*)address, self->bootflag);
+}
+
+//------------------------------------------------------------------------------
+
+void Storage_free(Storage* self) {
+  State_free(self->state);
+  free(self);
+}
+
 //------------------------------------------------------------------------------
 
 int main(void) {
@@ -1052,7 +1162,6 @@ int main(void) {
   SetupKeyboardLayout();
   SetupMappings();
   SetupVersionString();
-  LoadPassword();
   
   meta = KEY_BACKARROW;
   boot = false;
@@ -1070,7 +1179,10 @@ int main(void) {
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
   SetupUSB();
-  
+
+  storage = Storage_new();
+  Storage_load(storage);
+
   Binding *binding;
   bool relayMetaKey = true;
 
