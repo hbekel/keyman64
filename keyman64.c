@@ -69,7 +69,9 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "state",    5) == 0) return ACTION_SHOW_STATE;
   if(strncasecmp(str, "status",   6) == 0) return ACTION_SHOW_STATE;
   if(strncasecmp(str, "lock",     4) == 0) return ACTION_LOCK;
-  if(strncasecmp(str, "password", 8) == 0) return ACTION_SET_PASSWORD;  
+  if(strncasecmp(str, "password", 8) == 0) return ACTION_SET_PASSWORD;
+  if(strncasecmp(str, "memorize", 8) == 0) return ACTION_MEMORIZE;
+  if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;      
   
   return ACTION_NONE;
 }
@@ -844,7 +846,9 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_SHOW_VERSION:  action = "version";  break;
   case ACTION_SHOW_STATE:    action = "state";    break;
   case ACTION_LOCK:          action = "lock";     break;
-  case ACTION_SET_PASSWORD:  action = "password"; break;    
+  case ACTION_SET_PASSWORD:  action = "password"; break;
+  case ACTION_MEMORIZE:      action = "memorize"; break;
+  case ACTION_RECALL:        action = "recall";   break;            
   };
 
   if(self->policy == POLICY_EVEN) {

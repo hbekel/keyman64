@@ -41,6 +41,7 @@ volatile uint8_t locked[64];
 volatile uint8_t layout[64];
 
 Storage* storage;
+State* transient;
 
 volatile Serial serial;
 volatile Mapping mappings[16];
@@ -757,6 +758,14 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_SET_PASSWORD:
     SetPassword();
     break;
+
+  case ACTION_MEMORIZE:
+    GetState(transient);
+    break;
+
+  case ACTION_RECALL:
+    SetState(transient);
+    break;
   }
 }
 
@@ -1183,6 +1192,9 @@ int main(void) {
   storage = Storage_new();
   Storage_load(storage);
 
+  transient = State_new();
+  GetState(transient);
+  
   Binding *binding;
   bool relayMetaKey = true;
 
