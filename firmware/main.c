@@ -127,13 +127,13 @@ void ExpectNextSerialByte() {
 
 //------------------------------------------------------------------------------
 
-void debug(char* fmt, ...) {
+void Type(char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
 
   char msg[512];
   vsnprintf(msg, 512, fmt, ap);
-  Type(msg);
+  Typestr(msg);
 
   va_end(ap);
 }
@@ -502,7 +502,7 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 volatile uint8_t last;
 
-void Type(char *string) {
+void Typestr(char *string) {
   Sequence sequence;
   uint8_t code;
   uint8_t key;
@@ -590,10 +590,14 @@ void Lock(void) {
   }
 }
 
+//------------------------------------------------------------------------------
+
 void Unlock(void) {
   ExecuteKey(KEY_UNLOCKED);
   STATE = STATE_RELAY;
 }
+
+//------------------------------------------------------------------------------
 
 void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
@@ -702,7 +706,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
   case ACTION_TYPE:
     index = cmd->mask | (cmd->data << 8);
-    Type(cfg->strings[index]);
+    Typestr(cfg->strings[index]);
     break;
 
   case ACTION_BOOT:
@@ -743,8 +747,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    Type((char*)version);
-    Type("\n\n");
+    Type("%s\n\n", version);
     break;
 
   case ACTION_SHOW_STATE:
@@ -811,13 +814,8 @@ static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 void ShowState(void) {
   char *state = "00000000";
 
-  Type("a ");
-  Type(p2s(&state, &PORTB, &DDRB));
-  Type("\n");
-
-  Type("b ");
-  Type(p2s(&state, &PORTC, &DDRC)); 
-  Type("\n\n");
+  Type("a %s\n", p2s(&state, &PORTB, &DDRB));
+  Type("b %s\n\n", p2s(&state, &PORTC, &DDRC)); 
 }
 
 //------------------------------------------------------------------------------
@@ -855,27 +853,23 @@ void RestoreState(void) {
 //------------------------------------------------------------------------------
 
 void SetPassword(void) {
-  char buffer1[64] = "";
-  char buffer2[64] = "";
+  char password[64] = "";
+  char repeated[64] = "";
 
-  EnterPassword("enter new password: ", buffer1);
-
-  if(strlen(buffer1) == 1) {
-    Type("cancelled\n\n");
-    return;
-  }
-
-  EnterPassword("repeat new password: ", buffer2);
-
-  if(strlen(buffer2) == 1) {
-    Type("cancelled\n\n");
-    return;
-  }
+  EnterPassword("enter new password: ", password);
+  EnterPassword("repeat new password: ", repeated);
     
-  if(strlen(buffer1) == strlen(buffer2) && strcmp(buffer1, buffer2) == 0) {
-    strncpy(storage->password, buffer1, sizeof(storage->password));
+  if(strlen(password) == strlen(repeated) && strcmp(password, repeated) == 0) {
+
+    if(strlen(password) == 1 && password[0] == KEY_RETURN) {
+      storage->password[0] = '\0';
+    }
+    else {
+      strncpy(storage->password, password, sizeof(storage->password));
+    }
     Storage_save_password(storage);
-    Type("ok, password changed\n\n");
+    
+    Type("ok, password %s\n\n", strlen(storage->password) > 1 ? "set" : "cleared");    
   }
   else {
     Type("passwords differ, nothing changed\n\n");
