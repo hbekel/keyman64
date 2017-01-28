@@ -23,7 +23,7 @@
 #include "usb.h"
 #include "protocol.h"
 #include "target.h"
-
+#include "intelhex.h"
 #include "config.c"
 
 //------------------------------------------------------------------------------
@@ -1301,33 +1301,31 @@ int configure(int argc, char **argv) {
 
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
-  FILE *in;
-  uint8_t *data = NULL;
-  uint16_t size = 0;
   
-  struct stat st;
+  unsigned int address = 0;  
+  uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
+  int size = 0;
   
   if(!argc) {
     usage();
     goto done;
   }
   
-  if((in = fopen(argv[0], "rb")) == NULL) {
-    goto error;
+  if(!(result = read_file(argv[0], &data, &size))) {
+    goto done;
   }
 
-  if(fstat(fileno(in), &st) == -1) {
+  fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
+
+  data = readhex(data, &size, &address);
+
+  if(!data) {
+    fprintf(stderr, "FAILED!\n");
+    errno = EINVAL;
     goto error;
   }
-
-  size = st.st_size;
-  data = (uint8_t *) calloc(size, sizeof(uint8_t));
-
-  if(fread(data, sizeof(uint8_t), size, in) != size) {
-    goto error;
-  }
-  fclose(in);
-
+  fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
+  
   if(usb_ping(&keyman64)) {
     fprintf(stderr, "Entering bootloader"); fflush(stderr);
     usb_control(&keyman64, KEYMAN64_BOOT);
@@ -1372,6 +1370,41 @@ int update(int argc, char **argv) {
  error:
   fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
   goto done;
+}
+
+//------------------------------------------------------------------------------
+
+bool read_file(char* filename, uint8_t **data, int *size) {
+
+  bool result = false;
+  FILE *in = NULL;
+  
+  struct stat st;
+  
+  if((in = fopen(filename, "rb")) == NULL) {
+    goto error;
+  }
+
+  if(fstat(fileno(in), &st) == -1) {
+    goto error;
+  }
+
+  (*size) = st.st_size;
+  (*data) = realloc((*data), (*size));
+
+  if(fread((*data), sizeof(uint8_t), (*size), in) != (*size)) {
+    goto error;
+  }
+  fclose(in);
+
+  result = true;
+  
+ done:
+  return result;
+
+ error:
+  fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+  goto done;    
 }
 
 //------------------------------------------------------------------------------

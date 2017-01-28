@@ -18,6 +18,8 @@ int configure(int argc, char **argv);
 int update(int argc, char **argv);
 int command(int argc, char **argv);
 
+bool read_file(char* filename, uint8_t **data, int *size);
+
 bool Config_parse(Config* self, FILE* in);
 void Config_write(Config *self, FILE* out);
 void Config_print(Config *self, FILE* out);

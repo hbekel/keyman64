@@ -39,6 +39,10 @@ LICENSING
 Hardware licenced under CERN OHL v.1.2, see ./hardware/LICENSE.txt
 Software and firmware licenced under GNU GPLv3, see ./LICENSE
 
+The software contains MIT licensed code from
+https://github.com/arkku/ihex for reading Intel HEX files, Copyright
+(c) 2013-2015 Kimmo Kulovesi, see ./intelhex/LICENSE
+
 The firmware contains the V-USB Driver (https://www.obdev.at/vusb),
 (C)2008 Objective Development GmbH.
 

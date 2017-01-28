@@ -20,7 +20,7 @@ ifeq ($(UNAME), Linux)
   UDEV=1
 endif
 
-.PHONY: all clean
+.PHONY: all clean intelhex
 
 HEADERS=config.h \
 	strings.h \
@@ -29,11 +29,13 @@ HEADERS=config.h \
 	usb.h \
 	protocol.h \
 	target.h \
+	intelhex.h \
 	keyman64.h
 
 SOURCES=strings.c \
 	range.c \
 	usb.c \
+	intelhex.c \
 	keyman64.c
 
 LIBS=-lusb-1.0
@@ -57,11 +59,19 @@ hex: keyman64-application-$(VERSION).hex \
 
 bin: keyman64-application-and-bootloader-$(VERSION).bin keyman64-application-$(VERSION).bin
 
-keyman64-application-$(VERSION).bin: keyman64-application-$(VERSION).hex
-	(which hex2bin 2> /dev/null && hex2bin keyman64-application-$(VERSION).hex) || true
+intelhex: intelhex/ihex2bin
 
-keyman64-application-and-bootloader-$(VERSION).bin: keyman64-application-and-bootloader-$(VERSION).hex
-	(which hex2bin 2> /dev/null && hex2bin -m 1 -l 20000 keyman64-application-and-bootloader-$(VERSION).hex) || true
+intelhex/ihex2bin:
+	make -C intelhex
+
+intelhex-clean:
+	make -C intelhex clean
+
+keyman64-application-$(VERSION).bin: keyman64-application-$(VERSION).hex intelhex
+	./intelhex/ihex2bin -i keyman64-application-$(VERSION).hex -o $@
+
+keyman64-application-and-bootloader-$(VERSION).bin: keyman64-application-and-bootloader-$(VERSION).hex intelhex
+	./intelhex/ihex2bin -i keyman64-application-and-bootloader-$(VERSION).hex -o $@
 
 keyman64-application-$(VERSION).hex: firmware
 	cp firmware/main.hex $@
@@ -122,7 +132,7 @@ test-reverse: reverse.prg
 	echo "Press a key on the c64. The cursor should start to blink again."
 	xlink reverse.prg
 
-clean: firmware-clean bootloader-clean
+clean: firmware-clean bootloader-clean intelhex-clean
 	rm -rf keyman64
 	rm -rf keyman64.exe
 	rm -rf *prg *.bin *.hex *.exe.stackdump
