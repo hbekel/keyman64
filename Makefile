@@ -1,4 +1,4 @@
-VERSION=1.4
+VERSION=1.5
 
 CC?=gcc
 CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)

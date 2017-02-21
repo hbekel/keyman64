@@ -255,6 +255,14 @@ static bool equal(const char *a, const char *b) {
 
 //------------------------------------------------------------------------------
 
+static bool ends_with(const char *str, const char *end) {
+  if(str == NULL || end == NULL) return false;
+  if(strlen(end) > strlen(str)) return false;
+  return strncasecmp(str+strlen(str)-strlen(end), end, strlen(end)) == 0;
+}
+
+//------------------------------------------------------------------------------
+
 static bool isSymbol(char *name) {
     for(int i=0; i<sizeof(symbols)/sizeof(Symbol); i++) {
       if(strcasecmp(symbols[i].name, name) == 0) {
@@ -969,6 +977,12 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 #endif
 }
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+static void sleep(unsigned int seconds) {
+  Sleep(seconds*1000);
+}
+#endif
+
 //------------------------------------------------------------------------------
 
 static void prepare_devices(void) {
@@ -1048,7 +1062,9 @@ int main(int argc, char **argv) {
       break;
 
     case 'p':
-      fprintf(stderr, "hint: option --preserve is no longer needed and has been deprecated\n");
+      fprintf(stderr,
+              "hint: option --preserve is no longer needed "
+              "and has been deprecated in v1.5\n");
       break;      
 
     case 'i':
@@ -1067,9 +1083,7 @@ int main(int argc, char **argv) {
 
   if(!argc) {
     usage();
-#if windows
-    system("pause");
-#endif
+    complain();
     goto done;
   }
   prepare_devices();
@@ -1301,30 +1315,37 @@ int configure(int argc, char **argv) {
 
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
-  
+
+  char *filename = argv[0];  
   unsigned int address = 0;  
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
-  
+ 
   if(!argc) {
     usage();
     goto done;
   }
   
-  if(!(result = read_file(argv[0], &data, &size))) {
+  if(!(result = read_file(filename, &data, &size))) {
     goto done;
   }
 
-  fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
-
-  data = readhex(data, &size, &address);
-
-  if(!data) {
-    fprintf(stderr, "FAILED!\n");
-    errno = EINVAL;
-    goto error;
+  if(ends_with(filename, ".hex")) {
+    fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
+    
+    data = readhex(data, &size, &address);
+    
+    if(!data) {
+      fprintf(stderr, "FAILED!\n");
+      errno = EINVAL;
+      goto error;
+    }
+    fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
   }
-  fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
+  else if(!ends_with(filename, ".bin")) {
+    fprintf(stderr, "error: please supply firmware as a .bin or .hex file\n");
+    goto done;
+  }
   
   if(usb_ping(&keyman64)) {
     fprintf(stderr, "Entering bootloader"); fflush(stderr);
@@ -1333,13 +1354,7 @@ int update(int argc, char **argv) {
     uint8_t tries = 10;
     while(!usb_ping(&usbasp)) {
       fprintf(stderr, "."); fflush(stderr);
-
-#if windows 
-      Sleep(1000);
-#else
-      sleep(1);
-#endif
-      
+      sleep(1);      
       if(!--tries) break;
     }
   }
@@ -1457,7 +1472,7 @@ void usage(void) {
   printf("           <infile>   : input file, format is autodetected\n");
   printf("           <outfile>  : output file, format determined by extension\n");
   printf("           <script>   : script file containing keyman64 commands\n");
-  printf("           <firmware> : binary firmware image\n");    
+  printf("           <firmware> : binary or ihex firmware image (.bin or .hex)\n");    
   printf("\n");
   printf("           *.conf : plain text config file format\n");
   printf("           *.bin  : binary file format (default)\n");  
@@ -1467,6 +1482,18 @@ void usage(void) {
   printf("  Command:\n");
   printf("            (any valid keyman64 command)\n");
   printf("\n");  
+}
+
+//------------------------------------------------------------------------------
+
+void complain(void) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+  if(!(!GetConsoleTitle(NULL, 0) && GetLastError() == ERROR_SUCCESS)) {
+    printf("\n!THIS IS A COMMANDLINE APPLICTION, PLEASE RUN "
+           "IT FROM A COMMAND PROMPT INSTEAD!\n\n");
+    system("pause");    
+  }
+#endif  
 }
 
 //------------------------------------------------------------------------------

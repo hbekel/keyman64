@@ -10,6 +10,7 @@
 
 void version(void);
 void identify(void);
+void complain(void);
 void usage(void);
 void keys(void);
 
