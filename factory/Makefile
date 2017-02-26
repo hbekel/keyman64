@@ -1,4 +1,4 @@
-VERSION=1.4
+VERSION=1.5
 PROGRAMMER=minipro -p ATMEGA1284P
 FUSES=-c config
 PROGRAM=-c code

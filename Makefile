@@ -71,7 +71,10 @@ keyman64-application-$(VERSION).bin: keyman64-application-$(VERSION).hex intelhe
 	./intelhex/ihex2bin -i keyman64-application-$(VERSION).hex -o $@
 
 keyman64-application-and-bootloader-$(VERSION).bin: keyman64-application-and-bootloader-$(VERSION).hex intelhex
-	./intelhex/ihex2bin -i keyman64-application-and-bootloader-$(VERSION).hex -o $@
+	./intelhex/ihex2bin -i keyman64-application-and-bootloader-$(VERSION).hex -o tmp.bin
+	dd if=/dev/zero bs=1024 count=128 | tr "\000" "\377" > $@
+	dd if=tmp.bin of=$@ conv=notrunc
+	rm -f tmp.bin
 
 keyman64-application-$(VERSION).hex: firmware
 	cp firmware/main.hex $@
