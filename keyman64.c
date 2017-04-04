@@ -977,12 +977,6 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 #endif
 }
 
-#if defined(WIN32) && !defined(__CYGWIN__)
-static void sleep(unsigned int seconds) {
-  Sleep(seconds*1000);
-}
-#endif
-
 //------------------------------------------------------------------------------
 
 static void prepare_devices(void) {

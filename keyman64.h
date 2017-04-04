@@ -2,6 +2,11 @@
 #define KEYMAN64_H
 
 #include <stdio.h>
+#include "target.h"
+
+#if windows
+ #include <windows.h>
+#endif
 
 #define USBASP_CONNECT    1
 #define USBASP_WRITEFLASH 6
@@ -37,5 +42,9 @@ void Command_write(Command *self, FILE* out);
 void Command_print(Command *self, FILE* out);
 
 void State_write(State* self, FILE* out);
+
+#if !posix
+  unsigned int sleep(unsigned int sec) { Sleep(sec*1000); return 0; }
+#endif
 
 #endif // KEYMAN64_H
