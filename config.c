@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "config.h"
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Config* Config_new(void) {
   Config* self = (Config*) calloc(1, sizeof(Config));
@@ -15,7 +15,7 @@ Config* Config_new(void) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
 
@@ -28,7 +28,7 @@ bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t Config_add_string(volatile Config *self, char* string) {
   self->strings = (char**) realloc(self->strings, (self->num_strings+1) * sizeof(char *));
@@ -38,7 +38,7 @@ uint16_t Config_add_string(volatile Config *self, char* string) {
   return self->num_strings-1;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
   for(uint16_t i=0; i<self->num_longs; i++) {
@@ -50,7 +50,7 @@ bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t Config_add_long(volatile Config *self, uint32_t value) {
   self->longs = (uint32_t*) realloc(self->longs, (self->num_longs+1) * sizeof(uint32_t));
@@ -59,7 +59,7 @@ uint16_t Config_add_long(volatile Config *self, uint32_t value) {
   return self->num_longs-1;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Binding* Config_add_binding(volatile Config *self, Binding* binding) {
   self->bindings = (Binding**) realloc(self->bindings, (self->num_bindings+1)*sizeof(Binding**));
@@ -68,7 +68,7 @@ Binding* Config_add_binding(volatile Config *self, Binding* binding) {
   return binding;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Binding* Config_get_binding(volatile Config* self, uint8_t key) {
   for(int i=0; i<self->num_bindings; i++) {
@@ -79,13 +79,13 @@ Binding* Config_get_binding(volatile Config* self, uint8_t key) {
   return NULL;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_has_binding(volatile Config* self, uint8_t key) {
   return Config_get_binding(self, key) == NULL;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key) {
   Binding* binding = NULL;
@@ -101,7 +101,7 @@ Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key) {
   return binding;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_read(volatile Config *self, FILE* in) {
   uint8_t byte;
@@ -151,7 +151,7 @@ bool Config_read(volatile Config *self, FILE* in) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #define xstr(s) mstr(s)
 #define mstr(s) #s
@@ -254,7 +254,7 @@ bool Config_install_fallback(volatile Config *self) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_reset(volatile Config *self) {
   for(int i=0; i<self->num_bindings; i++) {
@@ -262,7 +262,7 @@ void Config_reset(volatile Config *self) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_free(Config *self) {
   for(int i=0; i<self->num_bindings; i++) {
@@ -278,7 +278,7 @@ void Config_free(Config *self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Binding* Binding_new(void) {
   Binding* self = (Binding*) calloc(1, sizeof(Binding));
@@ -290,13 +290,13 @@ Binding* Binding_new(void) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Binding_set_key(Binding* self, uint8_t key) {
   self->key = key;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Command* Binding_add(Binding* self, Command* command) {
   self->commands = (Command**) realloc(self->commands, (self->num_commands+1)*sizeof(Command**));
@@ -305,7 +305,7 @@ Command* Binding_add(Binding* self, Command* command) {
   return command;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Binding_read(Binding *self, FILE* in) {
 
@@ -320,13 +320,13 @@ void Binding_read(Binding *self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Binding_reset(Binding *self) {
   self->count = self->times;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Binding_free(Binding *self) {
   for(int i=0; i<self->num_commands; i++) {
@@ -336,7 +336,7 @@ void Binding_free(Binding *self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Command* Command_new(void) {
   Command* self = (Command*) calloc(1, sizeof(Command));
@@ -348,7 +348,7 @@ Command* Command_new(void) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_read(Command *self, FILE* in) {
   self->action = fgetc(in);
@@ -359,19 +359,19 @@ void Command_read(Command *self, FILE* in) {
   self->data   = fgetc(in);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_free(Command *self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 State* State_new(void) {
   return (State*) calloc(1, sizeof(State));
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void State_read(State* self, FILE* in) {
   self->ddra  = fgetc(in);
@@ -380,11 +380,11 @@ void State_read(State* self, FILE* in) {
   self->portb = fgetc(in);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void State_free(State* self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 

@@ -15,7 +15,7 @@ static int _size = 0;
 static FILE* _out;
 static unsigned int _address;
 static bool successful;
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint8_t* readhex(uint8_t *data, int *size, unsigned int *address) {
   
@@ -40,7 +40,7 @@ uint8_t* readhex(uint8_t *data, int *size, unsigned int *address) {
   return NULL;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 ihex_bool_t ihex_data_read (struct ihex_state *ihex,
                             ihex_record_type_t type,
@@ -64,7 +64,7 @@ ihex_bool_t ihex_data_read (struct ihex_state *ihex,
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void writehex(uint8_t *data, int size, unsigned int address, FILE* out) {
   struct ihex_state ihex;
@@ -76,7 +76,7 @@ void writehex(uint8_t *data, int size, unsigned int address, FILE* out) {
   ihex_end_write(&ihex);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void ihex_flush_buffer(struct ihex_state *ihex, char *buffer, char *eptr) {
   int len = eptr - buffer;

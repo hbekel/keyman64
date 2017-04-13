@@ -7,9 +7,9 @@
 #include "usb.h"
 #include "target.h"
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // USB device discovery & handling
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool usb_lookup(DeviceInfo *info) {
 
@@ -52,7 +52,7 @@ static bool usb_lookup(DeviceInfo *info) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
 
@@ -155,7 +155,7 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
   return handle;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static int usb_message(DeviceInfo *info, int direction, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
 
@@ -205,9 +205,9 @@ static int usb_message(DeviceInfo *info, int direction, uint8_t message, uint16_
   return result;    
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // USB utility functions
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool usb_ping(DeviceInfo *info) { 
 
@@ -235,22 +235,22 @@ bool usb_ping(DeviceInfo *info) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int usb_control(DeviceInfo *info, uint8_t message) {
   return usb_message(info, LIBUSB_ENDPOINT_OUT, message, 0, 0, NULL, 0);  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int usb_send(DeviceInfo *info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
   return usb_message(info, LIBUSB_ENDPOINT_OUT, message, value, 0, buf, size);  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int usb_receive(DeviceInfo* info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size) {
   return usb_message(info, LIBUSB_ENDPOINT_IN, message, value, index, buf, size); 
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
