@@ -1178,6 +1178,9 @@ int main(void) {
   Config_read(config, &eeprom) || Config_install_fallback(config);
 
   ResetCrosspointSwitch();
+
+  ScanMatrix();
+  RelayMatrix();
   
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
