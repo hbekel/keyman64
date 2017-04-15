@@ -6,6 +6,7 @@ MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
 PREFIX?=/usr/local
+SYSCONFDIR?=/etc
 DESTDIR=
 
 UNAME=$(shell uname)
@@ -43,8 +44,8 @@ LIBS=-lusb-1.0
 print-%: ; @echo $*=$($*)
 
 all: linux
-linux: hex keyman64
-win32: hex keyman64.exe
+linux: keyman64
+win32: keyman64.exe
 
 keyman64: $(HEADERS) $(SOURCES) config.c
 	$(CC) $(CFLAGS) -o keyman64 $(SOURCES) $(LIBS)
@@ -143,6 +144,10 @@ clean: firmware-clean bootloader-clean intelhex-clean
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 keyman64 $(DESTDIR)$(PREFIX)/bin
+	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/	
+	install -m644 completion/keyman64 \
+			$(DESTDIR)$(SYSCONFDIR)/bash_completion.d/
+
 	([ "$(UDEV)x" = "1x" ] && make udev-install) || true
 
 udev-install:
