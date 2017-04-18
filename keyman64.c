@@ -370,7 +370,8 @@ static char* escape(char* str) {
       strcat(output, "\\f");
       break;
     default:
-      if((str[i] >= 32  && str[i] <= 127) || (str[i] >= 192 && str[i] <= 223)) {
+      if((str[i] >= 32  && str[i] <= 127) ||
+         (((unsigned char)str[i]) >= 192 && ((unsigned char)str[i]) <= 223)) {
         output[strlen(output)] = str[i];
       }
       else {
@@ -952,17 +953,23 @@ void Command_print(Command *self, FILE* out) {
 
 //-----------------------------------------------------------------------------
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__APPLE__)
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
-  char path[MAX_PATH+1]; 
-  char file[MAX_PATH+1];
+  int fd;
+  char path[4096]; 
+  char file[4096] = "keyman64-XXXXXX";
 
-  if(!GetTempPath(MAX_PATH+1, path)) return NULL;
+#if defined(WIN32)  
+  if(!GetTempPath(4096, path)) return NULL;
   if(!GetTempFileName(path, "key", 0, file)) return NULL;
-
   result = fopen(file, "wbD+");
+#else
+  fd = mkstemp(file);
+  result = fdopen(fd, "w+");
+#endif
+  
   fwrite(buf, sizeof(char), size, result);
   fseek(result, 0, SEEK_SET);
   
@@ -971,7 +978,7 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 #endif
 
 void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__APPLE__)
   fseek(fp, 0, SEEK_SET);
   fread(buf, sizeof(uint8_t), size, fp);
 #endif

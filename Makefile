@@ -1,7 +1,7 @@
 VERSION=1.5
 
 CC?=gcc
-CFLAGS=-std=gnu99 -Wall -Wno-unused -O2 -DVERSION=$(VERSION)
+CFLAGS=-std=gnu99 -Wall -Wno-unused -Wno-expansion-to-defined -O2 -DVERSION=$(VERSION)
 MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
