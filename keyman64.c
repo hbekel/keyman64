@@ -272,6 +272,15 @@ static bool isSymbol(char *name) {
     return false;
 }
 
+//-----------------------------------------------------------------------------
+
+static bool isSymbolName(char *name) {
+  return strspn(name, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_")
+    == strlen(name);
+}
+
+//-----------------------------------------------------------------------------
+
 static char* trim(char* s)
 {
   int len = strlen(s);
@@ -432,12 +441,17 @@ bool Config_parse(Config* self, FILE* in) {
     }
 
     // check if this command is a definition
-    if((equals = strstr(line, "=")) != NULL) {
-      name = line;
+    if(strstr(line, "=") != NULL) {
+      name = strdup(line);
+      equals = strstr(name, "=");
       equals[0] = '\0';
 
       if((trailing = strcspn(name, ws)) > 0) {
         name[trailing] = '\0';
+      }
+
+      if(!isSymbolName(name)) {
+        goto not_a_symbol;
       }
 
       value = equals+1;
@@ -456,6 +470,8 @@ bool Config_parse(Config* self, FILE* in) {
       StringList_add_definition(name, value);
       continue;
     }
+
+  not_a_symbol:
     
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
