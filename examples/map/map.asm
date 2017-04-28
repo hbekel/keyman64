@@ -1,9 +1,8 @@
 // -*- mode: kasm -*-        
+
+.import source "../../serial.h"
         
 .pc = $c000
-
-.import source "../serial.asm"
-.import source "../serial.h"
 
         sta key        
         stx port
@@ -29,6 +28,7 @@ port:  .byte $00
 mask:  .byte $00
 key:   .byte $00
         
+.import source "../../serial.asm"
         
 
         
