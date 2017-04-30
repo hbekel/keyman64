@@ -36,7 +36,8 @@ write: {
 
         ldy #$08
         
-        ldx tmp sta tmp
+        ldx tmp
+        sta tmp
         lda $01
         
 shift:  lsr tmp
