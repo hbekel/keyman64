@@ -7,7 +7,7 @@
 42 :rem b = keyman bit : 0-7
 43 :rem k = keycode, see keyman64 -k
 44 :
-45 :gosub 3000
+45 :gosub 4000
 46 :
 50 p=0: b=0: k=17: gosub 1000
 60 p=0: b=1: k=35: gosub 1000
@@ -24,8 +24,6 @@
 2000 poke646,1:poke53280,0:poke53281,0
 2010 print"{clr}load"chr$(34)g$chr$(34)",8:":print"{down}{down}{down}{down}run:{home}"
 2020 poke631,19:poke632,13:poke633,13:poke198,3:end
-
-3000 fori=0to101:reada:poke49152+i,a:next:return
 
 4000 fori=0to101:readv:poke49152+i,v:nexti
 4010 data141,41,192,142,39,192,140,40
