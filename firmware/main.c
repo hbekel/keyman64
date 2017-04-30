@@ -145,6 +145,7 @@ void ExecuteSerialCommand() {
   uint8_t port;
   uint8_t mask;
   uint8_t key;
+  Command *command;
   
   switch(serial.command) {
 
@@ -174,8 +175,20 @@ void ExecuteSerialCommand() {
 
     Map(port, mask, key);
 
+  case SERIAL_COMMAND_IO:
+    command = Command_new();
+    command->port = ((serial.arguments[0] & 0x80) == 0) ? 0 : 1;
+    command->mask = 1<<((serial.arguments[0] & 0x70)>>4);
+    command->data = serial.arguments[0] & 0xf;
+
+    switch(command->data) {
+    case 0 : command->action = ACTION_CLEAR;    break;
+    case 1 : command->action = ACTION_SET;      break;
+    case 2 : command->action = ACTION_TRISTATE; break;
+    default: command->action = ACTION_NONE;     break;
+    }
     break;
-  }  
+    }  
 }
 
 //-----------------------------------------------------------------------------
