@@ -17,6 +17,7 @@
 #define SERIAL_COMMAND_KEY_UP    0x03
 #define SERIAL_COMMAND_KEY_PRESS 0x04
 #define SERIAL_COMMAND_MAP       0x05
+#define SERIAL_COMMAND_IO        0x06
 
 uint8_t SERIAL_COMMAND_ARITY_FOR[6] = { 0, 1, 1, 1, 1, 2 };
 
