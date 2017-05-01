@@ -19,7 +19,7 @@
 #define SERIAL_COMMAND_MAP       0x05
 #define SERIAL_COMMAND_IO        0x06
 
-uint8_t SERIAL_COMMAND_ARITY_FOR[6] = { 0, 1, 1, 1, 1, 2 };
+uint8_t SERIAL_COMMAND_ARITY_FOR[7] = { 0, 1, 1, 1, 1, 2, 1 };
 
 typedef struct {
   uint8_t bit;
