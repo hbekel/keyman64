@@ -7,4 +7,5 @@
 .label up    = $03
 .label press = $04
 .label map   = $05
+.label set   = $06
 }

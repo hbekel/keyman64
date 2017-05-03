@@ -175,7 +175,7 @@ void ExecuteSerialCommand() {
 
     Map(port, mask, key);
 
-  case SERIAL_COMMAND_IO:
+  case SERIAL_COMMAND_SET:
     command = Command_new();
     command->port = ((serial.arguments[0] & 0x80) == 0) ? 0 : 1;
     command->mask = 1<<((serial.arguments[0] & 0x70)>>4);
@@ -187,6 +187,8 @@ void ExecuteSerialCommand() {
     case 2 : command->action = ACTION_TRISTATE; break;
     default: command->action = ACTION_NONE;     break;
     }
+
+    ExecuteCommand(config, command);    
     break;
     }  
 }
