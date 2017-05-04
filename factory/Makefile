@@ -1,4 +1,5 @@
-VERSION=1.5
+include ../Makefile.inc
+
 PROGRAMMER=minipro -p ATMEGA1284P
 FUSES=-c config
 PROGRAM=-c code

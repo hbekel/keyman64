@@ -1,4 +1,4 @@
-VERSION=1.5
+include Makefile.inc
 
 CC?=gcc
 CFLAGS=-std=gnu99 -Wall -Wno-unused -Wno-expansion-to-defined -O2 -DVERSION=$(VERSION)

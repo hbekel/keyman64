@@ -40,7 +40,7 @@
 #----------------------------------------------------------------------------
 
 # Firmware version
-VERSION?=
+include ../Makefile.inc
 
 # MCU name
 MCU = atmega1284p
