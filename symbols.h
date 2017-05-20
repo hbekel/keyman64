@@ -1,7 +1,6 @@
 #ifndef KEYS_H
 #define KEYS_H
 
-#include "config.h"
 #include "keyboard.h"
 
 typedef struct {

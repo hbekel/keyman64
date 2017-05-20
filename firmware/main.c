@@ -920,6 +920,14 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     usbMsgPtr = (uchar *) version;
     return strlen((const char*)version)+1;
     break;
+
+  case KEYMAN64_KEY_DOWN:
+    SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], true, LOCK_USB);
+    break;
+    
+  case KEYMAN64_KEY_UP:
+    SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], false, LOCK_USB);
+    break;
   }
   return 0;
 }

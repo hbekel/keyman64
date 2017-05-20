@@ -10,6 +10,7 @@
 #define LOCK_NONE   0x00
 #define LOCK_SERIAL 0x01
 #define LOCK_MAP    0x02
+#define LOCK_USB    0x03
 
 #define SERIAL_COMMAND_NONE      0x00
 #define SERIAL_COMMAND_EXECUTE   0x01

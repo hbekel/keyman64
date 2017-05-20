@@ -6,5 +6,7 @@
 #define KEYMAN64_IDENTIFY 0x02
 #define KEYMAN64_FLASH    0x03
 #define KEYMAN64_BOOT     0x04
+#define KEYMAN64_KEY_DOWN 0x05
+#define KEYMAN64_KEY_UP   0x06
 
 #endif // PROTOCOL_H
