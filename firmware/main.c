@@ -626,6 +626,7 @@ void Unlock(void) {
 void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
+
   uint8_t value;
   uint8_t mask;
   uint8_t offset;
@@ -1201,9 +1202,9 @@ void Storage_free(Storage* self) {
 //-----------------------------------------------------------------------------
 
 void Expansion_init(Expansion* self) {
-  Expansion_set(self, self->enable, true);
-  Expansion_set(self, self->clock, false);
-  Expansion_set(self, self->latch, false);
+  Expansion_set(self, self->enable, HIGH);
+  Expansion_set(self, self->clock, HIGH);
+  Expansion_set(self, self->latch, HIGH);
 }
 
 //-----------------------------------------------------------------------------
@@ -1212,7 +1213,7 @@ void Expansion_set(Expansion* self, uint8_t pin, bool high) {
   uint8_t volatile *port = ((pin >> 3) == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = ((pin >> 3) == PORT_A) ? &DDRB : &DDRC;
   
-  uint8_t mask = pin & 0x07;
+  uint8_t mask = 1 << (pin & 0x07);
 
   if(high) {
     *port |= mask;
@@ -1225,35 +1226,26 @@ void Expansion_set(Expansion* self, uint8_t pin, bool high) {
 
 //-----------------------------------------------------------------------------
 
-void Expansion_enable(Expansion* self) {
-  Expansion_set(self, self->enable, false);
-}
-
-//-----------------------------------------------------------------------------
-
 void Expansion_send(Expansion* self) {
   
   uint8_t pin;
   uint8_t port;
   
-  for(uint8_t i = 0; i<self->num_ports; i++) {
+  for(uint8_t i=0; i<self->num_ports; i++) {
     port = self->ports[i];
+    pin = 0x80;
 
-    while(pin) {
-      Expansion_set(self, self->data, (port & pin) != 0 ? true : false);
-      
-      Expansion_set(self, self->clock, true);
-      _delay_ms(10);
-      Expansion_set(self, self->clock, false);
-
-      pin <<= 1;
+    while(pin)  {
+      Expansion_set(self, self->data, (port & pin) != 0 ? HIGH : LOW);
+      Expansion_set(self, self->clock, LOW);
+      Expansion_set(self, self->clock, HIGH);
+      pin >>= 1;
     }
   }
-  Expansion_set(self, self->latch, true);
-  _delay_ms(10);
-  Expansion_set(self, self->latch, false);
+  Expansion_set(self, self->latch, LOW);
+  Expansion_set(self, self->latch, HIGH);
   
-  Expansion_set(self, self->enable, false);    
+  Expansion_set(self, self->enable, LOW);    
 }
 
 //-----------------------------------------------------------------------------
@@ -1294,7 +1286,7 @@ int main(void) {
   
   Binding *binding;
   bool relayMetaKey = true;
-  
+
   while(true) {
 
     usbPoll();

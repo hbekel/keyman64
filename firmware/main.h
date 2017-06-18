@@ -22,6 +22,9 @@
 
 uint8_t SERIAL_COMMAND_ARITY_FOR[7] = { 0, 1, 1, 1, 1, 2, 1 };
 
+#define HIGH true
+#define LOW false
+
 typedef struct {
   uint8_t bit;
   uint8_t byte;
@@ -122,7 +125,6 @@ void Storage_free(Storage* self);
 
 void Expansion_init(Expansion* self);
 void Expansion_set(Expansion* self, uint8_t pin, bool high);
-void Expansion_enable(Expansion* self);
 void Expansion_send(Expansion* self);
 
 #endif // MAIN_H
