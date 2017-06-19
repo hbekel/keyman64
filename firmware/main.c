@@ -623,9 +623,32 @@ void Unlock(void) {
 
 //-----------------------------------------------------------------------------
 
+bool ResolvePort(uint8_t num, uint8_t volatile **port, uint8_t volatile** ddr) {
+
+  *port = NULL;
+  
+  if(num <= PORT_B) {
+    *port = (num == PORT_A) ? &PORTB : &PORTC;
+    *ddr  = (num == PORT_A) ? &DDRB : &DDRC;
+  }
+  else if(Config_has_expansion(config)) {
+
+    Expansion *expansion = config->expansion;
+    num -= 2;    
+    
+    if(num < expansion->num_ports) {
+      *port = &(expansion->ports[num]);
+      *ddr  = &(expansion->ddr);
+    }
+  }
+  return *port != NULL;
+}
+
+//-----------------------------------------------------------------------------
+
 void ExecuteCommand(volatile Config *cfg, Command* cmd) {
-  uint8_t volatile *port = (cmd->port == PORT_A) ? &PORTB : &PORTC;
-  uint8_t volatile *ddr  = (cmd->port == PORT_A) ? &DDRB : &DDRC;
+  uint8_t volatile *port;
+  uint8_t volatile *ddr;
 
   uint8_t value;
   uint8_t mask;
@@ -635,6 +658,8 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint8_t tmp;
   uint16_t index;
   uint32_t duration;
+
+  if(!ResolvePort(cmd->port, &port, &ddr)) return;
   
   switch(cmd->action) {
     
@@ -804,6 +829,10 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     SetState(transient);
     break;
   }
+
+  if(Config_has_expansion(config) && cmd->port > PORT_B) {
+    Expansion_update(config->expansion);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -847,9 +876,19 @@ static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 
 void ShowState(void) {
   char *state = "00000000";
+  char port = 'a';
+  uint8_t ddr = 0xff;
+  
+  Type("%c %s\n", port++, p2s(&state, &PORTB, &DDRB));
+  Type("%c %s\n", port++, p2s(&state, &PORTC, &DDRC));
 
-  Type("a %s\n", p2s(&state, &PORTB, &DDRB));
-  Type("b %s\n\n", p2s(&state, &PORTC, &DDRC)); 
+  if(Config_has_expansion(config)) {
+    Expansion *e = config->expansion;
+    for(uint8_t i = 0; i < e->num_ports; i++) {
+      Type("%c %s\n", port++, p2s(&state, &e->ports[i], &ddr));
+    }
+  }  
+  Type("\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -1201,15 +1240,15 @@ void Storage_free(Storage* self) {
 
 //-----------------------------------------------------------------------------
 
-void Expansion_init(Expansion* self) {
-  Expansion_set(self, self->enable, HIGH);
-  Expansion_set(self, self->clock, HIGH);
-  Expansion_set(self, self->latch, HIGH);
+void SetupExpansion(void) {
+  if(Config_has_expansion(config)) {
+    Expansion_init(config->expansion);
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-void Expansion_set(Expansion* self, uint8_t pin, bool high) {
+void Expansion_set(uint8_t pin, bool high) {
   uint8_t volatile *port = ((pin >> 3) == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = ((pin >> 3) == PORT_A) ? &DDRB : &DDRC;
   
@@ -1226,26 +1265,58 @@ void Expansion_set(Expansion* self, uint8_t pin, bool high) {
 
 //-----------------------------------------------------------------------------
 
-void Expansion_send(Expansion* self) {
-  
-  uint8_t pin;
-  uint8_t port;
-  
-  for(uint8_t i=0; i<self->num_ports; i++) {
-    port = self->ports[i];
-    pin = 0x80;
+void Expansion_init(Expansion* self) {
+  Expansion_set(self->enable, HIGH);
+  Expansion_set(self->clock, HIGH);
+  Expansion_set(self->latch, HIGH);
+}
 
-    while(pin)  {
-      Expansion_set(self, self->data, (port & pin) != 0 ? HIGH : LOW);
-      Expansion_set(self, self->clock, LOW);
-      Expansion_set(self, self->clock, HIGH);
-      pin >>= 1;
-    }
-  }
-  Expansion_set(self, self->latch, LOW);
-  Expansion_set(self, self->latch, HIGH);
+//-----------------------------------------------------------------------------
+
+void Expansion_enable(Expansion* self) {
+  Expansion_set(self->enable, LOW);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_clock(Expansion* self) {
+  Expansion_set(self->clock, LOW);
+  Expansion_set(self->clock, HIGH);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_latch(Expansion* self) {
+  Expansion_set(self->latch, LOW);
+  Expansion_set(self->latch, HIGH);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_data(Expansion* self, bool high) {
+  Expansion_set(self->data, high);
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_update(Expansion* self) {
   
-  Expansion_set(self, self->enable, LOW);    
+  uint8_t bitmask;
+  uint8_t value;
+  
+  for(int16_t i=self->num_ports-1; i >= 0; i--) {
+
+    value = self->ports[i];
+    bitmask = 0x80;
+
+    do {
+      Expansion_data(self, value & bitmask);
+      Expansion_clock(self);
+    }
+    while(bitmask >>= 1);
+  }
+  Expansion_latch(self);
+  Expansion_enable(self);
 }
 
 //-----------------------------------------------------------------------------
@@ -1273,6 +1344,8 @@ int main(void) {
 
   ScanMatrix();
   RelayMatrix();
+
+  SetupExpansion();
   
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 

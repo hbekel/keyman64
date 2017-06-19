@@ -33,10 +33,11 @@
 #define ACTION_MEMORIZE      26
 #define ACTION_RECALL        27
 #define ACTION_DEFINE_SPEED  28
+#define ACTION_EXPAND        29
 
 #define PORT_A    0
 #define PORT_B    1
-#define PORT_NONE 2
+#define PORT_NONE 0xff
 
 #define SWITCH_22106 0
 #define SWITCH_8808  1
@@ -76,6 +77,16 @@ typedef struct {
 } State;
 
 typedef struct {
+  uint8_t clock;
+  uint8_t data;
+  uint8_t latch;
+  uint8_t enable;
+  uint8_t num_ports;
+  uint8_t* ports;
+  uint8_t ddr;
+} Expansion;
+
+typedef struct {
   uint16_t num_bindings;
   uint16_t num_strings;
   uint16_t num_longs;
@@ -83,22 +94,15 @@ typedef struct {
   char **strings;
   uint32_t *longs;
   State *state;
+  Expansion *expansion;
 } Config;
-
-typedef struct {
-  uint8_t clock;
-  uint8_t data;
-  uint8_t latch;
-  uint8_t enable;
-  uint8_t num_ports;
-  uint8_t* ports;
-} Expansion;
 
 uint8_t CONFIG_MAGIC[2] = { 0x1c, 0xcf };
 uint8_t KEY_EOF       = 0xff;
 uint8_t KEY_IMMEDIATE = 0xfe;
 uint8_t KEY_STRING    = 0xfd;
 uint8_t KEY_LONG      = 0xfc;
+uint8_t KEY_EXPANSION = 0xfb;
 
 Config* Config_new(void);
 Binding* Config_add_binding(volatile Config *self, Binding* binding);
@@ -109,9 +113,11 @@ bool Config_has_string(volatile Config *self, char* string, uint16_t *index);
 uint16_t Config_add_string(volatile Config *self, char* string);
 bool Config_has_long(volatile Config *self, uint32_t value, uint16_t *index);
 uint16_t Config_add_long(volatile Config *self, uint32_t value);
+Expansion* Config_set_expansion(volatile Config *self, Expansion* expansion);
 bool Config_read(volatile Config *self, FILE* in);
 bool Config_install_fallback(volatile Config *self);
 void Config_reset(volatile Config *self);
+bool Config_has_expansion(volatile Config *self);
 void Config_free(Config *self);
 
 Binding* Binding_new(void);
@@ -129,7 +135,8 @@ State* State_new(void);
 void State_read(State* self, FILE* in);
 void State_free(State* self);
 
-Expansion * Expansion_new(uint8_t num_ports);
+Expansion * Expansion_new(void);
+void Expansion_set_num_ports(Expansion* self, uint8_t num_ports);
 void Expansion_read(Expansion* self, FILE* in);
 void Expansion_free(Expansion* self);
 

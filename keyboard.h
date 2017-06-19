@@ -77,7 +77,7 @@
 
 // SPECIAL SLOTS
 
-#define KEY_LOCKED        0xfb
-#define KEY_UNLOCKED      0xfa
+#define KEY_LOCKED        0xfa
+#define KEY_UNLOCKED      0xf9
 
 #endif // KEYBOARD_H

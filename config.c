@@ -9,6 +9,7 @@ Config* Config_new(void) {
   self->strings = (char**) NULL;
   self->longs = (uint32_t*) NULL;
   self->state = State_new();
+  self->expansion = NULL;
   self->num_bindings = 0;
   self->num_strings = 0;
   self->num_longs = 0;
@@ -106,6 +107,7 @@ Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key) {
 bool Config_read(volatile Config *self, FILE* in) {
   uint8_t byte;
   Binding* binding;
+  Expansion* expansion;
   char string[4096];
   char c;
   uint32_t value;
@@ -141,14 +143,31 @@ bool Config_read(volatile Config *self, FILE* in) {
       value |= ((uint32_t)fgetc(in)) << 24;
 
       Config_add_long(self, value);
-       
-    } else {
+
+    }
+    else if(byte == KEY_EXPANSION) {
+      expansion = Config_set_expansion(self, Expansion_new());
+      Expansion_read(expansion, in);
+    }
+    else {
       binding = Config_add_binding(self, Binding_new());
       binding->key = byte;
       Binding_read(binding, in);
     }
   }
   return true;
+}
+
+//-----------------------------------------------------------------------------
+
+bool Config_has_expansion(volatile Config *self) {
+  return self->expansion != NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+Expansion* Config_set_expansion(volatile Config *self, Expansion* expansion) {
+  return self->expansion = expansion;
 }
 
 //-----------------------------------------------------------------------------
@@ -352,9 +371,8 @@ Command* Command_new(void) {
 
 void Command_read(Command *self, FILE* in) {
   self->action = fgetc(in);
-  self->port   = (self->action & 0x80U) == 0 ? 0 : 1;
-  self->policy = (self->action & 0x60U);
-  self->action &= 0x1fU;
+  self->policy = fgetc(in);
+  self->port   = fgetc(in);
   self->mask   = fgetc(in);
   self->data   = fgetc(in);
 }
@@ -388,11 +406,32 @@ void State_free(State* self) {
 
 //-----------------------------------------------------------------------------
 
-Expansion* Expansion_new(uint8_t num_ports) {
+Expansion* Expansion_new() {
   Expansion* self = (Expansion*) calloc(1, sizeof(Expansion));
+  self->num_ports = 0;
+  self->ports = NULL;
+  self->clock = 0;
+  self->data = 0;
+  self->latch = 0;
+  self->enable = 0;
+  return self;
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_set_num_ports(Expansion* self, uint8_t num_ports) {
   self->num_ports = num_ports;
   self->ports = (uint8_t*) calloc(self->num_ports, sizeof(uint8_t));
-  return self;
+}
+
+//-----------------------------------------------------------------------------
+
+void Expansion_read(Expansion* self, FILE* in) {
+  Expansion_set_num_ports(self, fgetc(in));
+  self->clock  = fgetc(in);
+  self->data   = fgetc(in);
+  self->latch  = fgetc(in);
+  self->enable = fgetc(in);
 }
 
 //-----------------------------------------------------------------------------

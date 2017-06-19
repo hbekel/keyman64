@@ -52,6 +52,7 @@ uint16_t STORAGE_ADDRESS = 0x1000 - sizeof(Storage);
 
 void SetupHardware(void);
 void SetupSerial(void);
+void SetupExpansion(void);
 void ResetSerial(void);
 void ExpectNextSerialByte(void);
 void ExecuteSerialCommand(void);
@@ -123,8 +124,12 @@ void Storage_save_password(Storage* self);
 void Storage_save_bootflag(Storage* self);
 void Storage_free(Storage* self);
 
+void Expansion_set(uint8_t pin, bool high);
 void Expansion_init(Expansion* self);
-void Expansion_set(Expansion* self, uint8_t pin, bool high);
-void Expansion_send(Expansion* self);
+void Expansion_enable(Expansion* self);
+void Expansion_clock(Expansion* self);
+void Expansion_latch(Expansion* self);
+void Expansion_data(Expansion* self, bool high);
+void Expansion_update(Expansion* self);
 
 #endif // MAIN_H

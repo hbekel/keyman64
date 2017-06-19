@@ -29,6 +29,7 @@
 //-----------------------------------------------------------------------------
 
 Config* config = NULL;
+bool ignoreMissingPorts = false;
 
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
@@ -73,19 +74,67 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "memorize", 8) == 0) return ACTION_MEMORIZE;
   if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;
   if(strncasecmp(str, "speed",    5) == 0) return ACTION_DEFINE_SPEED;
+  if(strncasecmp(str, "expand",   6) == 0) return ACTION_EXPAND;
   
   return ACTION_NONE;
 }
 
 //-----------------------------------------------------------------------------
 
-static uint8_t parsePort(char *str) {
+static bool parseInt(char* word, int base, uint8_t *value) {
+  char *failed;
+  *value = strtol(word, &failed, base);
+  return (word != failed);
+}
+
+//-----------------------------------------------------------------------------
+
+static uint8_t parseNativePort(char *str) {
   if(str == NULL) return PORT_NONE;
 
   if(strncasecmp(str, "a",  1) == 0) return PORT_A;
   if(strncasecmp(str, "b",  1) == 0) return PORT_B;
 
   return PORT_NONE;
+}
+
+//-----------------------------------------------------------------------------
+
+static void availablePorts(void) {
+  fprintf(stderr, "available ports: a, b");
+  if(!Config_has_expansion(config)) {
+    fprintf(stderr, "\n");
+    return;
+  }
+  for(int i=0; i<config->expansion->num_ports; i++) {
+    fprintf(stderr, ", %c", 'c' + i);
+  }
+  fprintf(stderr, "\n");
+}
+
+//-----------------------------------------------------------------------------
+
+static uint8_t parsePort(char *str) {
+  uint8_t port = parseNativePort(str);
+  if(port != PORT_NONE) return port;  
+
+  if(!ignoreMissingPorts) {
+    if(!Config_has_expansion(config)) {
+      return PORT_NONE;
+    }
+  }
+  
+  char c = toupper(str[0]);
+  if(!isalpha(c)) return PORT_NONE;
+
+  port = c - 'A';
+
+  if(!ignoreMissingPorts) {
+    if(config->expansion->num_ports + 2 <= port) {
+      return PORT_NONE;
+    }
+  }
+  return port;
 }
 
 //-----------------------------------------------------------------------------
@@ -413,6 +462,7 @@ bool Config_parse(Config* self, FILE* in) {
 
   Binding* binding;
   Command* command;
+  Expansion* expansion;
   uint8_t key;
 
   fseek(in, 0, SEEK_SET);
@@ -493,10 +543,21 @@ bool Config_parse(Config* self, FILE* in) {
 
     // skip leading whitespace of command spec
     line += strspn(line, ws);
+
+    // try to parse expansion...
+    expansion = Expansion_new();
     
+    if(Expansion_parse(expansion, line)) {
+      Config_set_expansion(self, expansion);
+      continue;
+    }
+    else {
+      Expansion_free(expansion);
+    }
+
     // try to parse command...        
     command = Command_new();
-    
+       
     if(!Command_parse(command, line)) {
       fprintf(stderr, "error: line %d: '%s': invalid command specification\n", pos, line);
       free(command);
@@ -533,7 +594,7 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
 
   if(spec != invalid) {
 
-    if(byte >= 0xfc) {
+    if(byte >= 0xfb) {
       fprintf(stderr, "error: '$%02X': reserved slot (use $40-$FB only)\n", byte);
       goto done;
     }
@@ -717,7 +778,8 @@ bool Command_parse(Command* self, char* spec) {
   
   if(equal(StringList_get(words, i), "port")) {
     if((self->port = parsePort(StringList_get(words, ++i))) == PORT_NONE) {
-      fprintf(stderr, "error: '%s': invalid port\n", StringList_get(words, i));
+      fprintf(stderr, "error: '%s': invalid port, ", StringList_get(words, i));
+      availablePorts();
       goto error;
     }
     i++;
@@ -728,6 +790,7 @@ bool Command_parse(Command* self, char* spec) {
       fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i));
       goto error;
     }
+    self->data = 1;
     i++;
   }
 
@@ -764,6 +827,94 @@ bool Command_parse(Command* self, char* spec) {
 }
 
 //-----------------------------------------------------------------------------
+
+bool Expansion_parse(Expansion* self, char* spec) {
+  int result = false;
+
+  char* keywords[4] = { "clock", "data", "latch", "enable" };
+  uint8_t* ports[4] = { &self->clock, &self->data, &self->latch, &self->enable };
+  bool parsed[4]    = { false, false, false, false };
+  
+  StringList* words = StringList_new();
+  StringList_append_tokenized(words, spec, ws);
+
+  char * word;
+  uint8_t value;
+  uint8_t port;
+  int i = 0;
+  
+  if(parseAction(StringList_get(words, i++)) != ACTION_EXPAND) {
+    goto done;
+  }
+
+  if(!equal(StringList_get(words, i), "ports")) {
+    fprintf(stderr, "error: '%s': keyword 'PORTS' expected here\n", StringList_get(words, i));
+    goto done;
+  }
+  
+  if(!parseInt(StringList_get(words, ++i), 10, &value)) {
+    fprintf(stderr, "error: '%s': number of ports expected here\n", StringList_get(words, i));
+    goto done;
+  }
+  Expansion_set_num_ports(self, value);
+  
+  for(i++; i<words->size; i++) {
+    word = StringList_get(words, i);
+    
+    for(int k=0; k<4; k++) {
+      if(equal(word, keywords[k])) {        
+
+        word = StringList_get(words, ++i);
+        if(!equal(word, "port")) {
+          fprintf(stderr, "error: '%s': keyword 'port' expected\n", word);
+          goto done;
+        }
+        
+        word = StringList_get(words, ++i);
+        if((port = parseNativePort(word)) == PORT_NONE) {
+          fprintf(stderr, "error: '%s': invalid port\n", word);
+          goto done;
+        }
+        port <<= 3;
+        
+        word = StringList_get(words, ++i);
+        if(!equal(word, "bit")) {
+          fprintf(stderr, "error: '%s': keyword 'bit' expected\n", word);
+          goto done;
+        }
+        
+        word = StringList_get(words, ++i);
+        if(!parseInt(word, 10, &value)) {
+          fprintf(stderr, "error: '%s': invalid bit\n", word);
+          goto done;
+        }
+
+        if(value > 7) {
+          fprintf(stderr, "error: '%d': invalid bit\n", value);
+          goto done;
+        }
+        
+        port |= value;
+        *(ports[k]) = port;
+        parsed[k] = true;
+      }
+    }
+  }
+
+  for(int k=0; k<4; k++) {
+    if(!parsed[k]) {
+      fprintf(stderr, "error: no pin specification found for '%s'\n", keywords[k]);
+      goto done;
+    }
+  }
+  result = true;
+    
+ done:
+  StringList_free(words);
+  return result;
+}
+
+//-----------------------------------------------------------------------------
 // Functions for writing binary configuration
 //-----------------------------------------------------------------------------
 
@@ -772,6 +923,11 @@ void Config_write(Config *self, FILE *out) {
   fputc(CONFIG_MAGIC[1], out);
 
   State_write(self->state, out);
+
+  if(Config_has_expansion(self)) {
+    fputc(KEY_EXPANSION, out);
+    Expansion_write(self->expansion, out);
+  }
   
   for(int i=0; i<self->num_bindings; i++) {
     Binding_write(self->bindings[i], out);
@@ -813,9 +969,9 @@ void Key_write(uint8_t key, FILE* out) {
 
 void Command_write(Command *self, FILE* out) {
   uint8_t action = self->action;
-  action |= self->port<<7;
-  action |= self->policy;
-  fputc(action, out);
+  fputc(self->action, out);
+  fputc(self->policy, out);
+  fputc(self->port, out);
   fputc(self->mask, out);
   fputc(self->data, out);
 }
@@ -830,10 +986,23 @@ void State_write(State *self, FILE* out) {
 }
 
 //-----------------------------------------------------------------------------
+
+void Expansion_write(Expansion* self, FILE* out) {
+  fputc(self->num_ports, out);
+  fputc(self->clock, out);
+  fputc(self->data, out);
+  fputc(self->latch, out);
+  fputc(self->enable, out);
+}
+
+//-----------------------------------------------------------------------------
 // Functions for writing canonical config file format
 //-----------------------------------------------------------------------------
 
 void Config_print(Config *self, FILE* out) {
+  if(Config_has_expansion(self)) {
+    Expansion_print(self->expansion, out);
+  }    
   for(int i=0; i<self->num_bindings; i++) {
     Binding_print(self->bindings[i], out);
   }
@@ -898,7 +1067,7 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_SET_PASSWORD:  action = "password"; break;
   case ACTION_MEMORIZE:      action = "memorize"; break;
   case ACTION_RECALL:        action = "recall";   break;
-  case ACTION_DEFINE_SPEED:  action = "speed";    break;                
+  case ACTION_DEFINE_SPEED:  action = "speed";    break;    
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -978,15 +1147,15 @@ void Command_print(Command *self, FILE* out) {
   else {
     if(start == end) {
 
-      fprintf(out, "%s port %s bit %d ",
+      fprintf(out, "%s port %c bit %d ",
               action,
-              (self->port == PORT_A) ? "a" : "b",
+              'a' + self->port,
               start);
     } else {
       
-      fprintf(out, "%s port %s bits %d-%d ",
+      fprintf(out, "%s port %c bits %d-%d ",
               action,
-              (self->port == PORT_A) ? "a" : "b",
+              'a' + self->port,
               start,
               end);
     }
@@ -999,8 +1168,23 @@ void Command_print(Command *self, FILE* out) {
 
 //-----------------------------------------------------------------------------
 
+void Expansion_print(Expansion* self, FILE* out) {
+  fprintf(out,
+          "expand PORTS %d "
+          "CLOCK port %s bit %d "
+          "DATA port %s bit %d "
+          "LATCH port %s bit %d "
+          "ENABLE port %s bit %d\n",
+          self->num_ports,
+          (self->clock & 0x08) ? "b" : "a", self->clock & 0x07,
+          (self->data & 0x08) ? "b" : "a", self->data & 0x07,
+          (self->latch & 0x08) ? "b" : "a", self->latch & 0x07,
+          (self->enable & 0x08) ? "b" : "a", self->enable & 0x07);          
+}
+
+//-----------------------------------------------------------------------------
+
 #if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__APPLE__)
-FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
   int fd;
@@ -1183,6 +1367,8 @@ int command(int argc, char **argv) {
   char *str = (char*) calloc(1, sizeof(char));
   uint8_t *data = NULL;
   uint16_t size = 0;
+
+  ignoreMissingPorts = true;
   
   if(strlen(argv[0]) == 1 && argv[0][0] == '-') {
     in = stdin;
