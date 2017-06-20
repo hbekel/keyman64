@@ -817,6 +817,17 @@ bool Command_parse(Command* self, char* spec) {
     self->data = data;
   }
   
+  if(self->port > PORT_B) {
+    if(self->action == ACTION_TRISTATE) {
+      fprintf(stderr, "error: expanded port lines can not be tristated\n");
+      goto error;
+    }
+    if(self->action == ACTION_MAP) {
+      fprintf(stderr, "error: expanded port lines can not be mapped to keys\n");
+      goto error;
+    }
+  }
+  
  done:
   StringList_free(words);
   return result;
