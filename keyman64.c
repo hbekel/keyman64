@@ -1247,7 +1247,7 @@ void Expansion_print(Expansion* self, FILE* out) {
 //-----------------------------------------------------------------------------
 
 #if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__APPLE__)
-
+FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
   FILE* result;
   int fd;
   char path[4096]; 
