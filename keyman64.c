@@ -631,6 +631,7 @@ bool Command_parse(Command* self, char* spec) {
   bool result = true;
   bool error = false;
   StringList* words = StringList_new();
+  char* word;
   char* str;
   char* failed;
   uint8_t data;
@@ -775,40 +776,72 @@ bool Command_parse(Command* self, char* spec) {
     
     goto done;
   }
+
+  if(i >= words->size) goto done;
   
-  if(equal(StringList_get(words, i), "port")) {
-    if((self->port = parsePort(StringList_get(words, ++i))) == PORT_NONE) {
-      fprintf(stderr, "error: '%s': invalid port, ", StringList_get(words, i));
+  word = StringList_get(words, i);
+  if(isalpha(word[0]) && isdigit(word[1])) {
+    char p[2] = { 0, 0 };
+    char* b = word+1;
+    p[0] = word[0];
+    
+    if((self->port = parsePort(p)) == PORT_NONE) {
+      fprintf(stderr, "error: '%s': invalid line specification\n", word);
       availablePorts();
       goto error;
     }
-    i++;
-  }
-  
-  if(equal(StringList_get(words, i), "bit")) {
-    if((self->mask = parseBit(StringList_get(words, ++i))) == 0xff) {
-      fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i));
-      goto error;
+    if(strlen(b) > 1) {
+      self->mask = parseBits(b, &error);
+      
+      if(error) {
+        fprintf(stderr, "error: '%s': invalid bit range\n", b);
+        goto error;
+      }
     }
-    self->data = 1;
-    i++;
-  }
-
-  if(equal(StringList_get(words, i), "bits")) {
-
-    self->mask = parseBits(StringList_get(words, ++i), &error);
-
-    if(error) {
-      fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i));
-      goto error;
+    else {
+      if((self->mask = parseBit(b)) == 0xff) {
+        fprintf(stderr, "error: '%s': invalid bit\n", b);
+        goto error;
+      }
+      self->data = 1;
     }
-    i++;
-  }  
+    i++;    
+  }
+  else {
+    if(equal(StringList_get(words, i), "port")) {
+      if((self->port = parsePort(StringList_get(words, ++i))) == PORT_NONE) {
+        fprintf(stderr, "error: '%s': invalid port, ", StringList_get(words, i));
+        availablePorts();
+        goto error;
+      }
+      i++;
+    }
+    
+    if(equal(StringList_get(words, i), "bit")) {
+      if((self->mask = parseBit(StringList_get(words, ++i))) == 0xff) {
+        fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i));
+        goto error;
+      }
+      self->data = 1;
+      i++;
+    }
+    
+    if(equal(StringList_get(words, i), "bits")) {
+      
+      self->mask = parseBits(StringList_get(words, ++i), &error);
+      
+      if(error) {
+        fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i));
+        goto error;
+      }
+      i++;
+    }  
+  }
 
   if(equal(StringList_get(words, i), "to") || equal(StringList_get(words, i), "=")) {
     i++;
   }  
-
+  
   if(i < words->size) {
     if(!parseData(StringList_get(words, i), &data)) {
       fprintf(stderr, "error: '%s': invalid value\n", StringList_get(words, i));
@@ -849,7 +882,10 @@ bool Expansion_parse(Expansion* self, char* spec) {
   StringList* words = StringList_new();
   StringList_append_tokenized(words, spec, ws);
 
-  char * word;
+  char *word;
+  char p[2] = { 0, 0 };
+  char *b;
+
   uint8_t value;
   uint8_t port;
   int i = 0;
@@ -874,42 +910,57 @@ bool Expansion_parse(Expansion* self, char* spec) {
     
     for(int k=0; k<4; k++) {
       if(equal(word, keywords[k])) {        
+        word = StringList_get(words, ++i);
 
-        word = StringList_get(words, ++i);
-        if(!equal(word, "port")) {
-          fprintf(stderr, "error: '%s': keyword 'port' expected\n", word);
-          goto done;
-        }
-        
-        word = StringList_get(words, ++i);
-        if((port = parseNativePort(word)) == PORT_NONE) {
-          fprintf(stderr, "error: '%s': invalid port\n", word);
-          goto done;
-        }
-        port <<= 3;
-        
-        word = StringList_get(words, ++i);
-        if(!equal(word, "bit")) {
-          fprintf(stderr, "error: '%s': keyword 'bit' expected\n", word);
-          goto done;
-        }
-        
-        word = StringList_get(words, ++i);
-        if(!parseInt(word, 10, &value)) {
-          fprintf(stderr, "error: '%s': invalid bit\n", word);
-          goto done;
-        }
+        if(isalpha(word[0]) && isdigit(word[1])) {
+          p[0] = word[0];
+          b = word+1;
 
+          if((port = parseNativePort(p)) == PORT_NONE) {
+            fprintf(stderr, "error: '%s': invalid port\n", p);
+            goto done;
+          }
+
+          if(!parseInt(b, 10, &value)) {
+            fprintf(stderr, "error: '%s': invalid bit\n", word);
+            goto done;
+          }
+        }
+        else {
+          if(!equal(word, "port")) {
+            fprintf(stderr, "error: '%s': keyword 'port' expected\n", word);
+            goto done;
+          }
+          
+          word = StringList_get(words, ++i);
+          if((port = parseNativePort(word)) == PORT_NONE) {
+            fprintf(stderr, "error: '%s': invalid port\n", word);
+            goto done;
+          }
+        
+          word = StringList_get(words, ++i);
+          if(!equal(word, "bit")) {
+            fprintf(stderr, "error: '%s': keyword 'bit' expected\n", word);
+            goto done;
+          }
+          
+          word = StringList_get(words, ++i);
+          if(!parseInt(word, 10, &value)) {
+            fprintf(stderr, "error: '%s': invalid bit\n", word);
+            goto done;
+          }
+        }
         if(value > 7) {
           fprintf(stderr, "error: '%d': invalid bit\n", value);
           goto done;
         }
         
+        port <<= 3;
         port |= value;
         *(ports[k]) = port;
         parsed[k] = true;
       }
-    }
+   }
   }
 
   for(int k=0; k<4; k++) {
