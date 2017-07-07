@@ -496,11 +496,9 @@ bool Config_parse(Config* self, FILE* in) {
       name = strdup(line);
       equals = strstr(name, "=");
       equals[0] = '\0';
-
-      if((trailing = strcspn(name, ws)) > 0) {
-        name[trailing] = '\0';
-      }
-
+      
+      name = trim(name);
+      
       if(!isSymbolName(name)) {
         goto not_a_symbol;
       }
@@ -875,102 +873,92 @@ bool Command_parse(Command* self, char* spec) {
 bool Expansion_parse(Expansion* self, char* spec) {
   int result = false;
 
-  char* keywords[4] = { "clock", "data", "latch", "enable" };
-  uint8_t* ports[4] = { &self->clock, &self->data, &self->latch, &self->enable };
-  bool parsed[4]    = { false, false, false, false };
+  char* linenames[4] = { "clock", "data", "latch", "enable" };
+  uint8_t* lines[4]  = { &self->clock, &self->data, &self->latch, &self->enable };
+  bool parsed[4]     = { false, false, false, false };
   
   StringList* words = StringList_new();
   StringList_append_tokenized(words, spec, ws);
 
   char *word;
-  char p[2] = { 0, 0 };
-  char *b;
+  char* pair;
+  char *name;
+  char *equals;
+  char *value;
 
-  uint8_t value;
+  uint8_t num_ports;
   uint8_t port;
-  int i = 0;
+  uint8_t pin;
+  uint8_t line;
   
+  int i = 0;
+
   if(parseAction(StringList_get(words, i++)) != ACTION_EXPAND) {
     goto done;
   }
 
-  if(!equal(StringList_get(words, i), "ports")) {
-    fprintf(stderr, "error: '%s': keyword 'PORTS' expected here\n", StringList_get(words, i));
-    goto done;
-  }
-  
-  if(!parseInt(StringList_get(words, ++i), 10, &value)) {
-    fprintf(stderr, "error: '%s': number of ports expected here\n", StringList_get(words, i));
-    goto done;
-  }
-  Expansion_set_num_ports(self, value);
-  
-  for(i++; i<words->size; i++) {
+  for(i; i<words->size; i++) {
     word = StringList_get(words, i);
+    pair = strdup(word);
     
+    if((equals = strstr(pair, "=")) == NULL) {
+      fprintf(stderr, "error: '%s': expected <name>=<value>\n", word);
+      goto done;
+    }
+
+    name = pair;
+    equals[0] = '\0';
+    value = equals+1;
+
+    if(equal(name, "ports")) {
+      if(!parseInt(value, 10, &num_ports)) {
+        fprintf(stderr, "error: '%s': invalid number of ports\n", value);
+        goto done;        
+      }
+      Expansion_set_num_ports(self, num_ports);
+    }
+
     for(int k=0; k<4; k++) {
-      if(equal(word, keywords[k])) {        
-        word = StringList_get(words, ++i);
+      if(equal(name, linenames[k])) {
 
-        if(isalpha(word[0]) && isdigit(word[1])) {
-          p[0] = word[0];
-          b = word+1;
-
-          if((port = parseNativePort(p)) == PORT_NONE) {
-            fprintf(stderr, "error: '%s': invalid port\n", p);
-            goto done;
-          }
-
-          if(!parseInt(b, 10, &value)) {
-            fprintf(stderr, "error: '%s': invalid bit\n", word);
-            goto done;
-          }
-        }
-        else {
-          if(!equal(word, "port")) {
-            fprintf(stderr, "error: '%s': keyword 'port' expected\n", word);
-            goto done;
-          }
-          
-          word = StringList_get(words, ++i);
-          if((port = parseNativePort(word)) == PORT_NONE) {
-            fprintf(stderr, "error: '%s': invalid port\n", word);
-            goto done;
-          }
-        
-          word = StringList_get(words, ++i);
-          if(!equal(word, "bit")) {
-            fprintf(stderr, "error: '%s': keyword 'bit' expected\n", word);
-            goto done;
-          }
-          
-          word = StringList_get(words, ++i);
-          if(!parseInt(word, 10, &value)) {
-            fprintf(stderr, "error: '%s': invalid bit\n", word);
-            goto done;
-          }
-        }
-        if(value > 7) {
-          fprintf(stderr, "error: '%d': invalid bit\n", value);
+        if(!parseInt(value+1, 10, &pin)) {
+          fprintf(stderr, "error: '%s': invalid pin number\n", value);
           goto done;
         }
         
-        port <<= 3;
-        port |= value;
-        *(ports[k]) = port;
+        if(pin > 7) {
+          fprintf(stderr, "error: '%s': pin number out of range (0-7)\n", value+1);
+          goto done;
+        }
+
+        value[1] = '\0';
+        if((port = parseNativePort(value)) == PORT_NONE) {
+          fprintf(stderr, "error: '%s': invalid port name\n", value);
+          goto done;
+        }
+        
+        line = port << 3;
+        line |= pin;
+        *(lines[k]) = line;
         parsed[k] = true;
       }
-   }
+    }
   }
 
   for(int k=0; k<4; k++) {
     if(!parsed[k]) {
-      fprintf(stderr, "error: no pin specification found for '%s'\n", keywords[k]);
+      fprintf(stderr, "error: no pin specification found for '%s'\n", linenames[k]);
       goto done;
     }
   }
+
+  if(!self->num_ports) {
+    fprintf(stderr, "error: number of available expansion ports not specified\n");
+    goto done;
+  }
+  
   result = true;
-    
+  
  done:
   StringList_free(words);
   return result;
@@ -1232,11 +1220,11 @@ void Command_print(Command *self, FILE* out) {
 
 void Expansion_print(Expansion* self, FILE* out) {
   fprintf(out,
-          "expand PORTS %d "
-          "CLOCK port %s bit %d "
-          "DATA port %s bit %d "
-          "LATCH port %s bit %d "
-          "ENABLE port %s bit %d\n",
+          "expand PORTS=%d "
+          "CLOCK=%s%d "
+          "DATA=%s%d "
+          "LATCH=%s%d "
+          "ENABLE=%s%d\n",
           self->num_ports,
           (self->clock & 0x08) ? "b" : "a", self->clock & 0x07,
           (self->data & 0x08) ? "b" : "a", self->data & 0x07,
