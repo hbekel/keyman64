@@ -19,8 +19,8 @@
 #include "strings.h"
 #include "range.h"
 #include "symbols.h"
-#include "keyman64.h"
 #include "usb.h"
+#include "keyman64.h"
 #include "protocol.h"
 #include "target.h"
 #include "intelhex.h"
@@ -1603,7 +1603,7 @@ int update(int argc, char **argv) {
   unsigned int address = 0;  
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
- 
+  
   if(!argc) {
     usage();
     goto done;
@@ -1629,17 +1629,28 @@ int update(int argc, char **argv) {
     fprintf(stderr, "error: please supply firmware as a .bin or .hex file\n");
     goto done;
   }
+
+  if(argc == 2) {
+    uint8_t erased[2] = { 0x00, 0x00 };
+    
+    if(!usb_ping(&keyman64)) {
+      fprintf(stderr, "error: could not connect to keyman64\n");
+      goto done;
+    }
+    
+    fprintf(stderr, "Deactivating existing configuration...");
+    fflush(stderr);
+
+    result = usb_send(&keyman64, KEYMAN64_FLASH, 0, 0, erased, 2) == 2;
+    fprintf(stderr, result ? "ok\n" : "failed!\n");
+    if(!result) goto done;
+
+    expect(&keyman64, "Waiting for keyman64 to reboot");
+  }
   
   if(usb_ping(&keyman64)) {
-    fprintf(stderr, "Entering bootloader"); fflush(stderr);
     usb_control(&keyman64, KEYMAN64_BOOT);
-
-    uint8_t tries = 10;
-    while(!usb_ping(&usbasp)) {
-      fprintf(stderr, "."); fflush(stderr);
-      sleep(1);      
-      if(!--tries) break;
-    }
+    expect(&usbasp, "Entering bootloader");
   }
 
   if(usb_ping(&usbasp)) {
@@ -1660,6 +1671,12 @@ int update(int argc, char **argv) {
   else {
     fprintf(stderr, "error: could not connect to usbasp bootloader\n");
   }
+
+  if(argc == 2) {
+    expect(&keyman64, "Waiting for keyman64 to reboot");
+    argc--; argv++;
+    configure(argc, argv);
+  }
   
  done:
   if(data != NULL) free(data);
@@ -1668,6 +1685,33 @@ int update(int argc, char **argv) {
  error:
   fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
   goto done;
+}
+
+//-----------------------------------------------------------------------------
+
+bool expect(DeviceInfo *device, const char* message) {
+
+  fprintf(stderr, "%s", message); fflush(stderr);
+  
+  uint8_t tries = 10;
+  usb_quiet = true;
+  
+  do {     
+    sleep(1);
+    fprintf(stderr, "."); fflush(stderr);
+    
+    if(!--tries) {
+      return false;
+    }
+  } while(!usb_ping(device));
+  
+  fprintf(stderr, "\r");
+  for(int i=0; i<strlen(message)+10; i++) {
+    fprintf(stderr, " ");
+  }
+  fprintf(stderr, "\r");
+  
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -1734,7 +1778,7 @@ void usage(void) {
   printf("      keyman64 <options>\n");
   printf("      keyman64 <options> convert [<infile>|-] [<outfile>|-]\n");
   printf("      keyman64 <options> configure [<infile>]\n");
-  printf("      keyman64 <options> update <firmware>\n");    
+  printf("      keyman64 <options> update <firmware> [<config>]\n");    
   printf("      keyman64 [<options>] <command>\n");
   printf("      keyman64 [<options>] [<script>|-]\n");    
   printf("\n");

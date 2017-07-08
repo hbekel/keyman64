@@ -24,6 +24,7 @@ int configure(int argc, char **argv);
 int update(int argc, char **argv);
 int command(int argc, char **argv);
 
+bool expect(DeviceInfo *device, const char* message);
 bool read_file(char* filename, uint8_t **data, int *size);
 
 bool Config_parse(Config* self, FILE* in);
