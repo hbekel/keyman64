@@ -776,6 +776,14 @@ bool Command_parse(Command* self, char* spec) {
   }
 
   if(i >= words->size) goto done;
+
+  if(self->action == ACTION_DEFINE_META ||
+     self->action == ACTION_KEY_DOWN ||
+     self->action == ACTION_KEY_UP ||
+     self->action == ACTION_KEY_PRESS ||
+     self->action == ACTION_EXEC) {
+    goto portless;
+  }
   
   word = StringList_get(words, i);
   if(isalpha(word[0]) && isdigit(word[1])) {
@@ -839,6 +847,8 @@ bool Command_parse(Command* self, char* spec) {
   if(equal(StringList_get(words, i), "to") || equal(StringList_get(words, i), "=")) {
     i++;
   }  
+
+ portless:
   
   if(i < words->size) {
     if(!parseData(StringList_get(words, i), &data)) {
