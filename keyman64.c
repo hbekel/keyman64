@@ -926,6 +926,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
         goto done;        
       }
       Expansion_set_num_ports(self, num_ports);
+      State_set_num_expansion_ports(config->state, num_ports);
     }
 
     for(int k=0; k<4; k++) {

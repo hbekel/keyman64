@@ -74,6 +74,8 @@ typedef struct {
   uint8_t porta;
   uint8_t ddrb;
   uint8_t portb;
+  uint8_t num_ports;
+  uint8_t *ports;  
 } State;
 
 typedef struct {
@@ -133,6 +135,7 @@ void Command_free(Command *self);
 
 State* State_new(void);
 void State_read(State* self, FILE* in);
+void State_set_num_expansion_ports(State* self, uint8_t num_ports);
 void State_free(State* self);
 
 Expansion * Expansion_new(void);

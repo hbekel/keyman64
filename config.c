@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "config.h"
+
 //-----------------------------------------------------------------------------
 
 Config* Config_new(void) {
@@ -148,6 +149,7 @@ bool Config_read(volatile Config *self, FILE* in) {
     else if(byte == KEY_EXPANSION) {
       expansion = Config_set_expansion(self, Expansion_new());
       Expansion_read(expansion, in);
+      State_set_num_expansion_ports(self->state, expansion->num_ports);
     }
     else {
       binding = Config_add_binding(self, Binding_new());
@@ -386,7 +388,15 @@ void Command_free(Command *self) {
 //-----------------------------------------------------------------------------
 
 State* State_new(void) {
-  return (State*) calloc(1, sizeof(State));
+  State* self = (State*) calloc(1, sizeof(State));
+  self->num_ports = 0;
+  self->ports = (uint8_t*) calloc(1, sizeof(uint8_t));
+  return self;
+}
+
+void State_set_num_expansion_ports(State* self, uint8_t num_ports) {
+  self->num_ports = num_ports;
+  self->ports = (uint8_t*) realloc(self->ports, num_ports * sizeof(uint8_t));
 }
 
 //-----------------------------------------------------------------------------
