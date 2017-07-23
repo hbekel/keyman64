@@ -128,15 +128,17 @@ void ExpectNextSerialByte() {
 
 //-----------------------------------------------------------------------------
 
-void Type(char* fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
+static volatile char msg[512];
 
-  char msg[512];
-  vsnprintf(msg, 512, fmt, ap);
-  Typestr(msg);
+void Type(const char* fmt, ...) {
+  
+  va_list args;
+  va_start(args, fmt);
 
-  va_end(ap);
+  vsprintf((char*)msg, fmt, args);
+  Typestr((const char*) msg);
+
+  va_end(args);
 }
 
 //-----------------------------------------------------------------------------
@@ -526,12 +528,13 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 volatile uint8_t last;
 
-void Typestr(char *string) {
+void Typestr(const char *string) {
   Sequence sequence;
   uint8_t code;
   uint8_t key;
-
-  for(int i=0; i<strlen(string); i++) {
+  uint16_t len = strlen(string);
+  
+  for(int i=0; i<len; i++) {
     sequence = encoding[(uint8_t)(string[i])];
 
     for(int k=0; k<sequence.size; k++) {
@@ -1077,7 +1080,7 @@ void EnterPassword(const char* prompt, char* buffer) {
   uint8_t len;
   buffer[0] = 0;
 
-  Type((char*)prompt);
+  Typestr((char*)prompt);
   
   while(1) {
 
