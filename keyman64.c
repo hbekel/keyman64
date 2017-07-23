@@ -926,7 +926,6 @@ bool Expansion_parse(Expansion* self, char* spec) {
         goto done;        
       }
       Expansion_set_num_ports(self, num_ports);
-      State_set_num_expansion_ports(config->state, num_ports);
     }
 
     for(int k=0; k<4; k++) {
@@ -983,8 +982,6 @@ void Config_write(Config *self, FILE *out) {
   fputc(CONFIG_MAGIC[0], out);
   fputc(CONFIG_MAGIC[1], out);
 
-  State_write(self->state, out);
-
   if(Config_has_expansion(self)) {
     fputc(KEY_EXPANSION, out);
     Expansion_write(self->expansion, out);
@@ -1035,15 +1032,6 @@ void Command_write(Command *self, FILE* out) {
   fputc(self->port, out);
   fputc(self->mask, out);
   fputc(self->data, out);
-}
-
-//-----------------------------------------------------------------------------
-
-void State_write(State *self, FILE* out) {
-  fputc(self->ddra, out);
-  fputc(self->porta, out);
-  fputc(self->ddrb, out);
-  fputc(self->portb, out);
 }
 
 //-----------------------------------------------------------------------------

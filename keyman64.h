@@ -42,8 +42,6 @@ bool Command_parse(Command *self, char* spec);
 void Command_write(Command *self, FILE* out);
 void Command_print(Command *self, FILE* out);
 
-void State_write(State* self, FILE* out);
-
 bool Expansion_parse(Expansion* self, char* spec);
 void Expansion_write(Expansion* self, FILE* out);
 void Expansion_print(Expansion* self, FILE* out);

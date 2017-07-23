@@ -898,7 +898,7 @@ void GetState(State* state) {
   uint8_t volatile *ddr;
 
   if(Config_has_expansion(config)) {
-    for(uint8_t i=0; i<state->num_ports; i++) {
+    for(uint8_t i=0; i<config->expansion->num_ports; i++) {
       if(ResolvePort(i+2, &port, &ddr)) {
         state->ports[i] = (*port);
       }
@@ -918,7 +918,7 @@ void SetState(State* state) {
   uint8_t volatile *ddr;
 
   if(Config_has_expansion(config)) {  
-    for(uint8_t i=0; i<state->num_ports; i++) {
+    for(uint8_t i=0; i<config->expansion->num_ports; i++) {
       if(ResolvePort(i+2, &port, &ddr)) {
         (*port) = state->ports[i];
       }
@@ -1191,9 +1191,8 @@ void Storage_load_state(Storage* self) {
   self->state->portb = eeprom_read_byte((uint8_t*)address++);
 
   if(Config_has_expansion(config)) {
-    address = STORAGE_ADDRESS;
-    for(uint8_t i=0; i<self->state->num_ports; i++) {
-      self->state->ports[i] = eeprom_read_byte((uint8_t*)(--address));
+    for(uint8_t i=0; i<config->expansion->num_ports; i++) {
+      self->state->ports[i] = eeprom_read_byte((uint8_t*)address++);
     }
   }
 }
@@ -1243,9 +1242,8 @@ void Storage_save_state(Storage* self) {
   eeprom_update_byte((uint8_t*)address++, self->state->portb);
 
   if(Config_has_expansion(config)) {
-    address = STORAGE_ADDRESS;
-    for(uint8_t i=0; i<self->state->num_ports; i++) {
-      eeprom_update_byte((uint8_t*)(--address), self->state->ports[i]);
+    for(uint8_t i=0; i<config->expansion->num_ports; i++) {
+      eeprom_update_byte((uint8_t*)address++, self->state->ports[i]);
     }
   }
 }
@@ -1392,9 +1390,6 @@ int main(void) {
   Storage_load(storage);
 
   transient = State_new();
-  if(Config_has_expansion(config)) {
-    State_set_num_expansion_ports(transient, config->expansion->num_ports);
-  }  
   GetState(transient);
   
   Binding *binding;

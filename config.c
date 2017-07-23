@@ -9,7 +9,6 @@ Config* Config_new(void) {
   self->bindings = (Binding**) calloc(1, sizeof(Binding**));
   self->strings = (char**) NULL;
   self->longs = (uint32_t*) NULL;
-  self->state = State_new();
   self->expansion = NULL;
   self->num_bindings = 0;
   self->num_strings = 0;
@@ -124,8 +123,6 @@ bool Config_read(volatile Config *self, FILE* in) {
     return false;
   }
 
-  State_read(self->state, in);
-  
   while((byte = fgetc(in)) != KEY_EOF) {
 
     if(byte == KEY_STRING) {
@@ -149,7 +146,6 @@ bool Config_read(volatile Config *self, FILE* in) {
     else if(byte == KEY_EXPANSION) {
       expansion = Config_set_expansion(self, Expansion_new());
       Expansion_read(expansion, in);
-      State_set_num_expansion_ports(self->state, expansion->num_ports);
     }
     else {
       binding = Config_add_binding(self, Binding_new());
@@ -389,23 +385,7 @@ void Command_free(Command *self) {
 
 State* State_new(void) {
   State* self = (State*) calloc(1, sizeof(State));
-  self->num_ports = 0;
-  self->ports = (uint8_t*) calloc(1, sizeof(uint8_t));
   return self;
-}
-
-void State_set_num_expansion_ports(State* self, uint8_t num_ports) {
-  self->num_ports = num_ports;
-  self->ports = (uint8_t*) realloc(self->ports, num_ports * sizeof(uint8_t));
-}
-
-//-----------------------------------------------------------------------------
-
-void State_read(State* self, FILE* in) {
-  self->ddra  = fgetc(in);
-  self->porta = fgetc(in);
-  self->ddrb  = fgetc(in);
-  self->portb = fgetc(in);
 }
 
 //-----------------------------------------------------------------------------
