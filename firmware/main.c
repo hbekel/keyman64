@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <ctype.h>
 #include <avr/io.h>
 #include <avr/wdt.h>
@@ -128,21 +127,6 @@ void ExpectNextSerialByte() {
 
 //-----------------------------------------------------------------------------
 
-static volatile char msg[512];
-
-void Type(const char* fmt, ...) {
-  
-  va_list args;
-  va_start(args, fmt);
-
-  vsprintf((char*)msg, fmt, args);
-  Typestr((const char*) msg);
-
-  va_end(args);
-}
-
-//-----------------------------------------------------------------------------
-
 void ExecuteSerialCommand() {
 
   uint8_t port;
@@ -237,13 +221,22 @@ void SetupMappings(void) {
 
 //-----------------------------------------------------------------------------
 
+static uint8_t mask2bitnum(uint8_t mask) {
+  for(uint8_t i = 0; i<8; i++) {
+    if(mask & (1<<i)) return i;
+  }
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+
 void Map(uint8_t p, uint8_t mask, uint8_t key) {
 
   uint8_t volatile *port = (p == PORT_A) ? &PORTB : &PORTC;   
   uint8_t volatile *pins = (p == PORT_A) ? &PINB : &PINC; 
   uint8_t volatile *ddr  = (p == PORT_A) ? &DDRB : &DDRC;
 
-  Mapping volatile *mapping = &mappings[mask | (p<<3)];
+  Mapping volatile *mapping = &mappings[mask2bitnum(mask) | (p<<3)];
 
   mapping->pins = pins;
   mapping->mask = mask;
@@ -528,16 +521,16 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 volatile uint8_t last;
 
-void Typestr(const char *string) {
+void Type(const char *string) {
   Sequence sequence;
   uint8_t code;
   uint8_t key;
   uint16_t len = strlen(string);
   
-  for(int i=0; i<len; i++) {
+  for(uint16_t i=0; i<len; i++) {
     sequence = encoding[(uint8_t)(string[i])];
 
-    for(int k=0; k<sequence.size; k++) {
+    for(uint16_t k=0; k<sequence.size; k++) {
       code = sequence.codes[k];
       
       if((code & CODE_MASK) == CODE_KEY_DOWN) {
@@ -759,7 +752,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
   case ACTION_TYPE:
     index = cmd->mask | (cmd->data << 8);
-    Typestr(cfg->strings[index]);
+    Type(cfg->strings[index]);
     break;
 
   case ACTION_BOOT:
@@ -809,7 +802,8 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    Type("%s\n\n", version);
+    Type((const char*)version);
+    Type("\n\n");
     break;
 
   case ACTION_SHOW_STATE:
@@ -871,27 +865,36 @@ static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
       (*dst)[i] = ((*port) & bit) ? '1' : 'x';
     }
   }
-  (*dst)[8] = '\0';
   return (*dst);
 }
 
 //-----------------------------------------------------------------------------
 
 void ShowState(void) {
-  char *state = "00000000";
-  char port = 'a';
+  const char *template = "a 00000000\n";
+  char *line = (char*) calloc(11, sizeof(char)); 
+  strcpy(line, template);
+  
+  char *state = line+2;
   uint8_t ddr = 0xff;
   
-  Type("%c %s\n", port++, p2s(&state, &PORTB, &DDRB));
-  Type("%c %s\n", port++, p2s(&state, &PORTC, &DDRC));
+  p2s(&state, &PORTB, &DDRB);
+  Type(line);  
 
+  p2s(&state, &PORTC, &DDRC);
+  line[0]++;
+  Type(line);  
+  
   if(Config_has_expansion(config)) {
     Expansion *e = config->expansion;
     for(uint8_t i = 0; i < e->num_ports; i++) {
-      Type("%c %s\n", port++, p2s(&state, &e->ports[i], &ddr));
+      p2s(&state, &e->ports[i], &ddr);
+      line[0]++;
+      Type(line);        
     }
   }  
   Type("\n");
+  free(line);
 }
 
 //-----------------------------------------------------------------------------
@@ -967,8 +970,13 @@ void SetPassword(void) {
       strncpy(storage->password, password, sizeof(storage->password));
     }
     Storage_save_password(storage);
-    
-    Type("ok, password %s\n\n", strlen(storage->password) > 1 ? "set" : "cleared");    
+
+    Type("ok, password ");
+    if(strlen(storage->password)) {
+      Type("set\n\n");
+    } else {
+      Type("cleared\n\n");
+    }
   }
   else {
     Type("passwords differ, nothing changed\n\n");
@@ -1080,7 +1088,7 @@ void EnterPassword(const char* prompt, char* buffer) {
   uint8_t len;
   buffer[0] = 0;
 
-  Typestr((char*)prompt);
+  Type(prompt);
   
   while(1) {
 
@@ -1384,16 +1392,16 @@ int main(void) {
   RelayMatrix();
 
   SetupExpansion();
-  
-  ExecuteImmediateCommands(config, WITHOUT_DELAY);
-
-  SetupUSB();
 
   storage = Storage_new();
   Storage_load(storage);
 
   transient = State_new();
   GetState(transient);
+  
+  ExecuteImmediateCommands(config, WITHOUT_DELAY);
+
+  SetupUSB();
   
   Binding *binding;
   bool relayMetaKey = true;
