@@ -164,9 +164,9 @@ void ExecuteSerialCommand() {
 
   case SERIAL_COMMAND_SET:
     command = Command_new();
-    command->port = ((serial.arguments[0] & 0x80) == 0) ? 0 : 1;
-    command->mask = 1<<((serial.arguments[0] & 0x70)>>4);
-    command->data = serial.arguments[0] & 0xf;
+    command->port = serial.arguments[1] >> 3;
+    command->mask = 1<<(serial.arguments[1] & 0x07);
+    command->data = serial.arguments[0];
 
     switch(command->data) {
     case 0 : command->action = ACTION_CLEAR;    break;
