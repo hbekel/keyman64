@@ -251,19 +251,21 @@ void Map(uint8_t p, uint8_t mask, uint8_t key) {
 void ApplyMappings(void) {
   bool closed = false;
   Mapping volatile *mapping;
+  uint8_t lock;
   
   for(uint8_t i=0; i<16; i++) {
     mapping = &mappings[i];
+    lock = LOCK_MAP + i;
     
     if(mapping->pins == NULL) continue;
     
     closed = ((*mapping->pins) & mapping->mask) == 0;      
     if(closed) {
-      SetCrosspointSwitchLocked(mapping->key, true, LOCK_MAP);
+      SetCrosspointSwitchLocked(mapping->key, true, lock);
     }
     else {
-      if(locked[mappings[i].key] == LOCK_MAP) {
-        SetCrosspointSwitchLocked(mapping->key, false, LOCK_MAP);
+      if(locked[mapping->key] == lock) {
+        SetCrosspointSwitchLocked(mapping->key, false, lock);
       }
     }
   }
