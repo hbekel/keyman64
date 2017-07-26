@@ -8,5 +8,6 @@
 #define KEYMAN64_BOOT     0x04
 #define KEYMAN64_KEY_DOWN 0x05
 #define KEYMAN64_KEY_UP   0x06
+#define KEYMAN64_RESET    0x07
 
 #endif // PROTOCOL_H

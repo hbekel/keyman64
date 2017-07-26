@@ -1029,6 +1029,10 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
   case KEYMAN64_BOOT:
     boot = true;    
     break;
+
+  case KEYMAN64_RESET:
+    reset = true;
+    break;    
     
   case KEYMAN64_IDENTIFY:
     usbMsgPtr = (uchar *) version;

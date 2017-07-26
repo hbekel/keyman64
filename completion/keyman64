@@ -7,8 +7,8 @@ function _keyman64 {
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
     local sec="${COMP_WORDS[1]}"
 
-    local long_options="--help --version --device --delay --keys --preserve --identify"
-    local short_options="-h -v -d -D -k -p -i"
+    local long_options="--help --version --device --delay --keys --preserve --identify --reset"
+    local short_options="-h -v -d -D -k -p -i -r"
     local commands="configure convert update using meta boot save restore memorize recall set clear tristate invert increment decrement down up press type swap map password lock exec sleep version status"
     
     if [[ "$cur" =~ ^\-\- ]]; then

@@ -15,6 +15,7 @@
 
 void version(void);
 void identify(void);
+bool reset(void);
 void complain(void);
 void usage(void);
 void keys(void);
@@ -25,6 +26,7 @@ int update(int argc, char **argv);
 int command(int argc, char **argv);
 
 bool expect(DeviceInfo *device, const char* message);
+void failed(DeviceInfo *device);
 bool read_file(char* filename, uint8_t **data, int *size);
 
 bool Config_parse(Config* self, FILE* in);

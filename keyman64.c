@@ -1267,6 +1267,7 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 
 static void prepare_devices(void) {
   strncpy(keyman64.path, device, 4096);
+  strncpy(keyman64.role, "Keyman64", 64);
   keyman64.vid = KEYMAN64_VID;
   keyman64.pid = KEYMAN64_PID;
 
@@ -1275,6 +1276,7 @@ static void prepare_devices(void) {
 #else
   strncpy(usbasp.path, "usbasp", 4096);
 #endif
+  strncpy(usbasp.role, "Bootloader", 64);
   usbasp.vid = USBASP_VID;
   usbasp.pid = USBASP_PID;
 }
@@ -1305,12 +1307,13 @@ int main(int argc, char **argv) {
     { "delay",    required_argument, 0, 'D' },
     { "preserve", no_argument,       0, 'p' },
     { "identify", no_argument,       0, 'i' },
+    { "reset",    no_argument,       0, 'r' },    
     { 0, 0, 0, 0 },
   };
   int option, option_index;
   
   while(1) {
-    option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:pir", options, &option_index);
 
     if(option == -1)
       break;
@@ -1349,6 +1352,11 @@ int main(int argc, char **argv) {
 
     case 'i':
       identify();
+      goto done;
+      break;
+
+    case 'r':
+      reset();
       goto done;
       break;
       
@@ -1675,6 +1683,10 @@ int update(int argc, char **argv) {
     expect(&keyman64, "Waiting for keyman64 to reboot");
     argc--; argv++;
     configure(argc, argv);
+
+    if(expect(&keyman64, "Waiting for keyman64 to reboot")) {
+      identify();
+    }    
   }
   
  done:
@@ -1709,7 +1721,6 @@ bool expect(DeviceInfo *device, const char* message) {
     fprintf(stderr, " ");
   }
   fprintf(stderr, "\r");
-  
   return true;
 }
 
@@ -1760,6 +1771,39 @@ void identify(void) {
 
 //-----------------------------------------------------------------------------
 
+bool reset(void) {
+  
+  if(usb_ping(&keyman64)) {
+    usb_control(&keyman64, KEYMAN64_RESET);    
+  }
+  else if(usb_ping(&usbasp)) {
+    usb_quiet = true;
+    usb_control(&usbasp, USBASP_CONNECT);
+    usb_control(&usbasp, USBASP_DISCONNECT);
+  }
+  else {
+    failed(&keyman64);
+    failed(&usbasp);
+    return false;
+  }
+  
+  if(expect(&keyman64, "Resetting device")) {
+    identify();
+    return true;
+  }
+  failed(&keyman64);
+  return false;  
+}
+
+//-----------------------------------------------------------------------------
+
+void failed(DeviceInfo *device) {
+  fprintf(stderr, "error: failed to open %s device \"%s\" (%04X:%04X)\n",
+          device->role, device->path, device->vid, device->pid);
+}
+
+//-----------------------------------------------------------------------------
+
 void version(void) {
   printf("Keyman64 v%.1f\n", VERSION);    
   printf("Copyright (C) 2016 Henning Bekel.\n");
@@ -1793,6 +1837,7 @@ void usage(void) {
   printf("           -k, --keys     : list key names and synonyms\n");
   printf("           -p, --preserve : deprecated as of version 1.5\n");
   printf("           -i, --identify : request firmware identification via USB\n");
+  printf("           -r, --reset    : reset device and reboot application\n");  
   printf("\n");
   printf("  Files:\n");
   printf("           <infile>   : input file, format is autodetected\n");
