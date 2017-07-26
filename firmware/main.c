@@ -60,7 +60,7 @@ static volatile uint8_t *usbData;
 static volatile uint16_t usbDataPos;
 static volatile uint16_t usbDelay;
 
-static volatile char version[64];
+volatile char version[64];
 
 //-----------------------------------------------------------------------------
 
@@ -132,6 +132,7 @@ void ExecuteSerialCommand() {
   uint8_t port;
   uint8_t mask;
   uint8_t key;
+  char petscii[2] = { '\0', '\0' };
   Command *command;
   
   switch(serial.command) {
@@ -177,7 +178,12 @@ void ExecuteSerialCommand() {
 
     ExecuteCommand(config, command);    
     break;
-    }  
+
+  case SERIAL_COMMAND_TYPE:
+    petscii[0] = serial.arguments[0];
+    Type(petscii);
+    break;
+  }  
 }
 
 //-----------------------------------------------------------------------------
@@ -521,19 +527,18 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 //-----------------------------------------------------------------------------
 
-volatile uint8_t last;
-
-void Type(const char *string) {
-  Sequence sequence;
+void Type(char *str) {
+  Sequence *sequence;
   uint8_t code;
   uint8_t key;
-  uint16_t len = strlen(string);
+  uint16_t len = strlen(str);
+  static uint8_t last;
   
   for(uint16_t i=0; i<len; i++) {
-    sequence = encoding[(uint8_t)(string[i])];
+    sequence = &(encoding[(uint8_t)(str[i])]);
 
-    for(uint16_t k=0; k<sequence.size; k++) {
-      code = sequence.codes[k];
+    for(uint16_t k=0; k<sequence->size; k++) {
+      code = sequence->codes[k];
       
       if((code & CODE_MASK) == CODE_KEY_DOWN) {
         SetCrosspointSwitch(code & ~CODE_MASK, true);
@@ -553,6 +558,21 @@ void Type(const char *string) {
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void Newline(void) {
+  DELAY;
+  SetCrosspointSwitch(KEY_SHIFTLEFT, true); PROPAGATE;
+  RelayKeyPress(8);
+  SetCrosspointSwitch(KEY_SHIFTLEFT, false); PROPAGATE;  
+}
+
+//-----------------------------------------------------------------------------
+
+void Paragraph(void) {
+  Newline(); Newline();
 }
 
 //-----------------------------------------------------------------------------
@@ -608,7 +628,7 @@ void Lock(void) {
     STATE = STATE_LOCKED;
   }
   else {
-    Type("no password defined\n\n");
+    Type("no password defined"); Paragraph();
   }
 }
 
@@ -804,8 +824,8 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    Type((const char*)version);
-    Type("\n\n");
+    Type((char*)version); 
+    Paragraph();
     break;
 
   case ACTION_SHOW_STATE:
@@ -895,7 +915,7 @@ void ShowState(void) {
       Type(line);        
     }
   }  
-  Type("\n");
+  Newline();
   free(line);
 }
 
@@ -975,13 +995,13 @@ void SetPassword(void) {
 
     Type("ok, password ");
     if(strlen(storage->password)) {
-      Type("set\n\n");
+      Type("set"); Paragraph();
     } else {
-      Type("cleared\n\n");
+      Type("cleared"); Paragraph();
     }
   }
   else {
-    Type("passwords differ, nothing changed\n\n");
+    Type("passwords differ, nothing changed"); Paragraph();
   }
 }
 
@@ -1085,7 +1105,7 @@ uint8_t ReadKey(void) {
 
 //-----------------------------------------------------------------------------
 
-void EnterPassword(const char* prompt, char* buffer) {
+void EnterPassword(char* prompt, char* buffer) {
   uint8_t key;
   uint8_t len;
   buffer[0] = 0;
@@ -1106,7 +1126,7 @@ void EnterPassword(const char* prompt, char* buffer) {
     buffer[len+1] = 0;
 
     if(key == KEY_RETURN) {
-      Type("\n");
+      Newline();
       break;
     }
     Type("*");

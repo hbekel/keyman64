@@ -8,4 +8,5 @@
 .label press = $04
 .label map   = $05
 .label set   = $06
+.label type  = $07
 }

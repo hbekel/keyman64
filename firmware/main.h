@@ -19,8 +19,9 @@
 #define SERIAL_COMMAND_KEY_PRESS 0x04
 #define SERIAL_COMMAND_MAP       0x05
 #define SERIAL_COMMAND_SET       0x06
+#define SERIAL_COMMAND_TYPE      0x07
 
-uint8_t SERIAL_COMMAND_ARITY_FOR[7] = { 0, 1, 1, 1, 1, 2, 2 };
+uint8_t SERIAL_COMMAND_ARITY_FOR[8] = { 0, 1, 1, 1, 1, 2, 2, 1 };
 
 #define HIGH true
 #define LOW false
@@ -84,7 +85,9 @@ void ResetCrosspointSwitch8808(void);
 void StrobeCrosspointSwitch8808(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock);
-void Type(const char *string);
+void Type(char *string);
+void Newline(void);
+void Paragraph(void);
 void SetupVersionString(void);
 void ShowState(void);
 void GetState(State* state);
@@ -102,7 +105,7 @@ void FlashConfigurationFromUSBData(void);
 void ExecuteCommandsFromUSBData(void);
 
 void SetPassword(void);
-void EnterPassword(const char* prompt, char* buffer);
+void EnterPassword(char* prompt, char* buffer);
 void SavePassword(char* buffer);
 void LoadPassword(void);
 
