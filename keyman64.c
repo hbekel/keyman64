@@ -75,6 +75,7 @@ static uint8_t parseAction(char* str) {
   if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;
   if(strncasecmp(str, "speed",    5) == 0) return ACTION_DEFINE_SPEED;
   if(strncasecmp(str, "expand",   6) == 0) return ACTION_EXPAND;
+  if(strncasecmp(str, "reset",    5) == 0) return ACTION_RESET;  
   
   return ACTION_NONE;
 }
@@ -1117,6 +1118,7 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_MEMORIZE:      action = "memorize"; break;
   case ACTION_RECALL:        action = "recall";   break;
   case ACTION_DEFINE_SPEED:  action = "speed";    break;    
+  case ACTION_RESET:         action = "reset";    break;        
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -1307,13 +1309,12 @@ int main(int argc, char **argv) {
     { "delay",    required_argument, 0, 'D' },
     { "preserve", no_argument,       0, 'p' },
     { "identify", no_argument,       0, 'i' },
-    { "reset",    no_argument,       0, 'r' },    
     { 0, 0, 0, 0 },
   };
   int option, option_index;
   
   while(1) {
-    option = getopt_long(argc, argv, "hvd:kD:pir", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
 
     if(option == -1)
       break;
@@ -1355,11 +1356,6 @@ int main(int argc, char **argv) {
       goto done;
       break;
 
-    case 'r':
-      reset();
-      goto done;
-      break;
-      
     case '?':
     case ':':
       goto done;
@@ -1384,6 +1380,9 @@ int main(int argc, char **argv) {
   }
   else if(argc && (strcmp(argv[0], "update") == 0)) {
     result = update(--argc, ++argv);
+  }
+  else if(argc && (strcmp(argv[0], "reset") == 0)) {
+    result = reset();
   }
   else {
     result = command(argc, argv);
@@ -1837,7 +1836,6 @@ void usage(void) {
   printf("           -k, --keys     : list key names and synonyms\n");
   printf("           -p, --preserve : deprecated as of version 1.5\n");
   printf("           -i, --identify : request firmware identification via USB\n");
-  printf("           -r, --reset    : reset device and reboot application\n");  
   printf("\n");
   printf("  Files:\n");
   printf("           <infile>   : input file, format is autodetected\n");

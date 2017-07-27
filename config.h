@@ -34,6 +34,7 @@
 #define ACTION_RECALL        27
 #define ACTION_DEFINE_SPEED  28
 #define ACTION_EXPAND        29
+#define ACTION_RESET         30
 
 #define PORT_A    0
 #define PORT_B    1

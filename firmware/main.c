@@ -847,6 +847,10 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_RECALL:
     SetState(transient);
     break;
+
+  case ACTION_RESET:
+    reset = true;
+    break;
   }
 
   if(Config_has_expansion(config) && cmd->port > PORT_B) {
