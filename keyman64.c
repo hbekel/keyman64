@@ -46,36 +46,40 @@ DeviceInfo usbasp;
 static uint8_t parseAction(char* str) {
   if(str == NULL) return ACTION_NONE;
   
-  if(strncasecmp(str, "set",      3) == 0) return ACTION_SET;
-  if(strncasecmp(str, "clear",    5) == 0) return ACTION_CLEAR;
-  if(strncasecmp(str, "inv",      3) == 0) return ACTION_INVERT;
-  if(strncasecmp(str, "inc",      3) == 0) return ACTION_INCREASE;
-  if(strncasecmp(str, "dec",      3) == 0) return ACTION_DECREASE;
-  if(strncasecmp(str, "tri",      3) == 0) return ACTION_TRISTATE;
-  if(strncasecmp(str, "sleep",    5) == 0) return ACTION_SLEEP_SHORT;
-  if(strncasecmp(str, "exec",     4) == 0) return ACTION_EXEC;
-  if(strncasecmp(str, "meta",     4) == 0) return ACTION_DEFINE_META;
-  if(strncasecmp(str, "down",     2) == 0) return ACTION_KEY_DOWN;
-  if(strncasecmp(str, "up",       2) == 0) return ACTION_KEY_UP;
-  if(strncasecmp(str, "type",     4) == 0) return ACTION_TYPE;  
-  if(strncasecmp(str, "boot",     4) == 0) return ACTION_BOOT;    
-  if(strncasecmp(str, "swap",     4) == 0) return ACTION_SWAP;  
-  if(strncasecmp(str, "press",    5) == 0) return ACTION_KEY_PRESS;
-  if(strncasecmp(str, "using",    5) == 0) return ACTION_DEFINE_SWITCH;
-  if(strncasecmp(str, "save",     4) == 0) return ACTION_SAVE_STATE;
-  if(strncasecmp(str, "restore",  7) == 0) return ACTION_RESTORE_STATE;
-  if(strncasecmp(str, "requires", 8) == 0) return ACTION_REQUIRES;
-  if(strncasecmp(str, "map",      3) == 0) return ACTION_MAP;
-  if(strncasecmp(str, "version",  7) == 0) return ACTION_SHOW_VERSION;
-  if(strncasecmp(str, "state",    5) == 0) return ACTION_SHOW_STATE;
-  if(strncasecmp(str, "status",   6) == 0) return ACTION_SHOW_STATE;
-  if(strncasecmp(str, "lock",     4) == 0) return ACTION_LOCK;
-  if(strncasecmp(str, "password", 8) == 0) return ACTION_SET_PASSWORD;
-  if(strncasecmp(str, "memorize", 8) == 0) return ACTION_MEMORIZE;
-  if(strncasecmp(str, "recall",   6) == 0) return ACTION_RECALL;
-  if(strncasecmp(str, "speed",    5) == 0) return ACTION_DEFINE_SPEED;
-  if(strncasecmp(str, "expand",   6) == 0) return ACTION_EXPAND;
-  if(strncasecmp(str, "reset",    5) == 0) return ACTION_RESET;  
+  if(strcasecmp(str, "set"     ) == 0) return ACTION_SET;
+  if(strcasecmp(str, "clear"   ) == 0) return ACTION_CLEAR;
+  if(strcasecmp(str, "invert"  ) == 0) return ACTION_INVERT;
+  if(strcasecmp(str, "inv"     ) == 0) return ACTION_INVERT;  
+  if(strcasecmp(str, "increase") == 0) return ACTION_INCREASE;
+  if(strcasecmp(str, "inc"     ) == 0) return ACTION_INCREASE;  
+  if(strcasecmp(str, "decrease") == 0) return ACTION_DECREASE;
+  if(strcasecmp(str, "dec"     ) == 0) return ACTION_DECREASE;  
+  if(strcasecmp(str, "tri"     ) == 0) return ACTION_TRISTATE;
+  if(strcasecmp(str, "tristate") == 0) return ACTION_TRISTATE;  
+  if(strcasecmp(str, "sleep"   ) == 0) return ACTION_SLEEP_SHORT;
+  if(strcasecmp(str, "exec"    ) == 0) return ACTION_EXEC;
+  if(strcasecmp(str, "meta"    ) == 0) return ACTION_DEFINE_META;
+  if(strcasecmp(str, "down"    ) == 0) return ACTION_KEY_DOWN;
+  if(strcasecmp(str, "up"      ) == 0) return ACTION_KEY_UP;
+  if(strcasecmp(str, "type"    ) == 0) return ACTION_TYPE;  
+  if(strcasecmp(str, "boot"    ) == 0) return ACTION_BOOT;    
+  if(strcasecmp(str, "swap"    ) == 0) return ACTION_SWAP;  
+  if(strcasecmp(str, "press"   ) == 0) return ACTION_KEY_PRESS;
+  if(strcasecmp(str, "using"   ) == 0) return ACTION_DEFINE_SWITCH;
+  if(strcasecmp(str, "save"    ) == 0) return ACTION_SAVE_STATE;
+  if(strcasecmp(str, "restore" )  == 0) return ACTION_RESTORE_STATE;
+  if(strcasecmp(str, "requires") == 0) return ACTION_REQUIRES;
+  if(strcasecmp(str, "map"     ) == 0) return ACTION_MAP;
+  if(strcasecmp(str, "version" ) == 0) return ACTION_SHOW_VERSION;
+  if(strcasecmp(str, "state"   ) == 0) return ACTION_SHOW_STATE;
+  if(strcasecmp(str, "status"  ) == 0) return ACTION_SHOW_STATE;
+  if(strcasecmp(str, "lock"    ) == 0) return ACTION_LOCK;
+  if(strcasecmp(str, "password") == 0) return ACTION_SET_PASSWORD;
+  if(strcasecmp(str, "memorize") == 0) return ACTION_MEMORIZE;
+  if(strcasecmp(str, "recall"  ) == 0) return ACTION_RECALL;
+  if(strcasecmp(str, "speed"   ) == 0) return ACTION_DEFINE_SPEED;
+  if(strcasecmp(str, "expand"  ) == 0) return ACTION_EXPAND;
+  if(strcasecmp(str, "reset"   ) == 0) return ACTION_RESET;  
   
   return ACTION_NONE;
 }
@@ -515,7 +519,12 @@ bool Config_parse(Config* self, FILE* in) {
       if(isSymbol(name)) {
         fprintf(stderr, "error: line %d: '%s': symbol is a reserved key name\n", pos, name);
         return false;
-      }                     
+      }
+
+      if(parseAction(name) != ACTION_NONE) {
+        fprintf(stderr, "error: line %d: '%s': symbol is a reserved keyword\n", pos, name);
+        return false;
+      }        
       
       StringList_add_definition(name, value);
       continue;

@@ -9,7 +9,7 @@ function _keyman64 {
 
     local long_options="--help --version --device --delay --keys --preserve --identify"
     local short_options="-h -v -d -D -k -p -i"
-    local commands="configure convert update using meta boot save restore memorize recall set clear tristate invert increment decrement down up press type swap map password lock exec sleep version status"
+    local commands="configure convert update using meta boot save restore memorize recall set clear tristate invert increment decrement down up press type swap map password lock exec sleep version status speed reset"
     
     if [[ "$cur" =~ ^\-\- ]]; then
 	COMPREPLY=( $(compgen -W "$long_options" -- "${cur}") )
