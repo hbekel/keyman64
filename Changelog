@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-Version 1.6 - upcoming version
+Version 1.6 - Sep 10, 2017
 -------------------------------------------------------------------------------
 
 Software/Firmware:
@@ -11,12 +11,16 @@ Software/Firmware:
   expanded ports can not be set to tristate.
 
 - Implemented the corresponding "expand" configuration directive to
-  configure port expansion, giving the number of additional ports and
-  the location of the required control lines on the native ports.
+  configure port expansion, specifying the number of additional ports
+  and the location of the required control lines on the native ports.
 
 - Improved update command for updates that require regeneration of
   binary configuration data. The update command accepts an optional
-  second argument specifying the location of a configuaration file.
+  second argument specifying the location of a configuration file.
+
+- Added "speed" command to configure either slow or fast keyboard
+  scanning. Slow scanning is necessary for long keyboard cables, as in
+  the SX64 (reported by Davide Gustin)
 
 - Added commands to control the keyboard matrix directly from USB
 
@@ -29,19 +33,16 @@ Software/Firmware:
 
 - Allow multiple map commands for the same key
 
-- Added "speed" command to configure either slow or fast keyboard
-  scanning. Slow scanning is necessary for long keyboard cables, as in
-  the SX64 (reported by Davide Gustin)
-
-- Added early scan and relay step on power up to allow cartridges to see
-  key presses early on (reported by Gero Ihde)
-
-- Added bash completion support
+- Added early scan and relay step on power up to allow cartridges to
+  see key presses early on during their startup sequence (reported by
+  Gero Ihde)
 
 - Fixed bug in symbol parsing where all lines containing equal signs
   were interpreted as symbol definitions (reported by Sven Arke)
 
 - Fixed bugs in internal print routine
+
+- Added bash completion support
 
 Build system:
 
@@ -57,18 +58,18 @@ data on the device. Please follow these instructions to perform the
 update:
 
      1. Update the keyman64 client utility first
-     2. Use the new two-argument form of the update command to update the firmware:
 
-        $ keyman64 update keyman64-application-1.6.hex keyman64.conf
+     2. Use the new two-argument form of the update command to update
+        the firmware:
 
-	where "keyman64.conf" should point to your current
-	configuration file.
+        $ keyman64 update keyman64-application-1.6.hex my.conf
+
+	where "my.conf" should point to your configuration file.
 
 This will first delete the current configuration on the device, then
-update the firmware and after that regenerate your configuration using
-the new binary format and finally transfer the new configuration to
-the device.
-	
+update the firmware and after that regenerate your configuration and
+finally transfer the new configuration to the device.
+
 -------------------------------------------------------------------------------
 Version 1.5 - Feb 22, 2017
 -------------------------------------------------------------------------------
