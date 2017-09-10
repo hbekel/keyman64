@@ -1,0 +1,311 @@
+-------------------------------------------------------------------------------
+Version 1.6 - upcoming version
+-------------------------------------------------------------------------------
+
+Software/Firmware:
+
+- Implemented support for expansion of control lines via multiple
+  daisy chained 74595 serial shift registers. Additional registers
+  will appear as additional virtual ports c, d, e etc. and can be used
+  like the native ports a and b. The only limitation is that the
+  expanded ports can not be set to tristate.
+
+- Implemented the corresponding "expand" configuration directive to
+  configure port expansion, giving the number of additional ports and
+  the location of the required control lines on the native ports.
+
+- Improved update command for updates that require regeneration of
+  binary configuration data. The update command accepts an optional
+  second argument specifying the location of a configuaration file.
+
+- Added commands to control the keyboard matrix directly from USB
+
+- Added new serial command to set control lines directly
+
+- Added new serial command to type a PETSCII character
+
+- Added USB command to reset the device, implemented reset command for
+  the client utility
+
+- Allow multiple map commands for the same key
+
+- Added "speed" command to configure either slow or fast keyboard
+  scanning. Slow scanning is necessary for long keyboard cables, as in
+  the SX64 (reported by Davide Gustin)
+
+- Added early scan and relay step on power up to allow cartridges to see
+  key presses early on (reported by Gero Ihde)
+
+- Added bash completion support
+
+- Fixed bug in symbol parsing where all lines containing equal signs
+  were interpreted as symbol definitions (reported by Sven Arke)
+
+- Fixed bugs in internal print routine
+
+Build system:
+
+- Fixed build errors/warnings on MacOSX/clang (missing fmemopen())
+- Fixed definition of sleep() for all build environments
+- Fill binary firmware image with 0xff up to 128k
+- Adjusted assembler sources for KickAssembler 4.x
+
+Note:
+
+This update breaks binary compatibility for existing configuration
+data on the device. Please follow these instructions to perform the
+update:
+
+     1. Update the keyman64 client utility first
+     2. Use the new two-argument form of the update command to update the firmware:
+
+        $ keyman64 update keyman64-application-1.6.hex keyman64.conf
+
+	where "keyman64.conf" should point to your current
+	configuration file.
+
+This will first delete the current configuration on the device, then
+update the firmware and after that regenerate your configuration using
+the new binary format and finally transfer the new configuration to
+the device.
+	
+-------------------------------------------------------------------------------
+Version 1.5 - Feb 22, 2017
+-------------------------------------------------------------------------------
+
+Software/Firmware:
+
+- The utility command "update" now also accepts firmware updates in
+  Intel HEX format.
+
+- The "--preserve" option for the utility command "convert" has been
+  deprecated. It is no longer required since saved state is now stored
+  outside of the configuration.
+
+- The command line client now shows usage information when called
+  without arguments. In order to read commands from standard input,
+  use "-" as the single argument.
+
+- The windows version of the command line client now detects when the
+  user double clicks on the execu table instead of using it
+  interactively from the command prompt. An informative message is
+  shown and the cmd window is kept open until the user presses a key.
+
+- New commands "password" and "lock" implement password protected
+  keyboard locking. When "lock" is executed, the keyboard is locked
+  until the password previously defined using the "password" command
+  is entered.
+
+- In addition, the predefined slots "LOCKED" and "UNLOCKED" have been
+  added. These allow the user to run additional keyman64 commands
+  before the keyboard is locked or unlocked.
+
+- New commands "memorize" and "recall" have been added. These commands
+  are similar to save and restore except that the state is not
+  permanently saved to EEPROM memory but temporarily saved to SRAM.
+
+- Fixed the "--identify" command line option
+
+- Fixed a bug that would leave trailing whitespace in symbol values
+  when adding a comment to the line after the value part
+
+Upgrade instructions:
+
+Upgrading from version 1.3 or earlier:
+
+Please first upgrade to version 1.4 following the instructions for
+version 1.4 further down in this document.
+
+Upgrading from version 1.4:
+
+    1. Upgrade the command line utility on your PC
+    2. Download the new firmware image
+    3, Connect the keyman64 via USB and power on the C64
+    4, On your PC, run
+
+       $ keyman64 update keyman64-application-1.5.hex
+
+If you have previously saved control line state using the save
+command, please note that the saved state is lost during this upgrade.
+
+-------------------------------------------------------------------------------
+Version 1.4 - Nov 17, 2016
+-------------------------------------------------------------------------------
+
+Licensing:
+
+- Hardware is now licensed under CERN OHL v1.2
+- Software and Firmware are now licensed under GNU GPLv3
+- V-USB driver has been properly sublicenced under GPLv3, see
+  README.txt for details
+
+Bootloader:
+
+- Reconfigured to create a working bootloader again
+- Modified to allow a reset from firmware that does not trigger the
+  bootloaderCondition() (using a magic value at the end of Eeprom).
+
+Software/Firmware:
+
+- Added "configure" command to the configuration utility, allowing to
+  directly convert and flash a configuration file to eeprom via USB,
+  without having to use avrdude and without having to enter the
+  bootloader beforehand
+- Added an "update" command that can be used to update the firmware,
+  likewise without requiring avrdude and manual bootloader entry
+- Changed string literal syntax to allow typing all PETSCII characters
+  that can be typed on a real keyboard using the "type" command
+- Introduced escape sequences \r, \n, \f (return, newline, form feed),
+  \xhh and \x{ddd} numeric sequences, deprecated use of ~ for return
+- Changed serial interface, using byte instead of nibble for commands
+- Allow serial interface commands with more than one argument
+- Added command to map a control line as active-low input to trigger a
+  user defined key press, i.e. ability to add additional "keys"
+- Added serial interface command to create/change mappings directly
+- Added directive to require more than one invocation of a keybinding
+  before actually executing bound commands
+- Added command "version" to type out embedded firmware version info
+- Added command "status" to type out current control port status
+- Added client option --identify to fetch firmware info via USB
+- Added key name SHIFT as a synonym for LEFTSHIFT
+- Eliminated bogus USB error message when entering bootloader via USB
+- Removed possibility of random cursor movement while executing long
+  running intial commands
+- Fixed client exit code when failing to open USB device
+- Improved build system, added example.conf
+- Improved fallback configuration
+
+Notes:
+
+The client utility, the bootloader and the firmware need to be
+upgraded in lockstep. The easiest way to do this is to flash the
+combined application and bootloader hex or bin file to the Atmega
+using an external programmer. Then recreate and reflash your
+configuration to eeprom memory.
+
+If you don't have a programmer, you will need to upgrade using the
+following procedure:
+
+    1. Install the new command line utility
+
+    2. Enter the bootloader, e.g. by running
+
+       $ keyman64 boot
+
+    3. Install the updater application for the bootloader:
+
+       $ avrdude -p m1284p -c usbasp -U flash:w:keyman64-bootloader-updater-1.4.hex:h
+
+    4. Wait a few seconds to allow the update of the bootloader to finish
+
+    5. Press the reset button on the Keyman64 while holding down the boot
+       button to manually enter the bootloader.
+
+    6. Recreate and reflash your configuration:
+
+       $ keyman64 convert keyman64.conf keyman64.bin
+       $ avrdude -p m1284p -c usbasp -U eeprom:w:keyman64.bin:r
+
+    7. Enter the bootloader again as described in 5.
+
+    8. Reinstall the keyman64 application:
+
+       $ avrdude -p m1284p -c usbasp -U flash:w:keyman64-application-1.4.hex:h
+
+In addition, all existing "type" commands using the tilde character
+(~) for return will need to be adjusted, i.e. replace tilde with \r.
+
+The serial interface now expects a complete byte for the command
+instead of a nibble. The provided serial.asm file has been adjusted
+accordingly, clients using the interface will have to be
+rebuild/adjusted as well.
+
+-------------------------------------------------------------------------------
+Version 1.3 - Aug 24, 2016
+-------------------------------------------------------------------------------
+
+Hardware:
+
+- Updated to board revision 4
+- Fixed wrong USB level conversion circuit
+- Placed resistors and diodes horizontally
+- Fixed wrong button footprint
+- Removed hole for pin 2 at keyboard/computer connectors
+
+Software:
+
+- Added custom symbol definitions for configuration files
+- Added frequency test to fallback configuration (<meta>-f)
+
+Notes:
+
+Upgrades to the software and firmware are not mandatory.
+
+In order to use custom symbols in configuration files, only the client
+software needs to be updated.
+
+In order to use the new frequency test in the fallback configuration,
+only the firmware needs to be upgraded.
+
+-------------------------------------------------------------------------------
+Version 1.2 - 31 May, 2016
+-------------------------------------------------------------------------------
+
+Hardware:
+
+- Updated to board revision 3
+- Removed obsolete negative power supply ICL7660 and caps
+- Disconnected AREF pin on Atmel as recommended in datasheet
+- Added alternative PLCC28 socket for the crosspoint switch
+- Increased mounting hole diameter to 4mm
+
+Software:
+
+- Added save and restore commands for control line state
+- Added --preserve option to preserve state across reconfiguration
+- Added key policy to allow different commands every odd/even press
+
+Notes:
+
+Both firmware and software need to be updated in order to use the new
+features.
+
+-------------------------------------------------------------------------------
+Version 1.1 - Dec 11, 2015
+-------------------------------------------------------------------------------
+
+The project is now licensed under GPL2
+
+Hardware:
+
+- Updated to Revision 2
+- Increased board height to 6.4mm
+- Added mounting holes (3m)
+- Switched to through-hole mini-b USB connector
+- Added Pin header to choose power source
+- Switched to tantalum type 10uF caps for the 7660
+- Avoided routing on front layer under USB connector
+- Improved silk screen
+- Cleaned up and reassigned component references
+- Added gerber files to distribution
+
+Software:
+
+- Added remote control interface via USB
+- Implemented the corresponding USB device
+- Added explicit convert command
+- Added --delay option to specify automatic delay
+- Use MT8808 as the default crosspoint switch type
+
+Build System:
+
+- Fixed uninstall target
+- Added installation of udev rules for USB devices on Linux
+- Various minor improvements
+
+-------------------------------------------------------------------------------
+Version 1.0 - Oct 14, 2015
+-------------------------------------------------------------------------------
+
+Initial Release
+	
