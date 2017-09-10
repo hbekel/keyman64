@@ -79,7 +79,6 @@ static uint8_t parseAction(char* str) {
   if(strcasecmp(str, "recall"  ) == 0) return ACTION_RECALL;
   if(strcasecmp(str, "speed"   ) == 0) return ACTION_DEFINE_SPEED;
   if(strcasecmp(str, "expand"  ) == 0) return ACTION_EXPAND;
-  if(strcasecmp(str, "reset"   ) == 0) return ACTION_RESET;  
   
   return ACTION_NONE;
 }
@@ -1127,7 +1126,6 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_MEMORIZE:      action = "memorize"; break;
   case ACTION_RECALL:        action = "recall";   break;
   case ACTION_DEFINE_SPEED:  action = "speed";    break;    
-  case ACTION_RESET:         action = "reset";    break;        
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -1826,12 +1824,12 @@ void usage(void) {
   version();
   printf("\n");
   printf("Usage:\n");
-  printf("      keyman64 <options>\n");
-  printf("      keyman64 <options> convert [<infile>|-] [<outfile>|-]\n");
-  printf("      keyman64 <options> configure [<infile>]\n");
-  printf("      keyman64 <options> update <firmware> [<config>]\n");    
+  printf("      keyman64 [<options>] convert [<infile>|-] [<outfile>|-]\n");
+  printf("      keyman64 [<options>] configure [<infile>]\n");
+  printf("      keyman64 [<options>] update <firmware> [<config>]\n");    
+  printf("      keyman64 [<options>] reset\n");
   printf("      keyman64 [<options>] <command>\n");
-  printf("      keyman64 [<options>] [<script>|-]\n");    
+  printf("      keyman64 [<options>] <script>|-\n");    
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");
