@@ -20,3 +20,5 @@ bootloader/firmware/main.asm
 bootloader/updater/updater.asm
 bootloader/updater/usbasploader.raw
 intelhex/ihex2bin
+download/*
+*.tar.gz

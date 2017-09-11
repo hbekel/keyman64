@@ -140,6 +140,7 @@ clean: firmware-clean bootloader-clean intelhex-clean
 	rm -rf keyman64
 	rm -rf keyman64.exe
 	rm -rf *prg *.bin *.hex *.exe.stackdump
+	rm -rf download
 
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
@@ -161,6 +162,16 @@ uninstall:
 udev-uninstall:
 	rm -f /etc/udev/rules.d/10-keyman64.rules
 
-release: clean
-	git archive --prefix=keyman64-$(VERSION)/ -o ../keyman64-$(VERSION).tar.gz HEAD && \
-	$(MD5SUM) ../keyman64-$(VERSION).tar.gz > ../keyman64-$(VERSION).tar.gz.md5
+download: clean keyman64 bin hex
+	mkdir download
+	cp *.hex download/
+	cp *.bin download/
+	cp Changelog download/Changelog.txt
+	make -C hardware/gerber
+	cp hardware/gerber/*.zip download/
+	git archive --prefix=keyman64-$(VERSION)/ -o download/keyman64-$(VERSION).tar.gz HEAD
+	for f in download/*.hex; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.bin; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.gz; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.zip; do $(MD5SUM) "$$f" > "$$f".md5; done
+	tar -v -c -z --transform 's/download/keyman64/' -f keyman64.tar.gz download/
