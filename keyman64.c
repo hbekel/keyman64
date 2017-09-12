@@ -46,39 +46,41 @@ DeviceInfo usbasp;
 static uint8_t parseAction(char* str) {
   if(str == NULL) return ACTION_NONE;
   
-  if(strcasecmp(str, "set"     ) == 0) return ACTION_SET;
-  if(strcasecmp(str, "clear"   ) == 0) return ACTION_CLEAR;
-  if(strcasecmp(str, "invert"  ) == 0) return ACTION_INVERT;
-  if(strcasecmp(str, "inv"     ) == 0) return ACTION_INVERT;  
-  if(strcasecmp(str, "increase") == 0) return ACTION_INCREASE;
-  if(strcasecmp(str, "inc"     ) == 0) return ACTION_INCREASE;  
-  if(strcasecmp(str, "decrease") == 0) return ACTION_DECREASE;
-  if(strcasecmp(str, "dec"     ) == 0) return ACTION_DECREASE;  
-  if(strcasecmp(str, "tri"     ) == 0) return ACTION_TRISTATE;
-  if(strcasecmp(str, "tristate") == 0) return ACTION_TRISTATE;  
-  if(strcasecmp(str, "sleep"   ) == 0) return ACTION_SLEEP_SHORT;
-  if(strcasecmp(str, "exec"    ) == 0) return ACTION_EXEC;
-  if(strcasecmp(str, "meta"    ) == 0) return ACTION_DEFINE_META;
-  if(strcasecmp(str, "down"    ) == 0) return ACTION_KEY_DOWN;
-  if(strcasecmp(str, "up"      ) == 0) return ACTION_KEY_UP;
-  if(strcasecmp(str, "type"    ) == 0) return ACTION_TYPE;  
-  if(strcasecmp(str, "boot"    ) == 0) return ACTION_BOOT;    
-  if(strcasecmp(str, "swap"    ) == 0) return ACTION_SWAP;  
-  if(strcasecmp(str, "press"   ) == 0) return ACTION_KEY_PRESS;
-  if(strcasecmp(str, "using"   ) == 0) return ACTION_DEFINE_SWITCH;
-  if(strcasecmp(str, "save"    ) == 0) return ACTION_SAVE_STATE;
-  if(strcasecmp(str, "restore" )  == 0) return ACTION_RESTORE_STATE;
-  if(strcasecmp(str, "requires") == 0) return ACTION_REQUIRES;
-  if(strcasecmp(str, "map"     ) == 0) return ACTION_MAP;
-  if(strcasecmp(str, "version" ) == 0) return ACTION_SHOW_VERSION;
-  if(strcasecmp(str, "state"   ) == 0) return ACTION_SHOW_STATE;
-  if(strcasecmp(str, "status"  ) == 0) return ACTION_SHOW_STATE;
-  if(strcasecmp(str, "lock"    ) == 0) return ACTION_LOCK;
-  if(strcasecmp(str, "password") == 0) return ACTION_SET_PASSWORD;
-  if(strcasecmp(str, "memorize") == 0) return ACTION_MEMORIZE;
-  if(strcasecmp(str, "recall"  ) == 0) return ACTION_RECALL;
-  if(strcasecmp(str, "speed"   ) == 0) return ACTION_DEFINE_SPEED;
-  if(strcasecmp(str, "expand"  ) == 0) return ACTION_EXPAND;
+  if(strcasecmp(str, "set"      ) == 0) return ACTION_SET;
+  if(strcasecmp(str, "clear"    ) == 0) return ACTION_CLEAR;
+  if(strcasecmp(str, "invert"   ) == 0) return ACTION_INVERT;
+  if(strcasecmp(str, "inv"      ) == 0) return ACTION_INVERT;  
+  if(strcasecmp(str, "increase" ) == 0) return ACTION_INCREASE;
+  if(strcasecmp(str, "increment") == 0) return ACTION_INCREASE;  
+  if(strcasecmp(str, "inc"      ) == 0) return ACTION_INCREASE;  
+  if(strcasecmp(str, "decrease" ) == 0) return ACTION_DECREASE;
+  if(strcasecmp(str, "decrement") == 0) return ACTION_DECREASE;  
+  if(strcasecmp(str, "dec"      ) == 0) return ACTION_DECREASE;  
+  if(strcasecmp(str, "tri"      ) == 0) return ACTION_TRISTATE;
+  if(strcasecmp(str, "tristate" ) == 0) return ACTION_TRISTATE;  
+  if(strcasecmp(str, "sleep"    ) == 0) return ACTION_SLEEP_SHORT;
+  if(strcasecmp(str, "exec"     ) == 0) return ACTION_EXEC;
+  if(strcasecmp(str, "meta"     ) == 0) return ACTION_DEFINE_META;
+  if(strcasecmp(str, "down"     ) == 0) return ACTION_KEY_DOWN;
+  if(strcasecmp(str, "up"       ) == 0) return ACTION_KEY_UP;
+  if(strcasecmp(str, "type"     ) == 0) return ACTION_TYPE;  
+  if(strcasecmp(str, "boot"     ) == 0) return ACTION_BOOT;    
+  if(strcasecmp(str, "swap"     ) == 0) return ACTION_SWAP;  
+  if(strcasecmp(str, "press"    ) == 0) return ACTION_KEY_PRESS;
+  if(strcasecmp(str, "using"    ) == 0) return ACTION_DEFINE_SWITCH;
+  if(strcasecmp(str, "save"     ) == 0) return ACTION_SAVE_STATE;
+  if(strcasecmp(str, "restore"  )  == 0) return ACTION_RESTORE_STATE;
+  if(strcasecmp(str, "requires" ) == 0) return ACTION_REQUIRES;
+  if(strcasecmp(str, "map"      ) == 0) return ACTION_MAP;
+  if(strcasecmp(str, "version"  ) == 0) return ACTION_SHOW_VERSION;
+  if(strcasecmp(str, "state"    ) == 0) return ACTION_SHOW_STATE;
+  if(strcasecmp(str, "status"   ) == 0) return ACTION_SHOW_STATE;
+  if(strcasecmp(str, "lock"     ) == 0) return ACTION_LOCK;
+  if(strcasecmp(str, "password" ) == 0) return ACTION_SET_PASSWORD;
+  if(strcasecmp(str, "memorize" ) == 0) return ACTION_MEMORIZE;
+  if(strcasecmp(str, "recall"   ) == 0) return ACTION_RECALL;
+  if(strcasecmp(str, "speed"    ) == 0) return ACTION_DEFINE_SPEED;
+  if(strcasecmp(str, "expand"   ) == 0) return ACTION_EXPAND;
   
   return ACTION_NONE;
 }
@@ -329,8 +331,12 @@ static bool isSymbol(char *name) {
 //-----------------------------------------------------------------------------
 
 static bool isSymbolName(char *name) {
-  return strspn(name, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_")
-    == strlen(name);
+  return
+    strspn(name,
+           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+           "abcdefghijklmnopqrstuvwxyz"
+           "0123456789"
+           "_-+.!?*$§%&~^") == strlen(name);
 }
 
 //-----------------------------------------------------------------------------

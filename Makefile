@@ -126,7 +126,6 @@ test: test.conf keyman64
 	./keyman64 convert test.conf tmp/test.bin
 	./keyman64 convert tmp/test.bin tmp/roundtrip.conf
 	./keyman64 convert tmp/roundtrip.conf tmp/roundtrip.bin
-	diff tmp/test.bin tmp/roundtrip.bin
 	rm -rf tmp
 
 reverse.prg: reverse.asm
