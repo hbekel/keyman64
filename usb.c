@@ -11,6 +11,8 @@
 // USB device discovery & handling
 //-----------------------------------------------------------------------------
 
+bool usb_quiet = false;
+
 static bool usb_lookup(DeviceInfo *info) {
 
   info->bus     = -1;
