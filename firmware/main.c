@@ -858,7 +858,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
 void SetupVersionString(void) {
 
-  char *v = "firmware " VERSION "\nbuild " __DATE__ " " __TIME__;
+  char *v = "firmware " VERSION;
   int len = strlen(v);
 
   for(uint8_t i=0; i<64; i++) {
