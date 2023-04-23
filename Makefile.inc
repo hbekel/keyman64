@@ -1,1 +1,1 @@
-VERSION=1.6
+VERSION := "\"$(shell git describe --abbrev=8 --dirty --always --tags)\""

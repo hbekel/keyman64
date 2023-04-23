@@ -45,27 +45,27 @@ DeviceInfo usbasp;
 
 static uint8_t parseAction(char* str) {
   if(str == NULL) return ACTION_NONE;
-  
+
   if(strcasecmp(str, "set"      ) == 0) return ACTION_SET;
   if(strcasecmp(str, "clear"    ) == 0) return ACTION_CLEAR;
   if(strcasecmp(str, "invert"   ) == 0) return ACTION_INVERT;
-  if(strcasecmp(str, "inv"      ) == 0) return ACTION_INVERT;  
+  if(strcasecmp(str, "inv"      ) == 0) return ACTION_INVERT;
   if(strcasecmp(str, "increase" ) == 0) return ACTION_INCREASE;
-  if(strcasecmp(str, "increment") == 0) return ACTION_INCREASE;  
-  if(strcasecmp(str, "inc"      ) == 0) return ACTION_INCREASE;  
+  if(strcasecmp(str, "increment") == 0) return ACTION_INCREASE;
+  if(strcasecmp(str, "inc"      ) == 0) return ACTION_INCREASE;
   if(strcasecmp(str, "decrease" ) == 0) return ACTION_DECREASE;
-  if(strcasecmp(str, "decrement") == 0) return ACTION_DECREASE;  
-  if(strcasecmp(str, "dec"      ) == 0) return ACTION_DECREASE;  
+  if(strcasecmp(str, "decrement") == 0) return ACTION_DECREASE;
+  if(strcasecmp(str, "dec"      ) == 0) return ACTION_DECREASE;
   if(strcasecmp(str, "tri"      ) == 0) return ACTION_TRISTATE;
-  if(strcasecmp(str, "tristate" ) == 0) return ACTION_TRISTATE;  
+  if(strcasecmp(str, "tristate" ) == 0) return ACTION_TRISTATE;
   if(strcasecmp(str, "sleep"    ) == 0) return ACTION_SLEEP_SHORT;
   if(strcasecmp(str, "exec"     ) == 0) return ACTION_EXEC;
   if(strcasecmp(str, "meta"     ) == 0) return ACTION_DEFINE_META;
   if(strcasecmp(str, "down"     ) == 0) return ACTION_KEY_DOWN;
   if(strcasecmp(str, "up"       ) == 0) return ACTION_KEY_UP;
-  if(strcasecmp(str, "type"     ) == 0) return ACTION_TYPE;  
-  if(strcasecmp(str, "boot"     ) == 0) return ACTION_BOOT;    
-  if(strcasecmp(str, "swap"     ) == 0) return ACTION_SWAP;  
+  if(strcasecmp(str, "type"     ) == 0) return ACTION_TYPE;
+  if(strcasecmp(str, "boot"     ) == 0) return ACTION_BOOT;
+  if(strcasecmp(str, "swap"     ) == 0) return ACTION_SWAP;
   if(strcasecmp(str, "press"    ) == 0) return ACTION_KEY_PRESS;
   if(strcasecmp(str, "using"    ) == 0) return ACTION_DEFINE_SWITCH;
   if(strcasecmp(str, "save"     ) == 0) return ACTION_SAVE_STATE;
@@ -81,7 +81,7 @@ static uint8_t parseAction(char* str) {
   if(strcasecmp(str, "recall"   ) == 0) return ACTION_RECALL;
   if(strcasecmp(str, "speed"    ) == 0) return ACTION_DEFINE_SPEED;
   if(strcasecmp(str, "expand"   ) == 0) return ACTION_EXPAND;
-  
+
   return ACTION_NONE;
 }
 
@@ -122,14 +122,14 @@ static void availablePorts(void) {
 
 static uint8_t parsePort(char *str) {
   uint8_t port = parseNativePort(str);
-  if(port != PORT_NONE) return port;  
+  if(port != PORT_NONE) return port;
 
   if(!ignoreMissingPorts) {
     if(!Config_has_expansion(config)) {
       return PORT_NONE;
     }
   }
-  
+
   char c = toupper(str[0]);
   if(!isalpha(c)) return PORT_NONE;
 
@@ -150,7 +150,7 @@ static uint8_t parseBit(char *str) {
   uint8_t value = 0;
 
   if(str == NULL) return 0xff;
-  
+
   value = strtol(str, &invalid, 10);
   if(str == invalid  || value > 7) {
     fprintf(stderr, "error: '%s': not a decimal bit number\n", str);
@@ -182,7 +182,7 @@ static uint8_t parseBits(char *str, bool *error) {
   for(uint8_t bit=bits->start; bit<bits->end+1; bit++) {
     mask |= 1<<bit;
   }
-  
+
  done:
   Range_free(valid);
   Range_free(bits);
@@ -194,7 +194,7 @@ static uint8_t parseBits(char *str, bool *error) {
 static bool parseData(char *str, uint8_t *data) {
 
   if(str == NULL) return false;
-  
+
   bool result = true;
 
   uint8_t value;
@@ -202,26 +202,26 @@ static bool parseData(char *str, uint8_t *data) {
   int base = 10;
 
   uint8_t key;
-  
+
   if(Key_parse(&key, str, false)) {
     *data = key;
     goto done;
   }
-  
+
   if(str[0] == '%') {
     base = 2; str++;
   }
   value = strtol(str, &invalid, base);
-  
+
   if(str == invalid) {
     result = false;
     goto done;
   }
-  
+
   *data = value;
-  
+
  done:
-  return result;    
+  return result;
 }
 
 //-----------------------------------------------------------------------------
@@ -254,16 +254,16 @@ static uint32_t parseDuration(char *str) {
   uint32_t n = 0;
 
   // d, h, m, s, ms
-  
+
   char *next;
-  
+
   while(true) {
     n = strtol(str, &next, 10);
 
     if(str == next) {
       break;
     }
-    
+
     else if(strncmp(next, "ms", 2) == 0) {
       milliseconds = n;
       str = next + 2;
@@ -344,7 +344,7 @@ static bool isSymbolName(char *name) {
 static char* trim(char* s)
 {
   int len = strlen(s);
-  
+
   while (len && isspace(s[0]))
   {
     s++; len--;
@@ -366,7 +366,7 @@ static void unescape(char *str) {
   char *saved_input = input;
   int closing;
   char in, out;
-  
+
   for(input; input[0] != '\0'; input++) {
     char hex[] = { 0, 0, 0 };
 
@@ -375,7 +375,7 @@ static void unescape(char *str) {
       switch(input[1]) {
       case '\\':
         out = '\\';
-        break;        
+        break;
       case 'r':
         out = '\r';
         break;
@@ -385,10 +385,10 @@ static void unescape(char *str) {
       case 'f':
         out = '\f';
         break;
-      case 'x':        
+      case 'x':
         hex[0] = input[2];
         hex[1] = input[3];
-        out = strtol(hex, NULL, 16) & 0xff; 
+        out = strtol(hex, NULL, 16) & 0xff;
         input+=2;
         break;
       case '{':
@@ -399,10 +399,10 @@ static void unescape(char *str) {
         break;
       default:
         out = in;
-        fprintf(stderr, "Warning: \\%c: undefined escape sequence in string literal (skipped)\n", input[1]);        
+        fprintf(stderr, "Warning: \\%c: undefined escape sequence in string literal (skipped)\n", input[1]);
         input++;
         continue;
-      }              
+      }
       str[0] = out;
       input++;
     }
@@ -423,8 +423,8 @@ static void unescape(char *str) {
 static char* escape(char* str) {
   char* output = (char*) calloc(strlen(str)*6, sizeof(char));
   char seq[7];
-  
-  for(int i=0; i<strlen(str); i++) {    
+
+  for(int i=0; i<strlen(str); i++) {
     switch(str[i]) {
     case '\\':
       strcat(output, "\\\\");
@@ -476,7 +476,7 @@ bool Config_parse(Config* self, FILE* in) {
   uint8_t key;
 
   fseek(in, 0, SEEK_SET);
-    
+
   while(fgets(buffer, 4096, in) != NULL) {
     line = buffer;
     pos++;
@@ -506,16 +506,16 @@ bool Config_parse(Config* self, FILE* in) {
       name = strdup(line);
       equals = strstr(name, "=");
       equals[0] = '\0';
-      
+
       name = trim(name);
-      
+
       if(!isSymbolName(name)) {
         goto not_a_symbol;
       }
 
       value = equals+1;
       value = trim(value);
-      
+
       if(StringList_has_definition(name)) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
         return false;
@@ -529,14 +529,14 @@ bool Config_parse(Config* self, FILE* in) {
       if(parseAction(name) != ACTION_NONE) {
         fprintf(stderr, "error: line %d: '%s': symbol is a reserved keyword\n", pos, name);
         return false;
-      }        
-      
+      }
+
       StringList_add_definition(name, value);
       continue;
     }
 
   not_a_symbol:
-    
+
     // check if this command shall be bound to a key
     if((colon = strstr(line, ":")) != NULL) {
       keyspec = line;
@@ -559,7 +559,7 @@ bool Config_parse(Config* self, FILE* in) {
 
     // try to parse expansion...
     expansion = Expansion_new();
-    
+
     if(Expansion_parse(expansion, line)) {
       Config_set_expansion(self, expansion);
       continue;
@@ -568,23 +568,23 @@ bool Config_parse(Config* self, FILE* in) {
       Expansion_free(expansion);
     }
 
-    // try to parse command...        
+    // try to parse command...
     command = Command_new();
-       
+
     if(!Command_parse(command, line)) {
       fprintf(stderr, "error: line %d: '%s': invalid command specification\n", pos, line);
       free(command);
       return false;
-    }    
+    }
 
     if(command->action == ACTION_REQUIRES) {
       Config_get_or_create_binding(self, key)->times = command->data;
     }
-    else {    
+    else {
       Binding_add(Config_get_or_create_binding(self, key), command);
     }
   }
-  
+
   free(buffer);
   return true;
 }
@@ -602,7 +602,7 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
     spec++;
     base = 16;
   }
-  
+
   byte = strtol(spec, &invalid, base);
 
   if(spec != invalid) {
@@ -611,7 +611,7 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
       fprintf(stderr, "error: '$%02X': reserved slot (use $40-$FB only)\n", byte);
       goto done;
     }
-    
+
     *key = byte;
     result = true;
     goto done;
@@ -627,12 +627,12 @@ bool Key_parse(uint8_t *key, char* spec, bool reportUnknownSymbol) {
 
   if(StringList_has_definition(spec)) {
     return Key_parse(key, StringList_get_definition(spec)->value, reportUnknownSymbol);
-  }  
-  
+  }
+
   if(!result && reportUnknownSymbol) {
     fprintf(stderr, "error: '%s': unknown key name\n", spec);
   }
-  
+
  done:
   return result;
 }
@@ -651,15 +651,15 @@ bool Command_parse(Command* self, char* spec) {
   uint16_t index;
   uint32_t value;
   bool has_policy = false;
-  int i = 0;  
-  
+  int i = 0;
+
   StringList_append_tokenized(words, spec, ws);
 
   if(parsePolicy(self, StringList_get(words, i))) {
     i++;
     has_policy = true;
   }
-  
+
   if((self->action = parseAction(StringList_get(words, i++))) == ACTION_NONE) {
     fprintf(stderr, "error: '%s': invalid command\n", StringList_get(words, i-1));
     goto error;
@@ -674,7 +674,7 @@ bool Command_parse(Command* self, char* spec) {
     }
     goto done;
   }
-  
+
   if(self->action == ACTION_TYPE) {
     str = spec + strcspn(spec, ws) + 1;
 
@@ -683,7 +683,7 @@ bool Command_parse(Command* self, char* spec) {
     }
 
     unescape(str);
-    
+
     if(!Config_has_string(config, str, &index)) {
       index = Config_add_string(config, str);
     }
@@ -730,14 +730,14 @@ bool Command_parse(Command* self, char* spec) {
       self->data = SWITCH_22106;
       goto done;
     }
-    
+
     if(strstr(str, "8808") != NULL) {
       self->data = SWITCH_8808;
       goto done;
     }
 
     fprintf(stderr, "error: please specify crosspoint switch model (CD74HC22106 or MT8808)\n");
-    goto error;    
+    goto error;
   }
 
   if(self->action == ACTION_DEFINE_SPEED) {
@@ -752,17 +752,17 @@ bool Command_parse(Command* self, char* spec) {
       self->data = SPEED_FAST;
       goto done;
     }
-    
+
     if(strcasecmp(str, "slow") == 0) {
       self->data = SPEED_SLOW;
       goto done;
     }
 
     fprintf(stderr, "error: '%s': invalid value for 'speed' (use 'fast' or 'slow')\n", str);
-    goto error;    
+    goto error;
   }
 
-  
+
   if(self->action == ACTION_SWAP) {
     if(!parseData(StringList_get(words, i), &data)) {
       if(StringList_get(words, i) != NULL) {
@@ -775,7 +775,7 @@ bool Command_parse(Command* self, char* spec) {
     }
     self->mask = data;
 
-    i++;    
+    i++;
     if(!parseData(StringList_get(words, i), &data)) {
       if(StringList_get(words, i) != NULL) {
         fprintf(stderr, "error: '%s': invalid key spec\n", StringList_get(words, i));
@@ -786,7 +786,7 @@ bool Command_parse(Command* self, char* spec) {
       }
     }
     self->data = data;
-    
+
     goto done;
   }
 
@@ -799,13 +799,13 @@ bool Command_parse(Command* self, char* spec) {
      self->action == ACTION_EXEC) {
     goto portless;
   }
-  
+
   word = StringList_get(words, i);
   if(isalpha(word[0]) && isdigit(word[1])) {
     char p[2] = { 0, 0 };
     char* b = word+1;
     p[0] = word[0];
-    
+
     if((self->port = parsePort(p)) == PORT_NONE) {
       fprintf(stderr, "error: '%s': invalid line specification\n", word);
       availablePorts();
@@ -813,7 +813,7 @@ bool Command_parse(Command* self, char* spec) {
     }
     if(strlen(b) > 1) {
       self->mask = parseBits(b, &error);
-      
+
       if(error) {
         fprintf(stderr, "error: '%s': invalid bit range\n", b);
         goto error;
@@ -826,7 +826,7 @@ bool Command_parse(Command* self, char* spec) {
       }
       self->data = 1;
     }
-    i++;    
+    i++;
   }
   else {
     if(equal(StringList_get(words, i), "port")) {
@@ -837,7 +837,7 @@ bool Command_parse(Command* self, char* spec) {
       }
       i++;
     }
-    
+
     if(equal(StringList_get(words, i), "bit")) {
       if((self->mask = parseBit(StringList_get(words, ++i))) == 0xff) {
         fprintf(stderr, "error: '%s': invalid bit\n", StringList_get(words, i));
@@ -846,25 +846,25 @@ bool Command_parse(Command* self, char* spec) {
       self->data = 1;
       i++;
     }
-    
+
     if(equal(StringList_get(words, i), "bits")) {
-      
+
       self->mask = parseBits(StringList_get(words, ++i), &error);
-      
+
       if(error) {
         fprintf(stderr, "error: '%s': invalid bit range\n", StringList_get(words, i));
         goto error;
       }
       i++;
-    }  
+    }
   }
 
   if(equal(StringList_get(words, i), "to") || equal(StringList_get(words, i), "=")) {
     i++;
-  }  
+  }
 
  portless:
-  
+
   if(i < words->size) {
     if(!parseData(StringList_get(words, i), &data)) {
       fprintf(stderr, "error: '%s': invalid value\n", StringList_get(words, i));
@@ -872,7 +872,7 @@ bool Command_parse(Command* self, char* spec) {
     }
     self->data = data;
   }
-  
+
   if(self->port > PORT_B) {
     if(self->action == ACTION_TRISTATE) {
       fprintf(stderr, "error: expanded port lines can not be tristated\n");
@@ -883,7 +883,7 @@ bool Command_parse(Command* self, char* spec) {
       goto error;
     }
   }
-  
+
  done:
   StringList_free(words);
   return result;
@@ -901,7 +901,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
   char* linenames[4] = { "clock", "data", "latch", "enable" };
   uint8_t* lines[4]  = { &self->clock, &self->data, &self->latch, &self->enable };
   bool parsed[4]     = { false, false, false, false };
-  
+
   StringList* words = StringList_new();
   StringList_append_tokenized(words, spec, ws);
 
@@ -915,7 +915,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
   uint8_t port;
   uint8_t pin;
   uint8_t line;
-  
+
   int i = 0;
 
   if(parseAction(StringList_get(words, i++)) != ACTION_EXPAND) {
@@ -925,7 +925,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
   for(i; i<words->size; i++) {
     word = StringList_get(words, i);
     pair = strdup(word);
-    
+
     if((equals = strstr(pair, "=")) == NULL) {
       fprintf(stderr, "error: '%s': expected <name>=<value>\n", word);
       goto done;
@@ -938,7 +938,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
     if(equal(name, "ports")) {
       if(!parseInt(value, 10, &num_ports)) {
         fprintf(stderr, "error: '%s': invalid number of ports\n", value);
-        goto done;        
+        goto done;
       }
       Expansion_set_num_ports(self, num_ports);
     }
@@ -950,7 +950,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
           fprintf(stderr, "error: '%s': invalid pin number\n", value);
           goto done;
         }
-        
+
         if(pin > 7) {
           fprintf(stderr, "error: '%s': pin number out of range (0-7)\n", value+1);
           goto done;
@@ -961,7 +961,7 @@ bool Expansion_parse(Expansion* self, char* spec) {
           fprintf(stderr, "error: '%s': invalid port name\n", value);
           goto done;
         }
-        
+
         line = port << 3;
         line |= pin;
         *(lines[k]) = line;
@@ -981,9 +981,9 @@ bool Expansion_parse(Expansion* self, char* spec) {
     fprintf(stderr, "error: number of available expansion ports not specified\n");
     goto done;
   }
-  
+
   result = true;
-  
+
  done:
   StringList_free(words);
   return result;
@@ -1001,7 +1001,7 @@ void Config_write(Config *self, FILE *out) {
     fputc(KEY_EXPANSION, out);
     Expansion_write(self->expansion, out);
   }
-  
+
   for(int i=0; i<self->num_bindings; i++) {
     Binding_write(self->bindings[i], out);
   }
@@ -1026,7 +1026,7 @@ void Binding_write(Binding *self, FILE* out) {
   Key_write(self->key, out);
   fputc(self->times, out);
   fputc(self->num_commands, out);
-  
+
   for(int i=0; i<self->num_commands; i++) {
     Command_write(self->commands[i], out);
   }
@@ -1066,7 +1066,7 @@ void Expansion_write(Expansion* self, FILE* out) {
 void Config_print(Config *self, FILE* out) {
   if(Config_has_expansion(self)) {
     Expansion_print(self->expansion, out);
-  }    
+  }
   for(int i=0; i<self->num_bindings; i++) {
     Binding_print(self->bindings[i], out);
   }
@@ -1082,7 +1082,7 @@ void Binding_print(Binding *self, FILE* out) {
     }
     fprintf(out, "requires %dx\n", self->times);
   }
-  
+
   for(int i=0; i<self->num_commands; i++) {
     if(self->key != KEY_IMMEDIATE) {
       Key_print(self->key, out);
@@ -1094,7 +1094,7 @@ void Binding_print(Binding *self, FILE* out) {
 //-----------------------------------------------------------------------------
 
 void Key_print(uint8_t key, FILE* out) {
-  fprintf(out, "$%02X: ", key);  
+  fprintf(out, "$%02X: ", key);
 }
 
 //-----------------------------------------------------------------------------
@@ -1102,7 +1102,7 @@ void Key_print(uint8_t key, FILE* out) {
 void Command_print(Command *self, FILE* out) {
 
   char* action = "unknown";
-  
+
   switch(self->action) {
   case ACTION_SET:           action = "set";      break;
   case ACTION_CLEAR:         action = "clear";    break;
@@ -1111,18 +1111,18 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_DECREASE:      action = "decrease"; break;
   case ACTION_TRISTATE:      action = "tristate"; break;
   case ACTION_SLEEP_SHORT:   action = "sleep";    break;
-  case ACTION_SLEEP_LONG:    action = "sleep";    break;    
+  case ACTION_SLEEP_LONG:    action = "sleep";    break;
   case ACTION_EXEC:          action = "exec";     break;
   case ACTION_DEFINE_META:   action = "meta";     break;
   case ACTION_KEY_DOWN:      action = "down";     break;
   case ACTION_KEY_UP:        action = "up";       break;
   case ACTION_TYPE:          action = "type";     break;
-  case ACTION_BOOT:          action = "boot";     break;                
+  case ACTION_BOOT:          action = "boot";     break;
   case ACTION_SWAP:          action = "swap";     break;
   case ACTION_KEY_PRESS:     action = "press";    break;
   case ACTION_DEFINE_SWITCH: action = "using";    break;
   case ACTION_SAVE_STATE:    action = "save";     break;
-  case ACTION_RESTORE_STATE: action = "restore";  break;                                
+  case ACTION_RESTORE_STATE: action = "restore";  break;
   case ACTION_REQUIRES:      action = "requires"; break;
   case ACTION_MAP:           action = "map";      break;
   case ACTION_SHOW_VERSION:  action = "version";  break;
@@ -1131,17 +1131,17 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_SET_PASSWORD:  action = "password"; break;
   case ACTION_MEMORIZE:      action = "memorize"; break;
   case ACTION_RECALL:        action = "recall";   break;
-  case ACTION_DEFINE_SPEED:  action = "speed";    break;    
+  case ACTION_DEFINE_SPEED:  action = "speed";    break;
   };
 
   if(self->policy == POLICY_EVEN) {
     fprintf(out, "0 ");
   }
-  
+
   if(self->policy == POLICY_ODD) {
     fprintf(out, "1 ");
   }
-  
+
   if(self->action == ACTION_TYPE) {
     uint16_t index = self->mask | (self->data << 8);
     char *escaped = escape(config->strings[index]);
@@ -1152,7 +1152,7 @@ void Command_print(Command *self, FILE* out) {
   uint8_t mask  = 0;
   uint8_t start = 0;
   uint8_t end   = 0;
-  
+
   if(self->mask) {
     mask = self->mask;
     while((mask & 1) == 0) {
@@ -1194,16 +1194,16 @@ void Command_print(Command *self, FILE* out) {
     fprintf(out, "%s %s", action,
             self->data == SPEED_SLOW ? "slow" : "fast");
   }
-  
+
   else if(self->action == ACTION_DEFINE_META ||
           self->action == ACTION_EXEC ||
           self->action == ACTION_KEY_DOWN ||
           self->action == ACTION_KEY_UP ||
           self->action == ACTION_KEY_PRESS) {
 
-    fprintf(out, "%s $%02X", action, self->data);    
+    fprintf(out, "%s $%02X", action, self->data);
   }
-  
+
   else if(self->action == ACTION_SWAP) {
     fprintf(out, "%s $%02X $%02X", action, self->mask, self->data);
   }
@@ -1216,7 +1216,7 @@ void Command_print(Command *self, FILE* out) {
               'a' + self->port,
               start);
     } else {
-      
+
       fprintf(out, "%s port %c bits %d-%d ",
               action,
               'a' + self->port,
@@ -1243,7 +1243,7 @@ void Expansion_print(Expansion* self, FILE* out) {
           (self->clock & 0x08) ? "b" : "a", self->clock & 0x07,
           (self->data & 0x08) ? "b" : "a", self->data & 0x07,
           (self->latch & 0x08) ? "b" : "a", self->latch & 0x07,
-          (self->enable & 0x08) ? "b" : "a", self->enable & 0x07);          
+          (self->enable & 0x08) ? "b" : "a", self->enable & 0x07);
 }
 
 //-----------------------------------------------------------------------------
@@ -1252,10 +1252,10 @@ void Expansion_print(Expansion* self, FILE* out) {
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
   FILE* result;
   int fd;
-  char path[4096]; 
+  char path[4096];
   char file[4096] = "keyman64-XXXXXX";
 
-#if defined(WIN32)  
+#if defined(WIN32)
   if(!GetTempPath(4096, path)) return NULL;
   if(!GetTempFileName(path, "key", 0, file)) return NULL;
   result = fopen(file, "wbD+");
@@ -1263,10 +1263,10 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
   fd = mkstemp(file);
   result = fdopen(fd, "w+");
 #endif
-  
+
   fwrite(buf, sizeof(char), size, result);
   fseek(result, 0, SEEK_SET);
-  
+
   return result;
 }
 #endif
@@ -1305,15 +1305,15 @@ int main(int argc, char **argv) {
 #else
   const char* default_device = "usb";
 #endif
-  
+
   int result = EXIT_SUCCESS;
   usb_quiet = false;
-  
+
   device = (char*) calloc(strlen(default_device)+1, sizeof(char));
   strcpy(device, default_device);
 
   prepare_devices();
-  
+
   struct option options[] = {
     { "help",     no_argument,       0, 'h' },
     { "version",  no_argument,       0, 'v' },
@@ -1325,30 +1325,30 @@ int main(int argc, char **argv) {
     { 0, 0, 0, 0 },
   };
   int option, option_index;
-  
+
   while(1) {
     option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
 
     if(option == -1)
       break;
-    
+
     switch (option) {
-      
+
     case 'h':
       usage();
       goto done;
-      break;      
-      
+      break;
+
     case 'v':
       version();
       goto done;
       break;
-      
+
     case 'd':
       device = (char*) realloc(device, strlen(optarg)+1);
       strcpy(device, optarg);
       break;
-      
+
     case 'k':
       keys();
       goto done;
@@ -1362,7 +1362,7 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "hint: option --preserve is no longer needed "
               "and has been deprecated in v1.5\n");
-      break;      
+      break;
 
     case 'i':
       identify();
@@ -1372,9 +1372,9 @@ int main(int argc, char **argv) {
     case '?':
     case ':':
       goto done;
-    }    
+    }
   }
-  
+
   argc -= optind;
   argv += optind;
 
@@ -1384,7 +1384,7 @@ int main(int argc, char **argv) {
     goto done;
   }
   prepare_devices();
-  
+
   if(argc && (strcmp(argv[0], "convert") == 0)) {
     result = convert(--argc, ++argv);
   }
@@ -1400,7 +1400,7 @@ int main(int argc, char **argv) {
   else {
     result = command(argc, argv);
   }
-  
+
  done:
   free(device);
   return result;
@@ -1417,7 +1417,7 @@ static void join(char** dst, char **src, int size) {
   required += 1;
 
   *dst = realloc(*dst, required*sizeof(char));
-  
+
   for(int i=0; i<size; i++) {
     strcat(*dst, src[i]);
     if(i<size-1) {
@@ -1430,7 +1430,7 @@ static void join(char** dst, char **src, int size) {
 
 int command(int argc, char **argv) {
   int result = EXIT_FAILURE;
-  
+
   FILE *in = NULL;
   FILE *out = NULL;
   char *str = (char*) calloc(1, sizeof(char));
@@ -1438,14 +1438,14 @@ int command(int argc, char **argv) {
   uint16_t size = 0;
 
   ignoreMissingPorts = true;
-  
+
   if(strlen(argv[0]) == 1 && argv[0][0] == '-') {
     in = stdin;
-  }    
+  }
   else if((in = fopen(argv[0], "rb")) == NULL) {
-    
+
     join(&str, argv, argc);
-    
+
     if(strlen(str)) {
       if((in = fmemopen(str, strlen(str)+1, "rb")) == NULL) {
         fprintf(stderr, "error: could not open string via fmemopen(): %s \n", strerror(errno));
@@ -1457,28 +1457,28 @@ int command(int argc, char **argv) {
   if(in == NULL) {
     goto done;
   }
-  
+
   if(in == stdin) {
     fprintf(stderr, "reading commands from stdin...\n");
   }
-  
+
   config = Config_new();
 
   if(!(Config_read(config, in) || Config_parse(config, in))) {
     goto done;
   }
   fclose(in);
-  
+
   data = (uint8_t*) calloc(4096, sizeof(char));
-  
+
   if((out = fmemopen(data, 4096, "wb")) == NULL) {
     fprintf(stderr, "error: %s\n", strerror(errno));
     goto done;
   }
-  
+
   Config_write(config, out);
   size = ftell(out);
-  fmemupdate(out, data, size);  
+  fmemupdate(out, data, size);
   fclose(out);
 
   if((result = usb_send(&keyman64, KEYMAN64_CTRL, delay, 0, data, size)) < 0) {
@@ -1486,7 +1486,7 @@ int command(int argc, char **argv) {
     goto done;
   }
   result = EXIT_SUCCESS;
-  
+
  done:
   if(config != NULL) {
     Config_free(config);
@@ -1510,7 +1510,7 @@ int convert(int argc, char **argv) {
   Format output_format = BINARY;
 
   config = Config_new();
-  
+
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
@@ -1537,7 +1537,7 @@ int convert(int argc, char **argv) {
   if(out == stdout) {
     fprintf(stderr, "writing to stdout...\n");
   }
-  
+
   if(Config_read(config, in) || Config_parse(config, in)) {
 
     output_format == BINARY ?
@@ -1567,7 +1567,7 @@ int configure(int argc, char **argv) {
   uint16_t size = 0;
 
   config = Config_new();
-  
+
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
@@ -1583,15 +1583,15 @@ int configure(int argc, char **argv) {
   if(Config_read(config, in) || Config_parse(config, in)) {
 
     data = (uint8_t*) calloc(4096, sizeof(char));
-  
+
     if((out = fmemopen(data, 4096, "wb")) == NULL) {
       fprintf(stderr, "error: %s\n", strerror(errno));
       goto done;
     }
-  
+
     Config_write(config, out);
     size = ftell(out);
-    fmemupdate(out, data, size);  
+    fmemupdate(out, data, size);
     fclose(out);
 
     if(!usb_ping(&keyman64)) {
@@ -1618,25 +1618,25 @@ int configure(int argc, char **argv) {
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
 
-  char *filename = argv[0];  
-  unsigned int address = 0;  
+  char *filename = argv[0];
+  unsigned int address = 0;
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
-  
+
   if(!argc) {
     usage();
     goto done;
   }
-  
+
   if(!(result = read_file(filename, &data, &size))) {
     goto done;
   }
 
   if(ends_with(filename, ".hex")) {
     fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
-    
+
     data = readhex(data, &size, &address);
-    
+
     if(!data) {
       fprintf(stderr, "FAILED!\n");
       errno = EINVAL;
@@ -1651,12 +1651,12 @@ int update(int argc, char **argv) {
 
   if(argc == 2) {
     uint8_t erased[2] = { 0x00, 0x00 };
-    
+
     if(!usb_ping(&keyman64)) {
       fprintf(stderr, "error: could not connect to keyman64\n");
       goto done;
     }
-    
+
     fprintf(stderr, "Deactivating existing configuration...");
     fflush(stderr);
 
@@ -1666,7 +1666,7 @@ int update(int argc, char **argv) {
 
     expect(&keyman64, "Waiting for keyman64 to reboot");
   }
-  
+
   if(usb_ping(&keyman64)) {
     usb_control(&keyman64, KEYMAN64_BOOT);
     expect(&usbasp, "Entering bootloader");
@@ -1674,7 +1674,7 @@ int update(int argc, char **argv) {
 
   if(usb_ping(&usbasp)) {
     usb_control(&usbasp, USBASP_CONNECT);
-  
+
     for(uint32_t i=0; i<size+64; i+=64) {
       usb_send(&usbasp, USBASP_WRITEFLASH,
                (uint16_t) (i & 0xffff), (uint16_t) (i>>16),
@@ -1684,7 +1684,7 @@ int update(int argc, char **argv) {
     }
     fprintf(stderr, "ok\n");
 
-    usb_quiet = true;  
+    usb_quiet = true;
     usb_control(&usbasp, USBASP_DISCONNECT);
   }
   else {
@@ -1698,9 +1698,9 @@ int update(int argc, char **argv) {
 
     if(expect(&keyman64, "Waiting for keyman64 to reboot")) {
       identify();
-    }    
+    }
   }
-  
+
  done:
   if(data != NULL) free(data);
   return result;
@@ -1715,19 +1715,19 @@ int update(int argc, char **argv) {
 bool expect(DeviceInfo *device, const char* message) {
 
   fprintf(stderr, "%s", message); fflush(stderr);
-  
+
   uint8_t tries = 10;
   usb_quiet = true;
-  
-  do {     
+
+  do {
     sleep(1);
     fprintf(stderr, "."); fflush(stderr);
-    
+
     if(!--tries) {
       return false;
     }
   } while(!usb_ping(device));
-  
+
   fprintf(stderr, "\r");
   for(int i=0; i<strlen(message)+10; i++) {
     fprintf(stderr, " ");
@@ -1742,9 +1742,9 @@ bool read_file(char* filename, uint8_t **data, int *size) {
 
   bool result = false;
   FILE *in = NULL;
-  
+
   struct stat st;
-  
+
   if((in = fopen(filename, "rb")) == NULL) {
     goto error;
   }
@@ -1762,13 +1762,13 @@ bool read_file(char* filename, uint8_t **data, int *size) {
   fclose(in);
 
   result = true;
-  
+
  done:
   return result;
 
  error:
   fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-  goto done;    
+  goto done;
 }
 
 //-----------------------------------------------------------------------------
@@ -1784,9 +1784,9 @@ void identify(void) {
 //-----------------------------------------------------------------------------
 
 bool reset(void) {
-  
+
   if(usb_ping(&keyman64)) {
-    usb_control(&keyman64, KEYMAN64_RESET);    
+    usb_control(&keyman64, KEYMAN64_RESET);
   }
   else if(usb_ping(&usbasp)) {
     usb_quiet = true;
@@ -1798,13 +1798,13 @@ bool reset(void) {
     failed(&usbasp);
     return false;
   }
-  
+
   if(expect(&keyman64, "Resetting device")) {
     identify();
     return true;
   }
   failed(&keyman64);
-  return false;  
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1817,7 +1817,7 @@ void failed(DeviceInfo *device) {
 //-----------------------------------------------------------------------------
 
 void version(void) {
-  printf("Keyman64 v%.1f\n", VERSION);    
+  printf("Keyman64 %s\n", VERSION);
   printf("Copyright (C) 2016 Henning Bekel.\n");
   printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
@@ -1832,10 +1832,10 @@ void usage(void) {
   printf("Usage:\n");
   printf("      keyman64 [<options>] convert [<infile>|-] [<outfile>|-]\n");
   printf("      keyman64 [<options>] configure [<infile>]\n");
-  printf("      keyman64 [<options>] update <firmware> [<config>]\n");    
+  printf("      keyman64 [<options>] update <firmware> [<config>]\n");
   printf("      keyman64 [<options>] reset\n");
   printf("      keyman64 [<options>] <command>\n");
-  printf("      keyman64 [<options>] <script>|-\n");    
+  printf("      keyman64 [<options>] <script>|-\n");
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");
@@ -1845,7 +1845,7 @@ void usage(void) {
 #elif windows
   printf("           -d, --device   : specify usb device (default: usb)\n");
 #endif
-  printf("           -D, --delay    : delay in ms between commands\n");  
+  printf("           -D, --delay    : delay in ms between commands\n");
   printf("           -k, --keys     : list key names and synonyms\n");
   printf("           -p, --preserve : deprecated as of version 1.5\n");
   printf("           -i, --identify : request firmware identification via USB\n");
@@ -1854,16 +1854,16 @@ void usage(void) {
   printf("           <infile>   : input file, format is autodetected\n");
   printf("           <outfile>  : output file, format determined by extension\n");
   printf("           <script>   : script file containing keyman64 commands\n");
-  printf("           <firmware> : binary or ihex firmware image (.bin or .hex)\n");    
+  printf("           <firmware> : binary or ihex firmware image (.bin or .hex)\n");
   printf("\n");
   printf("           *.conf : plain text config file format\n");
-  printf("           *.bin  : binary file format (default)\n");  
+  printf("           *.bin  : binary file format (default)\n");
   printf("\n");
   printf("           Optional arguments default to stdin or stdout\n");
   printf("\n");
   printf("  Command:\n");
   printf("            (any valid keyman64 command)\n");
-  printf("\n");  
+  printf("\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -1873,9 +1873,9 @@ void complain(void) {
   if(!(!GetConsoleTitle(NULL, 0) && GetLastError() == ERROR_SUCCESS)) {
     printf("\n!THIS IS A COMMANDLINE APPLICTION, PLEASE RUN "
            "IT FROM A COMMAND PROMPT INSTEAD!\n\n");
-    system("pause");    
+    system("pause");
   }
-#endif  
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1900,4 +1900,3 @@ void keys(void) {
 }
 
 //-----------------------------------------------------------------------------
-

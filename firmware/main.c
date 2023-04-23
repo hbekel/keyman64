@@ -86,7 +86,7 @@ void Reset(void) {
 void SetupHardware(void) {
 
   wdt_disable();
-  
+
   // Crosspoint Control
   DDRA  = 0b11111111;
   PORTA = 0b11000000;
@@ -95,14 +95,14 @@ void SetupHardware(void) {
   DDRD  = 0b10001001;
   PORTD = 0b11110000;
 
-  SetupSerial();  
+  SetupSerial();
 }
 
 //-----------------------------------------------------------------------------
 
 void SetupSerial(void) {
   ResetSerial();
-  
+
   PCMSK3 = CLK;
   PCICR |= (1<<PCIE3);
   sei();
@@ -134,7 +134,7 @@ void ExecuteSerialCommand() {
   uint8_t key;
   char petscii[2] = { '\0', '\0' };
   Command *command;
-  
+
   switch(serial.command) {
 
   case SERIAL_COMMAND_EXECUTE:
@@ -155,7 +155,7 @@ void ExecuteSerialCommand() {
     RelayKeyPress(serial.arguments[0]);
     break;
 
-  case SERIAL_COMMAND_MAP:    
+  case SERIAL_COMMAND_MAP:
 
     port = ((serial.arguments[1] & 0x8) == 0) ? 0 : 1;
     mask = 1<<(serial.arguments[1] & 0x7);
@@ -176,14 +176,14 @@ void ExecuteSerialCommand() {
     default: command->action = ACTION_NONE;     break;
     }
 
-    ExecuteCommand(config, command);    
+    ExecuteCommand(config, command);
     break;
 
   case SERIAL_COMMAND_TYPE:
     petscii[0] = serial.arguments[0];
     Type(petscii);
     break;
-  }  
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -194,18 +194,18 @@ ISR(PCINT3_vect) {
 
   if((PIND & DATA) != 0) {
     serial.byte |= serial.bit;
-  }    
+  }
   serial.bit = serial.bit << 1;
 
   if(serial.bit == 0) { // byte complete
-    
-    if(serial.index == 0) { // received command 
+
+    if(serial.index == 0) { // received command
       serial.command = serial.byte;
       serial.index = SERIAL_COMMAND_ARITY_FOR[serial.command];
     }
     else { // received argument
       serial.arguments[--serial.index] = serial.byte;
-    }    
+    }
 
     if(serial.index == 0) { // all arguments received
       ExecuteSerialCommand();
@@ -238,8 +238,8 @@ static uint8_t mask2bitnum(uint8_t mask) {
 
 void Map(uint8_t p, uint8_t mask, uint8_t key) {
 
-  uint8_t volatile *port = (p == PORT_A) ? &PORTB : &PORTC;   
-  uint8_t volatile *pins = (p == PORT_A) ? &PINB : &PINC; 
+  uint8_t volatile *port = (p == PORT_A) ? &PORTB : &PORTC;
+  uint8_t volatile *pins = (p == PORT_A) ? &PINB : &PINC;
   uint8_t volatile *ddr  = (p == PORT_A) ? &DDRB : &DDRC;
 
   Mapping volatile *mapping = &mappings[mask2bitnum(mask) | (p<<3)];
@@ -247,7 +247,7 @@ void Map(uint8_t p, uint8_t mask, uint8_t key) {
   mapping->pins = pins;
   mapping->mask = mask;
   mapping->key = key;
-  
+
   (*ddr) &= ~mask;
   (*port) |= mask;
 }
@@ -258,14 +258,14 @@ void ApplyMappings(void) {
   bool closed = false;
   Mapping volatile *mapping;
   uint8_t lock;
-  
+
   for(uint8_t i=0; i<16; i++) {
     mapping = &mappings[i];
     lock = LOCK_MAP + i;
-    
+
     if(mapping->pins == NULL) continue;
-    
-    closed = ((*mapping->pins) & mapping->mask) == 0;      
+
+    closed = ((*mapping->pins) & mapping->mask) == 0;
     if(closed) {
       SetCrosspointSwitchLocked(mapping->key, true, lock);
     }
@@ -285,7 +285,7 @@ void SetupUSB(void) {
   usbInit();
 
   usbDeviceDisconnect();
-  
+
   _delay_ms(500);
 
   usbDeviceConnect();
@@ -388,10 +388,10 @@ void ClockMatrixSlow(void) {
 bool ScanMatrix(void) {
   bool keyDown = false;
   uint8_t row = 0;
-  uint8_t col = 0;  
-  
+  uint8_t col = 0;
+
   ResetCounter();
-  
+
   for(row=0; row<8; row++) {
     for(col=0; col<8; col++) {
       if((PIND & MD) == 0) {
@@ -418,7 +418,7 @@ void ResetCrosspointSwitch22106(void) {
 }
 
 void ResetCrosspointSwitch8808(void) {
-  PORTD |= CPR;  
+  PORTD |= CPR;
   _delay_ms(1);
   PORTD &= ~CPR;
 
@@ -445,7 +445,7 @@ void SetCrosspointSwitch(uint8_t index, bool closed) {
   index = closed ? (index | CPD) : (index & ~CPD);
   index |= CPS;
   PORTA = index;
-  
+
   StrobeCrosspointSwitch();
 }
 
@@ -453,7 +453,7 @@ void SetCrosspointSwitch(uint8_t index, bool closed) {
 
 void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock) {
   if(locked[index] && locked[index] != lock) return;
-  
+
   if(!locked[index]) SetCrosspointSwitch(index, closed);
   locked[index] = closed ? lock : LOCK_NONE;
   if(!locked[index]) SetCrosspointSwitch(index, closed);
@@ -473,7 +473,7 @@ void RelayKeyPress(volatile uint8_t key) {
   SetCrosspointSwitch(key, true);
   DELAY;
   SetCrosspointSwitch(key, false);
-} 
+}
 
 //-----------------------------------------------------------------------------
 
@@ -499,7 +499,7 @@ bool QueryKeyDown(volatile uint8_t key) {
   if(!IsKey(key)) return false;
 
   bool result = false;
-  
+
   if(ScanMatrix() && IsKeyDown(key)) {
     DEBOUNCE;
     result = ScanMatrix() && IsKeyDown(key);
@@ -511,11 +511,11 @@ bool QueryKeyDown(volatile uint8_t key) {
 
 bool QueryKeyUp(volatile uint8_t key) {
   if(!IsKey(key)) return false;
-  
+
   bool result = false;
 
   ScanMatrix();
-  
+
   if(IsKeyUp(key)) {
     DEBOUNCE;
     ScanMatrix();
@@ -533,13 +533,13 @@ void Type(char *str) {
   uint8_t key;
   uint16_t len = strlen(str);
   static uint8_t last;
-  
+
   for(uint16_t i=0; i<len; i++) {
     sequence = &(encoding[(uint8_t)(str[i])]);
 
     for(uint16_t k=0; k<sequence->size; k++) {
       code = sequence->codes[k];
-      
+
       if((code & CODE_MASK) == CODE_KEY_DOWN) {
         SetCrosspointSwitch(code & ~CODE_MASK, true);
         PROPAGATE;
@@ -566,7 +566,7 @@ void Newline(void) {
   DELAY;
   SetCrosspointSwitch(KEY_SHIFTLEFT, true); PROPAGATE;
   RelayKeyPress(8);
-  SetCrosspointSwitch(KEY_SHIFTLEFT, false); PROPAGATE;  
+  SetCrosspointSwitch(KEY_SHIFTLEFT, false); PROPAGATE;
 }
 
 //-----------------------------------------------------------------------------
@@ -579,11 +579,11 @@ void Paragraph(void) {
 
 void ExecuteKey(uint8_t key) {
   Binding *binding;
-  
+
   for(int i=0; i<config->num_bindings; i++) {
     binding = config->bindings[i];
-    
-    if(key == binding->key) {    
+
+    if(key == binding->key) {
       ExecuteBinding(binding);
     }
   }
@@ -605,14 +605,14 @@ void ExecuteBindingInteractively(Binding *binding) {
 
 void ExecuteBinding(Binding* binding) {
   Command *command;
-  
+
   for(int i=0; i<binding->num_commands; i++) {
     command = binding->commands[i];
-    
+
     if((command->policy == POLICY_ALWAYS) ||
        (command->policy == POLICY_EVEN && binding->state == STATE_EVEN) ||
        (command->policy == POLICY_ODD  && binding->state == STATE_ODD)) {
-      
+
       ExecuteCommand(config, command);
     }
   }
@@ -644,7 +644,7 @@ void Unlock(void) {
 bool ResolvePort(uint8_t num, uint8_t volatile **port, uint8_t volatile** ddr) {
 
   *port = NULL;
-  
+
   if(num <= PORT_B) {
     *port = (num == PORT_A) ? &PORTB : &PORTC;
     *ddr  = (num == PORT_A) ? &DDRB : &DDRC;
@@ -652,8 +652,8 @@ bool ResolvePort(uint8_t num, uint8_t volatile **port, uint8_t volatile** ddr) {
   else if(Config_has_expansion(config)) {
 
     Expansion *expansion = config->expansion;
-    num -= 2;    
-    
+    num -= 2;
+
     if(num < expansion->num_ports) {
       *port = &(expansion->ports[num]);
       *ddr  = &(expansion->ddr);
@@ -678,21 +678,21 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   uint32_t duration;
 
   if(!ResolvePort(cmd->port, &port, &ddr)) return;
-  
+
   switch(cmd->action) {
-    
+
   case ACTION_NONE:
     break;
 
   case ACTION_DEFINE_META:
     meta = cmd->data;
     break;
-    
+
   case ACTION_SET:
     offset = 0;
     mask = cmd->mask;
 
-    while((mask & 1) == 0) {      
+    while((mask & 1) == 0) {
       mask = mask >> 1;
       offset++;
     }
@@ -700,20 +700,20 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     value = (cmd->data & mask) << offset;
 
     *port &= ~cmd->mask;
-    *port |= value;         
-    *ddr |= cmd->mask;    
+    *port |= value;
+    *ddr |= cmd->mask;
     break;
 
   case ACTION_CLEAR:
     *ddr |= cmd->mask;
     *port &= ~cmd->mask;
     break;
-    
+
   case ACTION_INVERT:
     value = *port;
     value &= cmd->mask;
     value ^= cmd->mask;
-    
+
     *ddr |= cmd->mask;
     *port &= ~cmd->mask;
     *port |= value;
@@ -725,8 +725,8 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     value = *port & cmd->mask;
     offset = 0;
     dir = cmd->action == ACTION_INCREASE ? 1 : -1;
-    
-    while((mask & 1) == 0) {      
+
+    while((mask & 1) == 0) {
       mask = mask >> 1;
       value = value >> 1;
       offset++;
@@ -759,7 +759,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
       _delay_ms(1);
     }
     break;
-    
+
   case ACTION_EXEC:
     ExecuteKey(cmd->data);
     break;
@@ -780,7 +780,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_BOOT:
     boot = true;
     break;
-    
+
   case ACTION_SWAP:
     tmp = layout[cmd->mask];
     layout[cmd->mask] = layout[cmd->data];
@@ -794,11 +794,11 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_DEFINE_SWITCH:
     if(cmd->data == SWITCH_22106) {
       ResetCrosspointSwitch = &ResetCrosspointSwitch22106;
-      StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;  
+      StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;
     }
     if(cmd->data == SWITCH_8808) {
       ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
-      StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;  
+      StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;
     }
     break;
 
@@ -810,7 +810,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
       ClockMatrix = &ClockMatrixFast;
     }
     break;
-    
+
   case ACTION_SAVE_STATE:
     SaveState();
     break;
@@ -824,7 +824,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    Type((char*)version); 
+    Type((char*)version);
     Paragraph();
     break;
 
@@ -858,14 +858,14 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
 void SetupVersionString(void) {
 
-  char *v = "firmware " xstr(VERSION) " " __DATE__ " " __TIME__;
+  char *v = "firmware " VERSION "\nbuild " __DATE__ " " __TIME__;
   int len = strlen(v);
 
   for(uint8_t i=0; i<64; i++) {
     version[i] = '\0';
   }
   uint8_t o=0;
-  
+
   for(uint8_t i=0; i<strlen(v); i++) {
     if(i>1 && v[i-1] == ' ' && v[i] == ' ') continue;
     version[o++] = tolower(v[i]);
@@ -877,7 +877,7 @@ void SetupVersionString(void) {
 static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 
   uint8_t i=0;
-  
+
   for(uint8_t bit=0x80; bit; bit>>=1, i++) {
 
     if((*ddr) & bit) {
@@ -894,27 +894,27 @@ static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 
 void ShowState(void) {
   const char *template = "a 00000000\n";
-  char *line = (char*) calloc(11, sizeof(char)); 
+  char *line = (char*) calloc(11, sizeof(char));
   strcpy(line, template);
-  
+
   char *state = line+2;
   uint8_t ddr = 0xff;
-  
+
   p2s(&state, &PORTB, &DDRB);
-  Type(line);  
+  Type(line);
 
   p2s(&state, &PORTC, &DDRC);
   line[0]++;
-  Type(line);  
-  
+  Type(line);
+
   if(Config_has_expansion(config)) {
     Expansion *e = config->expansion;
     for(uint8_t i = 0; i < e->num_ports; i++) {
       p2s(&state, &e->ports[i], &ddr);
       line[0]++;
-      Type(line);        
+      Type(line);
     }
-  }  
+  }
   Newline();
   free(line);
 }
@@ -936,7 +936,7 @@ void GetState(State* state) {
   state->ddra  = DDRB;
   state->porta = PORTB;
   state->ddrb  = DDRC;
-  state->portb = PORTC;  
+  state->portb = PORTC;
 }
 
 //-----------------------------------------------------------------------------
@@ -945,7 +945,7 @@ void SetState(State* state) {
   uint8_t volatile *port;
   uint8_t volatile *ddr;
 
-  if(Config_has_expansion(config)) {  
+  if(Config_has_expansion(config)) {
     for(uint8_t i=0; i<config->expansion->num_ports; i++) {
       if(ResolvePort(i+2, &port, &ddr)) {
         (*port) = state->ports[i];
@@ -953,7 +953,7 @@ void SetState(State* state) {
     }
     Expansion_update(config->expansion);
   }
-  
+
   DDRB  = state->ddra;
   PORTB = state->porta;
   DDRC  = state->ddrb;
@@ -982,7 +982,7 @@ void SetPassword(void) {
 
   EnterPassword("enter new password: ", password);
   EnterPassword("repeat new password: ", repeated);
-    
+
   if(strlen(password) == strlen(repeated) && strcmp(password, repeated) == 0) {
 
     if(strlen(password) == 1 && password[0] == KEY_RETURN) {
@@ -1010,16 +1010,16 @@ void SetPassword(void) {
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *usbRequest = (void*) data;
-  
+
   switch(usbRequest->bRequest) {
-    
+
   case KEYMAN64_CTRL:
   case KEYMAN64_FLASH:
     usbCommand = usbRequest->bRequest;
     usbDataLength = usbRequest->wLength.word;
     usbDelay = usbRequest->wValue.word;
     usbDataReceived = 0;
-    
+
     if(usbData == NULL) {
       usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
     }
@@ -1027,13 +1027,13 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     break;
 
   case KEYMAN64_BOOT:
-    boot = true;    
+    boot = true;
     break;
 
   case KEYMAN64_RESET:
     reset = true;
-    break;    
-    
+    break;
+
   case KEYMAN64_IDENTIFY:
     usbMsgPtr = (uchar *) version;
     return strlen((const char*)version)+1;
@@ -1042,7 +1042,7 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
   case KEYMAN64_KEY_DOWN:
     SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], true, LOCK_USB);
     break;
-    
+
   case KEYMAN64_KEY_UP:
     SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], false, LOCK_USB);
     break;
@@ -1069,7 +1069,7 @@ USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
       FlashConfigurationFromUSBData();
     }
   }
-  
+
   free((void*)usbData);
   usbData = NULL;
   return 1;
@@ -1081,7 +1081,7 @@ void ExecuteCommandsFromUSBData(void) {
 
   Config *cfg = Config_new();
   usbDataPos = 0;
-  
+
   if(Config_read(cfg, &usbdata)) {
     ExecuteImmediateCommands(cfg, usbDelay);
   }
@@ -1090,7 +1090,7 @@ void ExecuteCommandsFromUSBData(void) {
 
 //-----------------------------------------------------------------------------
 
-void FlashConfigurationFromUSBData(void) {  
+void FlashConfigurationFromUSBData(void) {
   reset = fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength;
 }
 
@@ -1115,11 +1115,11 @@ void EnterPassword(char* prompt, char* buffer) {
   buffer[0] = 0;
 
   Type(prompt);
-  
+
   while(1) {
 
     if((key = ReadKey()) == 0xff) continue;
-    
+
     len = strlen(buffer);
     if(len == 63) {
       buffer[0] = 0;
@@ -1147,17 +1147,17 @@ bool CheckPassword(void) {
   uint8_t len;
 
   if((key = ReadKey()) != 0xff) {
-    
+
     len = strlen(input);
     if(len == sizeof(input)-1) {
       input[0] = 0;
       len = 0;
     }
-    
+
     input[len] = key;
     input[len+1] = 0;
     len = strlen(input);
-    
+
     for(uint8_t i=0; i<len; i++) {
       if(input[i] != storage->password[i]) {
         input[0] = 0;
@@ -1177,16 +1177,16 @@ Storage* Storage_new(void) {
   Storage* self = (Storage*) calloc(1, sizeof(Storage));
   self->state = State_new();
   return self;
-}                                   
+}
 
 //-----------------------------------------------------------------------------
 
 bool Storage_valid(Storage* self) {
   return self->magic == STORAGE_MAGIC;
 }
-  
+
 //-----------------------------------------------------------------------------
-  
+
 void Storage_bootstrap(Storage* self) {
   self->magic = STORAGE_MAGIC;
   self->password[0] = 0;
@@ -1197,7 +1197,7 @@ void Storage_bootstrap(Storage* self) {
 
 void Storage_load(Storage* self) {
   Storage_load_magic(self);
-  
+
   if(Storage_valid(self)) {
     Storage_load_state(self);
     Storage_load_password(self);
@@ -1272,7 +1272,7 @@ void Storage_save_magic(Storage* self) {
 
 void Storage_save_state(Storage* self) {
   uint16_t address = STORAGE_ADDRESS + offsetof(Storage, state);
-  
+
   eeprom_update_byte((uint8_t*)address++, self->state->ddra);
   eeprom_update_byte((uint8_t*)address++, self->state->porta);
   eeprom_update_byte((uint8_t*)address++, self->state->ddrb);
@@ -1292,7 +1292,7 @@ void Storage_save_password(Storage* self) {
 
   eeprom_update_block((const void*)self->password,
                       (void*)address,
-                      sizeof(self->password));  
+                      sizeof(self->password));
 }
 
 //-----------------------------------------------------------------------------
@@ -1323,7 +1323,7 @@ void SetupExpansion(void) {
 void Expansion_set(uint8_t pin, bool high) {
   uint8_t volatile *port = ((pin >> 3) == PORT_A) ? &PORTB : &PORTC;
   uint8_t volatile *ddr  = ((pin >> 3) == PORT_A) ? &DDRB : &DDRC;
-  
+
   uint8_t mask = 1 << (pin & 0x07);
 
   if(high) {
@@ -1372,10 +1372,10 @@ void Expansion_data(Expansion* self, bool high) {
 //-----------------------------------------------------------------------------
 
 void Expansion_update(Expansion* self) {
-  
+
   uint8_t bitmask;
   uint8_t value;
-  
+
   for(int16_t i=self->num_ports-1; i >= 0; i--) {
 
     value = self->ports[i];
@@ -1399,15 +1399,15 @@ int main(void) {
   SetupKeyboardLayout();
   SetupMappings();
   SetupVersionString();
-  
+
   meta = KEY_BACKARROW;
   boot = false;
   reset = false;
-  
+
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
   StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;
   ClockMatrix = &ClockMatrixFast;
-  
+
   config = Config_new();
 
   Config_read(config, &eeprom) || Config_install_fallback(config);
@@ -1424,11 +1424,11 @@ int main(void) {
 
   transient = State_new();
   GetState(transient);
-  
+
   ExecuteImmediateCommands(config, WITHOUT_DELAY);
 
   SetupUSB();
-  
+
   Binding *binding;
   bool relayMetaKey = true;
 
@@ -1461,7 +1461,7 @@ int main(void) {
       break;
 
     //========================================
-      
+
     case STATE_COMMAND:
 
       if(QueryKeyUp(meta)) {
@@ -1473,19 +1473,19 @@ int main(void) {
       else {
         for(int i=0; i<config->num_bindings; i++) {
           binding = config->bindings[i];
-          
-          if(QueryKeyDown(binding->key)) {  
-            
+
+          if(QueryKeyDown(binding->key)) {
+
             ExecuteBindingInteractively(binding);
 
             while(!QueryKeyUp(binding->key));
             relayMetaKey = false;
           }
-        }	
+        }
       }
       break;
-      
-    //========================================      
+
+    //========================================
 
     case STATE_LOCKED:
       if(CheckPassword()) {
