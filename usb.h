@@ -12,7 +12,7 @@
 extern bool usb_quiet;
 
 typedef struct {
-  char path[4096];
+  char path[4096+1];
   char role[64];
   unsigned int vid;
   unsigned int pid;

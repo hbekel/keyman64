@@ -20,7 +20,7 @@ Config* Config_new(void) {
 
 bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
 
-  for(uint16_t i=0; i<self->num_strings; i++) {    
+  for(uint16_t i=0; i<self->num_strings; i++) {
     if(strcmp(self->strings[i], string) == 0) {
       *index = i;
       return true;
@@ -32,11 +32,17 @@ bool Config_has_string(volatile Config *self, char* string, uint16_t *index) {
 //-----------------------------------------------------------------------------
 
 uint16_t Config_add_string(volatile Config *self, char* string) {
+
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-truncation"
+
   self->strings = (char**) realloc(self->strings, (self->num_strings+1) * sizeof(char *));
   self->strings[self->num_strings] = calloc(strlen(string)+1, sizeof(char));
   strncpy(self->strings[self->num_strings], string, strlen(string));
   self->num_strings++;
   return self->num_strings-1;
+
+  #pragma GCC diagnostic pop
 }
 
 //-----------------------------------------------------------------------------
@@ -90,7 +96,7 @@ bool Config_has_binding(volatile Config* self, uint8_t key) {
 
 Binding* Config_get_or_create_binding(volatile Config* self, uint8_t key) {
   Binding* binding = NULL;
- 
+
   if(!Config_has_binding(self, key)) {
     binding = Config_get_binding(self, key);
   }
@@ -176,13 +182,13 @@ Expansion* Config_set_expansion(volatile Config *self, Expansion* expansion) {
 bool Config_install_fallback(volatile Config *self) {
 
   Binding *binding;
-  Command *command;  
+  Command *command;
 
   const uint8_t TEST_MESSAGE = 0;
   Config_add_string(self,
                     "\f\n"
                     " ***** keyman64 version " xstr(VERSION) " ready *****\n"
-                    "\n" 
+                    "\n"
                     "    no configuration found in eeprom\n"
                     "      using fallback configuration\n"
                     "\n"
@@ -204,27 +210,27 @@ bool Config_install_fallback(volatile Config *self) {
 
   const uint8_t READY_MESSAGE = 2;
   Config_add_string(self, "\n\nready.\n");
-  
+
   binding = Binding_new();
   binding->key = KEY_T;
-  
+
   command = Command_new();
   command->action = ACTION_TYPE;
   command->mask = TEST_MESSAGE;
-  command->data = 0;  
+  command->data = 0;
   Binding_add(binding, command);
-  
+
   Config_add_binding(self, binding);
-  
+
   command = Command_new();
   command->action = ACTION_BOOT;
 
   binding = Binding_new();
   binding->key = KEY_B;
   Binding_add(binding, command);
-  
+
   Config_add_binding(self, binding);
-  
+
   binding = Binding_new();
   binding->key = KEY_F;
 
@@ -233,7 +239,7 @@ bool Config_install_fallback(volatile Config *self) {
   command->mask = FREQUENCY_MESSAGE;
   command->data = 0;
   Binding_add(binding, command);
-  
+
   for(int i=0; i<10; i++) {
     command = Command_new();
     command->action = ACTION_KEY_PRESS;
@@ -252,9 +258,9 @@ bool Config_install_fallback(volatile Config *self) {
   command = Command_new();
   command->action = ACTION_TYPE;
   command->mask = READY_MESSAGE;
-  command->data = 0;  
+  command->data = 0;
   Binding_add(binding, command);
-  
+
   Config_add_binding(self, binding);
 
   binding = Binding_new();
@@ -263,11 +269,11 @@ bool Config_install_fallback(volatile Config *self) {
   command = Command_new();
   command->action = ACTION_SHOW_VERSION;
   command->mask = 0;
-  command->data = 0;  
+  command->data = 0;
   Binding_add(binding, command);
 
   Config_add_binding(self, binding);
-  
+
   return true;
 }
 
@@ -330,7 +336,7 @@ void Binding_read(Binding *self, FILE* in) {
 
   Command *command;
   uint8_t size = fgetc(in);
-  
+
   for(int i=0; i<size; i++) {
     command = Binding_add(self, Command_new());
     Command_read(command, in);
@@ -432,4 +438,3 @@ void Expansion_free(Expansion* self) {
 }
 
 //-----------------------------------------------------------------------------
-

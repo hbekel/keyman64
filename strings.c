@@ -39,11 +39,16 @@ void StringList_init() {
 Definition *Definition_new(const char* name, const char* value) {
   Definition* self = (Definition*) calloc(1, sizeof(Definition));
 
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-truncation"
+
   self->name = (char*) calloc(strlen(name)+1, sizeof(char));
-  strncpy(self->name, name, strlen(name)+1);
+  strncpy(self->name, name, strlen(name));
 
   self->value = (char*) calloc(strlen(value)+1, sizeof(char));
-  strncpy(self->value, value, strlen(value)+1);
+  strncpy(self->value, value, strlen(value));
+
+  #pragma GCC diagnostic pop
 
   return self;
 }
@@ -82,39 +87,49 @@ Definition* StringList_get_definition(const char* name) {
 
 StringList *StringList_new(void) {
   StringList_init();
-  
+
   StringList *stringlist = (StringList*) calloc(1, sizeof(StringList));
   stringlist->size = 0;
-  stringlist->strings = (char**) NULL;  
+  stringlist->strings = (char**) NULL;
   return stringlist;
 }
 
-void StringList_append(StringList *self, const char *string, const char* delim) {  
+void StringList_append(StringList *self, const char *string, const char* delim) {
 
   if(StringList_has_definition(string)) {
     StringList_append_tokenized(self, StringList_get_definition(string)->value, delim);
   }
   else {
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstringop-truncation"
+
     self->strings = (char**) realloc(self->strings, (self->size+1) * sizeof(char *));
     self->strings[self->size] = calloc(strlen(string)+1, sizeof(char));
     strncpy(self->strings[self->size], string, strlen(string));
     self->size++;
+
+    #pragma GCC diagnostic pop
   }
 }
 
 void StringList_append_tokenized(StringList *self, const char* input, const char *delim) {
   char *substring;
   char *saveptr;
-  
+
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-truncation"
+
   char *string = (char*) calloc(strlen(input)+1, sizeof(char));
   strncpy(string, input, strlen(input));
-  
+
+  #pragma GCC diagnostic pop
+
   if((substring = strtok_r(string, delim, &saveptr)) != NULL) {
     StringList_append(self, substring, delim);
-  
+
     while((substring = strtok_r(NULL, delim, &saveptr)) != NULL) {
       StringList_append(self, substring, delim);
-    } 
+    }
   }
   free(string);
 }
