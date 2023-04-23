@@ -49,6 +49,7 @@ volatile uint8_t meta;
 volatile bool boot;
 volatile bool reset;
 
+static void (*SetupCrosspointSwitch)(void);
 static void (*ResetCrosspointSwitch)(void);
 static void (*StrobeCrosspointSwitch)(void);
 static void (*ClockMatrix)(void);
@@ -409,19 +410,21 @@ bool ScanMatrix(void) {
 
 //-----------------------------------------------------------------------------
 
-void ResetCrosspointSwitch22106(void) {
-  PORTD &= ~CPR;
-  _delay_ms(1);
+void SetupCrosspointSwitch22106(void) {
   PORTD |= CPR;
+}
 
+void SetupCrosspointSwitch8808(void) {
+  PORTD &= ~CPR;
+}
+
+//-----------------------------------------------------------------------------
+
+void ResetCrosspointSwitch22106(void) {
   for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
 }
 
 void ResetCrosspointSwitch8808(void) {
-  PORTD |= CPR;
-  _delay_ms(1);
-  PORTD &= ~CPR;
-
   for(uint8_t i=0; i<64; i++) SetCrosspointSwitch(i, false);
 }
 
@@ -793,10 +796,12 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
   case ACTION_DEFINE_SWITCH:
     if(cmd->data == SWITCH_22106) {
+      SetupCrosspointSwitch = &SetupCrosspointSwitch22106;
       ResetCrosspointSwitch = &ResetCrosspointSwitch22106;
       StrobeCrosspointSwitch = &StrobeCrosspointSwitch22106;
     }
     if(cmd->data == SWITCH_8808) {
+      SetupCrosspointSwitch = &SetupCrosspointSwitch8808;
       ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
       StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;
     }
@@ -1404,14 +1409,17 @@ int main(void) {
   boot = false;
   reset = false;
 
+  SetupCrosspointSwitch = &SetupCrosspointSwitch8808;
   ResetCrosspointSwitch = &ResetCrosspointSwitch8808;
   StrobeCrosspointSwitch = &StrobeCrosspointSwitch8808;
+
   ClockMatrix = &ClockMatrixFast;
 
   config = Config_new();
 
   Config_read(config, &eeprom) || Config_install_fallback(config);
 
+  SetupCrosspointSwitch();
   ResetCrosspointSwitch();
 
   ScanMatrix();
