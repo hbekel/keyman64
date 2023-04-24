@@ -61,8 +61,6 @@ static volatile uint8_t *usbData;
 static volatile uint16_t usbDataPos;
 static volatile uint16_t usbDelay;
 
-volatile char version[64];
-
 //-----------------------------------------------------------------------------
 
 #include "config.h"
@@ -133,7 +131,6 @@ void ExecuteSerialCommand() {
   uint8_t port;
   uint8_t mask;
   uint8_t key;
-  char petscii[2] = { '\0', '\0' };
   Command *command;
 
   switch(serial.command) {
@@ -181,8 +178,7 @@ void ExecuteSerialCommand() {
     break;
 
   case SERIAL_COMMAND_TYPE:
-    petscii[0] = serial.arguments[0];
-    Type(petscii);
+    chrout(serial.arguments[0]);
     break;
   }
 }
@@ -530,52 +526,44 @@ bool QueryKeyUp(volatile uint8_t key) {
 
 //-----------------------------------------------------------------------------
 
-void Type(char *str) {
+void chrout(char chr) {
   Sequence *sequence;
   uint8_t code;
   uint8_t key;
-  uint16_t len = strlen(str);
   static uint8_t last;
 
-  for(uint16_t i=0; i<len; i++) {
-    sequence = &(encoding[(uint8_t)(str[i])]);
+  sequence = &(encoding[(uint8_t)chr]);
 
-    for(uint16_t k=0; k<sequence->size; k++) {
-      code = sequence->codes[k];
+  for(uint16_t k=0; k<sequence->size; k++) {
+    code = sequence->codes[k];
 
-      if((code & CODE_MASK) == CODE_KEY_DOWN) {
-        SetCrosspointSwitch(code & ~CODE_MASK, true);
-        PROPAGATE;
-      }
-      else if((code & CODE_MASK) == CODE_KEY_UP) {
-        SetCrosspointSwitch(code & ~CODE_MASK, false);
-        PROPAGATE;
-      }
-      else if((code & CODE_MASK) == CODE_KEY_PRESS) {
-        key = (code & ~CODE_MASK);
+    if((code & CODE_MASK) == CODE_KEY_DOWN) {
+      SetCrosspointSwitch(code & ~CODE_MASK, true);
+      PROPAGATE;
+    }
+    else if((code & CODE_MASK) == CODE_KEY_UP) {
+      SetCrosspointSwitch(code & ~CODE_MASK, false);
+      PROPAGATE;
+    }
+    else if((code & CODE_MASK) == CODE_KEY_PRESS) {
+      key = (code & ~CODE_MASK);
 
-        if(key == last) DELAY;
+      if(key == last) DELAY;
 
-        RelayKeyPress(key);
-        last = key;
-      }
+      RelayKeyPress(key);
+      last = key;
     }
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void Newline(void) {
-  DELAY;
-  SetCrosspointSwitch(KEY_SHIFTLEFT, true); PROPAGATE;
-  RelayKeyPress(8);
-  SetCrosspointSwitch(KEY_SHIFTLEFT, false); PROPAGATE;
-}
+static FILE direct_mode_stdout = FDEV_SETUP_STREAM(chrout, NULL, _FDEV_SETUP_WRITE);
 
 //-----------------------------------------------------------------------------
 
-void Paragraph(void) {
-  Newline(); Newline();
+void SetupStdout(void) {
+  stdout = &direct_mode_stdout;
 }
 
 //-----------------------------------------------------------------------------
@@ -631,7 +619,7 @@ void Lock(void) {
     STATE = STATE_LOCKED;
   }
   else {
-    Type("no password defined"); Paragraph();
+    printf("no password defined\n\n");
   }
 }
 
@@ -777,7 +765,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
   case ACTION_TYPE:
     index = cmd->mask | (cmd->data << 8);
-    Type(cfg->strings[index]);
+    printf(cfg->strings[index]);
     break;
 
   case ACTION_BOOT:
@@ -829,8 +817,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
     break;
 
   case ACTION_SHOW_VERSION:
-    Type((char*)version);
-    Paragraph();
+    printf("firmware %s\n\n", VERSION);
     break;
 
   case ACTION_SHOW_STATE:
@@ -861,24 +848,6 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
 
 //-----------------------------------------------------------------------------
 
-void SetupVersionString(void) {
-
-  char *v = "firmware " VERSION;
-  int len = strlen(v);
-
-  for(uint8_t i=0; i<64; i++) {
-    version[i] = '\0';
-  }
-  uint8_t o=0;
-
-  for(uint8_t i=0; i<strlen(v); i++) {
-    if(i>1 && v[i-1] == ' ' && v[i] == ' ') continue;
-    version[o++] = tolower(v[i]);
-  }
-}
-
-//-----------------------------------------------------------------------------
-
 static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 
   uint8_t i=0;
@@ -898,7 +867,7 @@ static char* p2s(char **dst, uint8_t volatile *port, uint8_t volatile *ddr) {
 //-----------------------------------------------------------------------------
 
 void ShowState(void) {
-  const char *template = "a 00000000\n";
+  const char *template = "a 00000000";
   char *line = (char*) calloc(11, sizeof(char));
   strcpy(line, template);
 
@@ -906,21 +875,21 @@ void ShowState(void) {
   uint8_t ddr = 0xff;
 
   p2s(&state, &PORTB, &DDRB);
-  Type(line);
+  printf("%s\n", line);
 
   p2s(&state, &PORTC, &DDRC);
   line[0]++;
-  Type(line);
+  printf("%s\n", line);
 
   if(Config_has_expansion(config)) {
     Expansion *e = config->expansion;
     for(uint8_t i = 0; i < e->num_ports; i++) {
       p2s(&state, &e->ports[i], &ddr);
       line[0]++;
-      Type(line);
+      printf("%s\n", line);
     }
   }
-  Newline();
+  printf("\n");
   free(line);
 }
 
@@ -998,15 +967,10 @@ void SetPassword(void) {
     }
     Storage_save_password(storage);
 
-    Type("ok, password ");
-    if(strlen(storage->password)) {
-      Type("set"); Paragraph();
-    } else {
-      Type("cleared"); Paragraph();
-    }
+    printf("ok, password %s\n\n", strlen(storage->password) ? "set" : "cleared");
   }
   else {
-    Type("passwords differ, nothing changed"); Paragraph();
+    printf("passwords differ, nothing changed\n\n");
   }
 }
 
@@ -1016,41 +980,43 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *usbRequest = (void*) data;
 
-  switch(usbRequest->bRequest) {
+  if ((usbRequest->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_VENDOR) {
+    switch(usbRequest->bRequest) {
 
-  case KEYMAN64_CTRL:
-  case KEYMAN64_FLASH:
-    usbCommand = usbRequest->bRequest;
-    usbDataLength = usbRequest->wLength.word;
-    usbDelay = usbRequest->wValue.word;
-    usbDataReceived = 0;
+    case KEYMAN64_CTRL:
+    case KEYMAN64_FLASH:
+      usbCommand = usbRequest->bRequest;
+      usbDataLength = usbRequest->wLength.word;
+      usbDelay = usbRequest->wValue.word;
+      usbDataReceived = 0;
 
-    if(usbData == NULL) {
-      usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+      if(usbData == NULL) {
+        usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+      }
+      return USB_NO_MSG;
+      break;
+
+    case KEYMAN64_BOOT:
+      boot = true;
+      break;
+
+    case KEYMAN64_RESET:
+      reset = true;
+      break;
+
+    case KEYMAN64_IDENTIFY:
+      usbMsgPtr = (uchar *) VERSION;
+      return strlen(VERSION)+1;
+      break;
+
+    case KEYMAN64_KEY_DOWN:
+      SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], true, LOCK_USB);
+      break;
+
+    case KEYMAN64_KEY_UP:
+      SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], false, LOCK_USB);
+      break;
     }
-    return USB_NO_MSG;
-    break;
-
-  case KEYMAN64_BOOT:
-    boot = true;
-    break;
-
-  case KEYMAN64_RESET:
-    reset = true;
-    break;
-
-  case KEYMAN64_IDENTIFY:
-    usbMsgPtr = (uchar *) version;
-    return strlen((const char*)version)+1;
-    break;
-
-  case KEYMAN64_KEY_DOWN:
-    SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], true, LOCK_USB);
-    break;
-
-  case KEYMAN64_KEY_UP:
-    SetCrosspointSwitchLocked(usbRequest->wValue.bytes[0], false, LOCK_USB);
-    break;
   }
   return 0;
 }
@@ -1119,7 +1085,7 @@ void EnterPassword(char* prompt, char* buffer) {
   uint8_t len;
   buffer[0] = 0;
 
-  Type(prompt);
+  printf(prompt);
 
   while(1) {
 
@@ -1135,10 +1101,10 @@ void EnterPassword(char* prompt, char* buffer) {
     buffer[len+1] = 0;
 
     if(key == KEY_RETURN) {
-      Newline();
+      printf("\n");
       break;
     }
-    Type("*");
+    printf("*");
   }
 }
 
@@ -1399,11 +1365,10 @@ void Expansion_update(Expansion* self) {
 //-----------------------------------------------------------------------------
 
 int main(void) {
-
   SetupHardware();
   SetupKeyboardLayout();
   SetupMappings();
-  SetupVersionString();
+  SetupStdout();
 
   meta = KEY_BACKARROW;
   boot = false;

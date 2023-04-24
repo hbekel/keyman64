@@ -51,6 +51,9 @@ uint16_t BOOTLOADER_MAGIC = 0xb0b0;
 uint32_t STORAGE_MAGIC = 0xABCD1234;
 uint16_t STORAGE_ADDRESS = 0x1000 - sizeof(Storage);
 
+void chrout(char chr);
+
+void SetupStdout(void);
 void SetupHardware(void);
 void SetupSerial(void);
 void SetupExpansion(void);
@@ -87,10 +90,6 @@ void ResetCrosspointSwitch8808(void);
 void StrobeCrosspointSwitch8808(void);
 void SetCrosspointSwitch(uint8_t index, bool closed);
 void SetCrosspointSwitchLocked(uint8_t index, bool closed, uint8_t lock);
-void Type(char *string);
-void Newline(void);
-void Paragraph(void);
-void SetupVersionString(void);
 void ShowState(void);
 void GetState(State* state);
 void SetState(State* state);
