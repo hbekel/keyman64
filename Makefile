@@ -1,7 +1,7 @@
 include Makefile.inc
 
 CC?=gcc
-CFLAGS=-std=gnu99 -Wall -Wno-unused -Wno-expansion-to-defined -O2 -DVERSION=$(VERSION)
+CFLAGS=-std=gnu99 -Wall -Wno-unused -Wno-expansion-to-defined -O2 -DVERSION=\"$(VERSION)\"
 MINGW32?=i686-w64-mingw32
 KASM?=java -jar /usr/share/kickassembler/KickAss.jar
 
@@ -21,7 +21,7 @@ ifeq ($(UNAME), Linux)
   UDEV=1
 endif
 
-.PHONY: all clean intelhex
+.PHONY: all intelhex clean distclean
 
 HEADERS=config.h \
 	strings.h \
@@ -103,7 +103,7 @@ bootloader-clean:
 
 firmware: firmware/main.hex
 
-firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h keyboard.h config.h config.c 
+firmware/main.hex: firmware/main.h firmware/main.c firmware/encoding.h keyboard.h config.h config.c
 	VERSION=$(VERSION) make -C firmware
 
 firmware-clean:
@@ -111,7 +111,7 @@ firmware-clean:
 	if [ "x$$OSTYPE" = "xcygwin" ]; then \
 	git checkout firmware/usbdrv/usbdrvasm.S; else true; fi
 
-program: keyman64 firmware 
+program: keyman64 firmware
 	(./keyman64 boot && sleep 3) || true
 	make -C firmware program
 
@@ -139,12 +139,15 @@ clean: firmware-clean bootloader-clean intelhex-clean
 	rm -rf keyman64
 	rm -rf keyman64.exe
 	rm -rf *prg *.bin *.hex *.exe.stackdump
-	rm -rf download
+	rm -rf release
+
+distclean: clean
+	rm -rf libusb-1.0*
 
 install: keyman64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 keyman64 $(DESTDIR)$(PREFIX)/bin
-	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/	
+	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/
 	install -m644 completion/keyman64 \
 			$(DESTDIR)$(SYSCONFDIR)/bash_completion.d/
 
@@ -161,16 +164,33 @@ uninstall:
 udev-uninstall:
 	rm -f /etc/udev/rules.d/10-keyman64.rules
 
-download: clean keyman64 bin hex
-	mkdir download
-	cp *.hex download/
-	cp *.bin download/
-	cp Changelog download/Changelog.txt
+msi: win32 libusb-1.0.dll
+	wixl --arch x86 --define VERSION=$(VERSION) -o ../Keyman64-$(VERSION).msi keyman64.wxs && \
+	$(MD5SUM) ../Keyman64-$(VERSION).msi > \
+		../Keyman64-$(VERSION).msi.md5
+
+libusb-1.0.26-binaries.7z:
+	wget https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26-binaries.7z
+
+libusb-1.0.26-binaries: libusb-1.0.26-binaries.7z
+	7z x -y libusb-1.0.26-binaries.7z
+
+libusb-1.0.dll: libusb-1.0.26-binaries
+	cp libusb-1.0.26-binaries/VS2015-Win32/dll/libusb-1.0.dll .
+
+release: clean keyman64 bin hex win32 libusb-1.0.dll
+	mkdir release
+	cp *.hex release/
+	cp *.bin release/
+	cp Changelog release/Changelog.txt
 	make -C hardware/gerber
-	cp hardware/gerber/*.zip download/
-	git archive --prefix=keyman64-$(VERSION)/ -o download/keyman64-$(VERSION).tar.gz HEAD
-	for f in download/*.hex; do $(MD5SUM) "$$f" > "$$f".md5; done
-	for f in download/*.bin; do $(MD5SUM) "$$f" > "$$f".md5; done
-	for f in download/*.gz; do $(MD5SUM) "$$f" > "$$f".md5; done
-	for f in download/*.zip; do $(MD5SUM) "$$f" > "$$f".md5; done
-	tar -v -c -z --transform 's/download/keyman64/' -f keyman64.tar.gz download/
+	cp hardware/gerber/*.zip release/
+	git archive --prefix=keyman64-$(VERSION)/ -o release/keyman64-$(VERSION).tar.gz HEAD
+	wixl --arch x86 --define VERSION=$(VERSION) -o release/keyman64-$(VERSION).msi keyman64.wxs
+	for f in release/*.hex; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in release/*.bin; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in release/*.gz; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in release/*.zip; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in release/*.msi; do $(MD5SUM) "$$f" > "$$f".md5; done
+	tar -v -c -z --transform 's/release/keyman64/' -f keyman64.tar.gz release/
+	make distclean

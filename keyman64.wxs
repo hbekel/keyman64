@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product Name='Keyman64 $(var.VERSION)'
+	   Manufacturer='Henning Liebenau'
+	   Version='$(var.VERSION)'
+	   Id='eeea9b5f-c5e9-40dc-a8bf-cc3b7543aa79'
+           UpgradeCode='3d742c87-bb62-4223-9a0d-efac9381de82'
+           Language='1033'
+	   Codepage='1252'>
+      <Package Id='*'
+	       Keywords='Installer'
+	       Description="Keyman64 $(var.VERSION) installer"
+               Comments='Programmable keyboard interceptor and hardware control system'
+	       Manufacturer='Henning Liebenau'
+               InstallerVersion='100'
+	       Languages='1033'
+	       Compressed='yes'
+	       SummaryCodepage='1252' />
+      <Media Id='1' Cabinet='Keyman64.cab' EmbedCab='yes' />
+
+      <Directory Id='TARGETDIR' Name='SourceDir'>
+
+        <!-- See https://gitlab.gnome.org/GNOME/msitools/-/merge_requests/42 -->
+        <Component Id='Keyman64ExecutableOnPath' Guid='952ca2c1-d40a-4924-9c35-8bc58a2d0a35'>
+          <Environment Id='39aaa28c-fc1a-4e12-b820-2ad231b9a4da' Name='PATH' System='yes' Action='set' Part='last' Value='[INSTALLDIR]' />
+        </Component>
+
+	<Directory Id='ProgramFilesFolder' Name='PFiles'>
+
+	  <Directory Id='INSTALLDIR' Name='Keyman64'>
+            <Component Id='Keyman64Executable' Guid='de357c03-a481-4f91-ad74-8f5bd463f1ab'>
+	      <File Id='Keyman64EXE' Name='keyman64.exe' DiskId='1' Source='keyman64.exe' KeyPath='yes' />
+            </Component>
+	  </Directory>
+	</Directory>
+
+	<Directory Id='SystemFolder' Name='SFiles'>
+          <Component Id='LibUSBLibrary' Guid='1e5d2eae-1618-4fcf-9f2b-87d1b6c15ad1'>
+	    <File Id='libusbDLL' Name='libusb-1.0.dll' DiskId='1' Source='libusb-1.0.dll' KeyPath='yes' />
+          </Component>
+	</Directory>
+      </Directory>
+
+      <Feature Id='Complete' Level='1'>
+	<ComponentRef Id='Keyman64Executable' />
+        <!-- See https://gitlab.gnome.org/GNOME/msitools/-/merge_requests/42 -->
+        <ComponentRef Id='Keyman64ExecutableOnPath' />
+	<ComponentRef Id='LibUSBLibrary' />
+      </Feature>
+
+    </Product>
+</Wix>

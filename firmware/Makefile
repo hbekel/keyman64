@@ -167,7 +167,7 @@ CFLAGS += -Wno-pragmas
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += $(CSTANDARD)
-CFLAGS += -DVERSION=$(VERSION)
+CFLAGS += -DVERSION=\"$(VERSION)\"
 
 #---------------- Compiler Options C++ ----------------
 #  -g*:          generate debugging information

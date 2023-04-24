@@ -12,7 +12,9 @@
 *.exe
 *.stackdump
 *.zip
+*.7z
 *.d64
+*.dll
 progmem
 keyman64
 keyman64.rom
@@ -22,3 +24,5 @@ bootloader/updater/usbasploader.raw
 intelhex/ihex2bin
 download/*
 *.tar.gz
+*.msi
+libusb*/**/*
