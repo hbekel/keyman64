@@ -164,11 +164,6 @@ uninstall:
 udev-uninstall:
 	rm -f /etc/udev/rules.d/10-keyman64.rules
 
-msi: win32 libusb-1.0.dll
-	wixl --arch x86 --define VERSION=$(VERSION) -o ../Keyman64-$(VERSION).msi keyman64.wxs && \
-	$(MD5SUM) ../Keyman64-$(VERSION).msi > \
-		../Keyman64-$(VERSION).msi.md5
-
 libusb-1.0.26-binaries.7z:
 	wget https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26-binaries.7z
 
