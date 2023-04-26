@@ -61,10 +61,29 @@ static volatile uint8_t *usbData;
 static volatile uint16_t usbDataPos;
 static volatile uint16_t usbDelay;
 
+int usbDescriptorStringSerialNumber[] = {
+  USB_STRING_DESCRIPTOR_HEADER(16),
+  0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0,
+};
+
 //-----------------------------------------------------------------------------
 
 #include "config.h"
 #include "../config.c"
+
+//-----------------------------------------------------------------------------
+
+void SetSerial(char *serial) {
+  int len = strlen(serial);
+  len = (len > 16) ? 16 : len;
+
+  usbDescriptorStringSerialNumber[1] = (int) strlen(serial);
+
+  for(uint8_t i=0; i<16; i++) {
+    usbDescriptorStringSerialNumber[i+1] = (int) ((i < len) ? serial[i] : 0);
+  }
+}
 
 //-----------------------------------------------------------------------------
 
@@ -803,6 +822,10 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
       ClockMatrix = &ClockMatrixFast;
     }
     break;
+
+  case ACTION_DEFINE_SERIAL:
+    index = cmd->mask | (cmd->data << 8);
+    SetSerial(cfg->strings[index]);
 
   case ACTION_SAVE_STATE:
     SaveState();

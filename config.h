@@ -34,6 +34,7 @@
 #define ACTION_RECALL        27
 #define ACTION_DEFINE_SPEED  28
 #define ACTION_EXPAND        29
+#define ACTION_DEFINE_SERIAL 30
 
 #define PORT_A    0
 #define PORT_B    1
@@ -65,7 +66,7 @@ typedef struct {
   uint8_t key;
   uint8_t state;
   uint8_t times;
-  uint8_t count;  
+  uint8_t count;
   Command** commands;
 } Binding;
 
@@ -74,7 +75,7 @@ typedef struct {
   uint8_t porta;
   uint8_t ddrb;
   uint8_t portb;
-  uint8_t ports[24];  
+  uint8_t ports[24];
 } State;
 
 typedef struct {

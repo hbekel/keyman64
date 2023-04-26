@@ -81,6 +81,7 @@ static uint8_t parseAction(char* str) {
   if(strcasecmp(str, "recall"   ) == 0) return ACTION_RECALL;
   if(strcasecmp(str, "speed"    ) == 0) return ACTION_DEFINE_SPEED;
   if(strcasecmp(str, "expand"   ) == 0) return ACTION_EXPAND;
+  if(strcasecmp(str, "serial"   ) == 0) return ACTION_DEFINE_SERIAL;
 
   return ACTION_NONE;
 }
@@ -762,6 +763,27 @@ bool Command_parse(Command* self, char* spec) {
     goto error;
   }
 
+  if(self->action == ACTION_DEFINE_SERIAL) {
+    str = StringList_get(words, i);
+
+    if(str == NULL) {
+      fprintf(stderr, "error: missing string value for 'serial'\n");
+      goto error;
+    }
+
+    if(strlen(str) > 16) {
+      fprintf(stderr, "error: serial string too long (max length 16): '%s'\n", str);
+      goto error;
+    }
+
+    if(!Config_has_string(config, str, &index)) {
+      index = Config_add_string(config, str);
+    }
+
+    self->mask = index & 0xff;
+    self->data = (index >> 8) & 0xff;
+    goto done;
+  }
 
   if(self->action == ACTION_SWAP) {
     if(!parseData(StringList_get(words, i), &data)) {
@@ -1132,6 +1154,7 @@ void Command_print(Command *self, FILE* out) {
   case ACTION_MEMORIZE:      action = "memorize"; break;
   case ACTION_RECALL:        action = "recall";   break;
   case ACTION_DEFINE_SPEED:  action = "speed";    break;
+  case ACTION_DEFINE_SERIAL: action = "serial";   break;
   };
 
   if(self->policy == POLICY_EVEN) {
@@ -1193,6 +1216,13 @@ void Command_print(Command *self, FILE* out) {
   else if(self->action == ACTION_DEFINE_SPEED) {
     fprintf(out, "%s %s", action,
             self->data == SPEED_SLOW ? "slow" : "fast");
+  }
+
+  else if(self->action == ACTION_DEFINE_SERIAL) {
+    uint16_t index = self->mask | (self->data << 8);
+    char *serial = config->strings[index];
+    fprintf(out, "%s %s\n", action, serial);
+    return;
   }
 
   else if(self->action == ACTION_DEFINE_META ||
@@ -1309,8 +1339,16 @@ int main(int argc, char **argv) {
   int result = EXIT_SUCCESS;
   usb_quiet = false;
 
-  device = (char*) calloc(strlen(default_device)+1, sizeof(char));
-  strcpy(device, default_device);
+  char* env_device;
+
+  if((env_device = getenv("KEYMAN64_DEVICE")) != NULL) {
+    device = (char*) calloc(strlen(env_device)+1, sizeof(char));
+    strcpy(device, env_device);
+  }
+  else {
+    device = (char*) calloc(strlen(default_device)+1, sizeof(char));
+    strcpy(device, default_device);
+  }
 
   prepare_devices();
 
