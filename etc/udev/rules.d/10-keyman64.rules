@@ -1,2 +1,7 @@
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="05dc", ATTRS{product}=="USBasp" MODE:="0666", SYMLINK+="usbasp"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="60e9", MODE:="0666", SYMLINK+="keyman64$attr{serial}"
+
+SUBSYSTEMS=="usb", ATTR{idVendor}=="1d50", ATTR{idProduct}=="60e9", ATTR{serial}!="", MODE:="0666", SYMLINK+="keyman64-$attr{serial}", GOTO="keyman64-done"
+
+SUBSYSTEMS=="usb", ATTR{idVendor}=="1d50", ATTR{idProduct}=="60e9", MODE:="0666", SYMLINK+="keyman64"
+
+LABEL="keyman64-done"
