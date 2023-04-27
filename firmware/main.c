@@ -826,6 +826,7 @@ void ExecuteCommand(volatile Config *cfg, Command* cmd) {
   case ACTION_DEFINE_SERIAL:
     index = cmd->mask | (cmd->data << 8);
     SetSerial(cfg->strings[index]);
+    break;
 
   case ACTION_SAVE_STATE:
     SaveState();
