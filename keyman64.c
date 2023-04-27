@@ -33,9 +33,9 @@ bool ignoreMissingPorts = false;
 
 typedef enum { BINARY, CONFIG } Format;
 const char *ws = " \t";
-char *device;
 uint16_t delay = 0;
 
+char *device;
 DeviceInfo keyman64;
 DeviceInfo usbasp;
 
@@ -1329,25 +1329,17 @@ static void prepare_devices(void) {
 //-----------------------------------------------------------------------------
 
 int main(int argc, char **argv) {
-
-#if linux
-  const char* default_device = "/dev/keyman64";
-#else
-  const char* default_device = "usb";
-#endif
-
   int result = EXIT_SUCCESS;
-  usb_quiet = false;
-
   char* env_device;
 
+  device = calloc(1, sizeof(char));
+  device[0] = '\0';
+
+  usb_quiet = false;
+
   if((env_device = getenv("KEYMAN64_DEVICE")) != NULL) {
-    device = (char*) calloc(strlen(env_device)+1, sizeof(char));
+    device = (char*) realloc(device, (strlen(env_device)+1) * sizeof(char));
     strcpy(device, env_device);
-  }
-  else {
-    device = (char*) calloc(strlen(default_device)+1, sizeof(char));
-    strcpy(device, default_device);
   }
 
   prepare_devices();

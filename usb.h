@@ -18,7 +18,6 @@ typedef struct {
   unsigned int pid;
   int bus;
   int address;
-  char *serial;
 } DeviceInfo;
 
 bool usb_ping(DeviceInfo *info);

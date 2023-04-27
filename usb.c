@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "usb.h"
 #include "target.h"
@@ -16,56 +17,14 @@
 
 bool usb_quiet = false;
 
-static bool usb_lookup(DeviceInfo *info) {
-
-  info->bus     = -1;
-  info->address = -1;
-  info->serial  = NULL;
-
-#if linux
-
-  char* real = realpath(info->path, NULL);
-  char* tmp = real;
-  char* bus;
-  char* address;
-
-  if(real == NULL) return false;
-
-  char prefix[] = "/dev/bus/usb/";
-
-  if(strstr(real, prefix) == real) {
-
-    tmp += strlen(prefix);
-    tmp[3] = '\0';
-
-    bus = tmp;
-    address = tmp+4;
-
-    info->bus = strtol(bus, NULL, 10);
-    info->address = strtol(address, NULL, 10);
-  }
-
-  free(real);
-
-#elif windows
-
-  char *colon;
-  if((colon = strstr(info->path, ":")) != NULL) {
-    info->serial = colon+1;
-  }
-#endif
-  return true;
-}
-
 //-----------------------------------------------------------------------------
 
-static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
+#if unix
+static libusb_device_handle* usb_open_dev_node(libusb_context* context, DeviceInfo *info) {
 
   libusb_device_handle* handle = NULL;
   libusb_device *device;
   int result;
-
-#if unix
   int fd;
 
   if((fd = open(info->path, O_RDWR)) < 0) {
@@ -94,14 +53,41 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
 
  done:
   return handle;
+}
+#endif
 
-#else
+//-----------------------------------------------------------------------------
 
+static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
+
+  libusb_device_handle* handle = NULL;
+  libusb_device *device;
   libusb_device **devices;
   struct libusb_device_descriptor descriptor;
 
   char serial[256];
+  int result;
   int i = 0;
+
+#if unix // check if info->path points to a device node, else continue
+  if(strlen(info->path) > 0) {
+
+    struct stat st;
+    stat(info->path, &st);
+
+    if(S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode)) {
+      if((handle = usb_open_dev_node(context, info)) != NULL) {
+        return handle;
+      }
+    }
+  }
+#endif
+
+  if(strlen(info->path) == 0) { // no specific device requested, so just open the first keyman64 device
+    return libusb_open_device_with_vid_pid(context, info->vid, info->pid);
+  }
+
+  // else iterate device tree, match vid, pid and serial
 
   if((result = libusb_get_device_list(context, &devices)) < 0) {
     if(!usb_quiet) {
@@ -124,66 +110,39 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
     if(descriptor.idVendor == info->vid &&
        descriptor.idProduct == info->pid) {
 
-      if(info->bus > -1) {
-        if(libusb_get_bus_number(device) != info->bus) {
-          continue;
-        }
-      }
+      if(descriptor.iSerialNumber != 0) { // this only means the device *has* a serial number
 
-      if(info->address > -1) {
-        if(libusb_get_device_address(device) != info->address) {
-          continue;
-        }
-      }
-
-      if(info->serial != NULL) {
-
-        if(descriptor.iSerialNumber != 0) {
-
-          if((result = libusb_open(device, &handle)) < 0) {
-            if(!usb_quiet) {
-              fprintf(stderr, "warning: could not open usb device %03d/%03d: %s\n",
-                      libusb_get_bus_number(device),
-                      libusb_get_device_address(device),
-                      libusb_strerror(result));
-            }
-            continue;
-          }
-
-          result = libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber,
-                                                      (unsigned char *) &serial, sizeof(serial));
-
-          if(result < 0) {
-            if(!usb_quiet) {
-              fprintf(stderr, "warning: could not get serial number from device: %s\n",
-                      libusb_strerror(result));
-            }
-            goto skip;
-          }
-
-          if(strcmp(serial, info->serial) == 0) {
-            goto done;
-          }
-
-        skip:
-          libusb_close(handle);
-          handle = NULL;
-          continue;
-        }
-      }
-
-      if(handle == NULL) {
+        // we have to open the device to actually get the serial number
         if((result = libusb_open(device, &handle)) < 0) {
           if(!usb_quiet) {
-            fprintf(stderr, "error: could not open usb device %03d/%03d: %s\n",
+            fprintf(stderr, "warning: could not open usb device %03d/%03d: %s\n",
                     libusb_get_bus_number(device),
                     libusb_get_device_address(device),
                     libusb_strerror(result));
           }
+          continue;
+        }
+
+        // device is opened, get the serial number
+        result = libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber,
+                                                    (unsigned char *) &serial, sizeof(serial));
+
+        if(result < 0) {
+          if(!usb_quiet) {
+            fprintf(stderr, "warning: could not get serial number from device: %s\n",
+                    libusb_strerror(result));
+          }
+          // we couldn't get the serial number for some reason, so we
+          // close this device again and continue with the next device
+          libusb_close(handle);
           handle = NULL;
+          continue;
+        }
+
+        if(strcmp(serial, info->path) == 0) { // serial matches, device is already open, so we're done
+          goto done;
         }
       }
-      goto done;
     }
   }
 
@@ -191,7 +150,6 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
   libusb_free_device_list(devices, true);
 
   return handle;
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -209,7 +167,6 @@ static int usb_message(DeviceInfo *info, int direction, uint8_t message, uint16_
     goto done;
   }
 
-  usb_lookup(info);
   handle = usb_open(NULL, info);
 
   if(handle == NULL) {
@@ -261,7 +218,6 @@ bool usb_ping(DeviceInfo *info) {
     goto done;
   }
 
-  usb_lookup(info);
   handle = usb_open(NULL, info);
   result = handle != NULL;
 
