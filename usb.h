@@ -20,9 +20,16 @@ typedef struct {
   int address;
 } DeviceInfo;
 
+typedef struct libusb_device_descriptor libusb_device_descriptor_t;
+
 bool usb_ping(DeviceInfo *info);
 int usb_control(DeviceInfo *info, uint8_t message);
 int usb_send(DeviceInfo *info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
 int usb_receive(DeviceInfo* info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
+
+void usb_iterate_devices(libusb_context* context, uint16_t vid, uint16_t pid,
+                         void (*consumer(libusb_device*, libusb_device_descriptor_t *descriptor)));
+
+void usb_get_serial_number(libusb_device *device, libusb_device_descriptor_t *descriptor, char *serial, size_t len);
 
 #endif // KEYMAN64_USB_H

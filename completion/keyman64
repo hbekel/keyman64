@@ -3,23 +3,27 @@
 function _keyman64 {
 
     COMPREPLY=()
+    local all="${COMP_WORDS[@]}"
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
     local sec="${COMP_WORDS[1]}"
 
-    local long_options="--help --version --device --delay --keys --preserve --identify"
-    local short_options="-h -v -d -D -k -p -i"
-    local commands="configure convert update using meta boot save restore memorize recall set clear tristate invert increment decrement down up press type swap map password lock exec sleep version status speed reset"
-    
-    if [[ "$cur" =~ ^\-\- ]]; then
+    local long_options="$(keyman64 --complete-options)"
+    local devices="$(keyman64 --complete-devices) $(ls --color=tty /dev/keyman64* 2> /dev/null)"
+    local commands="configure convert update reset using meta boot save restore memorize recall set clear tristate invert increment decrement down up press type swap map password lock exec sleep version status speed serial"
+
+    if [[ "$all" =~ configure|convert|update ]]; then
+	COMPREPLY=( $(compgen -f -- "${cur}") )
+
+    elif [[ "$prev" == "--device" ]]; then
+	COMPREPLY=( $(compgen -W "$devices" -- "${cur}") )
+
+    elif [[ "$cur" =~ ^\-\- ]]; then
 	COMPREPLY=( $(compgen -W "$long_options" -- "${cur}") )
 
-    elif [[ "$cur" =~ ^\-[^\-]? ]]; then
-	COMPREPLY=( $(compgen -W "$short_options" -- "${cur}") )
-
     else
-	COMPREPLY=( $(compgen -W "$commands" -- "${cur}") )
+	COMPREPLY=( $(compgen -f -W "$commands" -- "${cur}") )
     fi
     return 0
 }
-complete -f -F _keyman64 keyman64
+complete -F _keyman64 keyman64

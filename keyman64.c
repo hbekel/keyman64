@@ -1328,6 +1328,58 @@ static void prepare_devices(void) {
 
 //-----------------------------------------------------------------------------
 
+void print_serial(libusb_device *device, libusb_device_descriptor_t *descriptor) {
+  char serial[16+1];
+
+  usb_get_serial_number(device, descriptor, serial, 16);
+
+  if(strlen(serial) > 0) {
+    printf("%s ", serial);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void complete_devices() {
+  usb_iterate_devices(NULL, KEYMAN64_VID, KEYMAN64_PID, (void*) &print_serial);
+}
+
+//-----------------------------------------------------------------------------
+
+void complete_options() {
+  extern struct option options[];
+  struct option option;
+  int i = 0;
+
+  while(true) {
+    option = options[i];
+    if(option.name == 0) break;
+
+    if(strstr(option.name, "complete") == NULL) {
+      printf("--%s ", option.name);
+    }
+
+    i++;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+struct option options[] = {
+  { "help",              no_argument,       0, 'h' },
+  { "version",           no_argument,       0, 'v' },
+  { "device",            required_argument, 0, 'd' },
+  { "keys",              no_argument,       0, 'k' },
+  { "delay",             required_argument, 0, 'D' },
+  { "preserve",          no_argument,       0, 'p' },
+  { "identify",          no_argument,       0, 'i' },
+  { "complete-options",  no_argument,       0, '0' },
+  { "complete-devices",  no_argument,       0, '1' },
+  { 0, 0, 0, 0 },
+};
+
+//-----------------------------------------------------------------------------
+
 int main(int argc, char **argv) {
   int result = EXIT_SUCCESS;
   char* env_device;
@@ -1344,20 +1396,10 @@ int main(int argc, char **argv) {
 
   prepare_devices();
 
-  struct option options[] = {
-    { "help",     no_argument,       0, 'h' },
-    { "version",  no_argument,       0, 'v' },
-    { "device",   required_argument, 0, 'd' },
-    { "keys",     no_argument,       0, 'k' },
-    { "delay",    required_argument, 0, 'D' },
-    { "preserve", no_argument,       0, 'p' },
-    { "identify", no_argument,       0, 'i' },
-    { 0, 0, 0, 0 },
-  };
   int option, option_index;
 
   while(1) {
-    option = getopt_long(argc, argv, "hvd:kD:pi", options, &option_index);
+    option = getopt_long(argc, argv, "hvd:kD:pi01", options, &option_index);
 
     if(option == -1)
       break;
@@ -1396,6 +1438,16 @@ int main(int argc, char **argv) {
 
     case 'i':
       identify();
+      goto done;
+      break;
+
+    case '0':
+      complete_options();
+      goto done;
+      break;
+
+    case '1':
+      complete_devices();
       goto done;
       break;
 
@@ -1840,8 +1892,14 @@ bool reset(void) {
 //-----------------------------------------------------------------------------
 
 void failed(DeviceInfo *device) {
-  fprintf(stderr, "error: failed to open %s device \"%s\" (%04X:%04X)\n",
-          device->role, device->path, device->vid, device->pid);
+  if(strlen(device->path)) {
+      fprintf(stderr, "error: failed to open %s device \"%s\" (%04X:%04X)\n",
+              device->role, device->path, device->vid, device->pid);
+  }
+  else {
+      fprintf(stderr, "error: failed to open %s device (%04X:%04X)\n",
+              device->role, device->vid, device->pid);
+  }
 }
 
 //-----------------------------------------------------------------------------

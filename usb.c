@@ -58,6 +58,82 @@ static libusb_device_handle* usb_open_dev_node(libusb_context* context, DeviceIn
 
 //-----------------------------------------------------------------------------
 
+void usb_get_serial_number(libusb_device *device, libusb_device_descriptor_t *descriptor, char* serial, size_t len) {
+  libusb_device_handle *handle = NULL;
+  int result;
+
+  if(descriptor->iSerialNumber == 0) {
+    serial[0] = '\0';
+    return;
+  }
+
+  if((result = libusb_open(device, &handle)) < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "warning: could not open usb device %03d/%03d: %s\n",
+              libusb_get_bus_number(device),
+              libusb_get_device_address(device),
+              libusb_strerror(result));
+    }
+    return;
+  }
+
+  result = libusb_get_string_descriptor_ascii(handle, descriptor->iSerialNumber,
+                                              (unsigned char *) serial, len);
+
+  if(result < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "warning: could not get serial number from device: %s\n",
+              libusb_strerror(result));
+    }
+  }
+  libusb_close(handle);
+}
+//-----------------------------------------------------------------------------
+
+void usb_iterate_devices(libusb_context* context, uint16_t vid, uint16_t pid,
+                                void (*consumer(libusb_device*, libusb_device_descriptor_t *descriptor))) {
+  libusb_device *device;
+  libusb_device **devices;
+  struct libusb_device_descriptor descriptor;
+  int result;
+  int i = 0;
+
+  if((result = libusb_init(NULL)) < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not initialize libusb-1.0: %s\n",
+              libusb_strerror(result));
+    }
+    return;
+  }
+
+  if((result = libusb_get_device_list(context, &devices)) < 0) {
+    if(!usb_quiet) {
+      fprintf(stderr, "error: could not get usb device list: %s\n",
+              libusb_strerror(result));
+    }
+    return;
+  }
+
+  while ((device = devices[i++]) != NULL) {
+
+    if((result = libusb_get_device_descriptor(device, &descriptor)) < 0) {
+      if(!usb_quiet) {
+        fprintf(stderr, "warning: could not get usb device descriptor: %s\n",
+                libusb_strerror(result));
+      }
+      continue;
+    }
+
+    if(descriptor.idVendor == vid &&
+       descriptor.idProduct == pid) {
+      consumer(device, &descriptor);
+    }
+  }
+  libusb_free_device_list(devices, true);
+}
+
+//-----------------------------------------------------------------------------
+
 static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info) {
 
   libusb_device_handle* handle = NULL;
@@ -69,7 +145,14 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
   int result;
   int i = 0;
 
-#if unix // check if info->path points to a device node, else continue
+  // no specific device requested, so just open the first device found with matching vid/pid
+
+  if(strlen(info->path) == 0) {
+    return libusb_open_device_with_vid_pid(context, info->vid, info->pid);
+  }
+
+  // open by unix device node if info->path poimts to it
+#if unix
   if(strlen(info->path) > 0) {
 
     struct stat st;
@@ -83,11 +166,9 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
   }
 #endif
 
-  if(strlen(info->path) == 0) { // no specific device requested, so just open the first keyman64 device
-    return libusb_open_device_with_vid_pid(context, info->vid, info->pid);
-  }
+  // else assume info->path contains a specific serial number
 
-  // else iterate device tree, match vid, pid and serial
+  // iterate device tree and open the device that matches vid, pid and serial
 
   if((result = libusb_get_device_list(context, &devices)) < 0) {
     if(!usb_quiet) {
@@ -141,6 +222,10 @@ static libusb_device_handle* usb_open(libusb_context* context, DeviceInfo *info)
 
         if(strcmp(serial, info->path) == 0) { // serial matches, device is already open, so we're done
           goto done;
+        }
+        else { // close this device and continue
+          libusb_close(handle);
+          handle = NULL;
         }
       }
     }
